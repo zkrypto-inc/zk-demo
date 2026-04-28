@@ -106,7 +106,7 @@ export const scenarioFU2: Scenario = {
       trigger: "user",
       ctaLabel: "서명 요청",
       screenId: "FU2-1",
-      description: "서명 이전에는 사용자의 의도와 입력값이 먼저 확정됩니다.",
+      description: "거래 대상과 금액을 입력하여 서명 요청을 생성합니다. 아직 실행 전이며 사용자 인증 단계가 이어집니다.",
       processView: {
         kind: "overview",
         description: "사용자가 어떤 거래를 보내려는지 정의합니다. 아직 실행 전이며 요청을 만드는 단계입니다.",
@@ -124,7 +124,7 @@ export const scenarioFU2: Scenario = {
       trigger: "auto",
       duration: 1200,
       screenId: "FU2-2",
-      description: "이 단계는 기술 서명 이전의 사용자 확인 단계입니다.",
+      description: "요청자 본인 여부를 생체인증으로 확인합니다. 인증이 완료된 이후에만 서명 처리 단계로 진행됩니다.",
       processView: {
         kind: "overview",
         description: "요청자가 실제 사용자 본인인지 확인합니다. 인증 성공 후 다음 단계로 넘어갑니다.",
@@ -141,7 +141,7 @@ export const scenarioFU2: Scenario = {
       trigger: "auto",
       duration: 1000,
       screenId: "FU2-3",
-      description: "일반 사용자는 어떤 노드가 참여하는지보다 서명 준비 중 상태만 이해하면 됩니다.",
+      description: "MPC 서명에 참여할 Signer 노드 구성이 시작됩니다. 임계값 서명 방식으로 특정 노드 단독으로는 서명이 불가능합니다.",
       processView: {
         kind: "keygen",
         description: "서명에 필요한 보안 처리 구성이 준비됩니다. 앱에는 서명 준비 상태가 표시됩니다.",
@@ -160,7 +160,7 @@ export const scenarioFU2: Scenario = {
       trigger: "auto",
       duration: 1500,
       screenId: "FU2-4",
-      description: "기술 용어는 문서상 남기되, 실제 UI 문구는 더 부드럽게 바꾸는 것이 좋습니다.",
+      description: "각 Signer 노드가 부분 서명(Partial Signature)을 생성하고 조합합니다. 완전한 서명은 조합이 완료된 후 생성됩니다.",
       processView: {
         kind: "keygen",
         description: "서명 조합 과정이 진행 중입니다. 보안 처리가 단계적으로 이뤄지는 느낌만 전달하면 충분합니다.",

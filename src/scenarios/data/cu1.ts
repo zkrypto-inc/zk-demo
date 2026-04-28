@@ -141,7 +141,7 @@ export const scenarioCU1: Scenario = {
       trigger: "user",
       ctaLabel: "승인 완료 확인",
       screenId: "CU1-2",
-      description: "이 단계는 수탁 등록과 지갑 개설 사이의 운영 통제 지점을 보여주는 역할을 합니다.",
+      description: "플랫폼 운영자가 수탁 등록 요청을 검토하고 승인합니다. 승인이 완료되어야만 지갑 생성 단계로 진행됩니다.",
       processView: {
         kind: "approval",
         description: "플랫폼이 수탁 등록 요청을 검토하고 승인합니다. 승인 완료 후에만 수탁 전용 지갑 생성 요청이 열립니다.",
@@ -175,7 +175,7 @@ export const scenarioCU1: Scenario = {
       trigger: "auto",
       duration: 1800,
       screenId: "CU1-4",
-      description: "이 단계가 수탁 시나리오 안에서 zkMPC의 핵심 가치를 직접 보여주는 구간입니다.",
+      description: "Wallet Service가 MPC 기반 분산 키 생성(Keygen)을 수행합니다. 개인 키는 단일 서버에 존재하지 않으며, 여러 노드가 협력하여 지갑 키를 안전하게 생성합니다.",
       processView: {
         kind: "keygen",
         description: "Wallet Service가 MPC 기반 keygen을 수행합니다. 수탁 전용 지갑이 분산 보안 처리로 안전하게 준비됩니다.",
@@ -195,7 +195,7 @@ export const scenarioCU1: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "CU1-5",
-      description: "이 화면은 수탁 온보딩의 종료 화면이자 이후 입금·출금 시나리오의 출발점입니다.",
+      description: "수탁 전용 지갑 개설이 완료되었습니다. 이후 입금·출금 운영 시나리오로 이어집니다.",
       processView: {
         kind: "artifact",
         description: "수탁 지갑이 개설되었고 이후 운영 시나리오로 연결됩니다. 등록 완료와 지갑 준비 완료가 함께 끝난 상태입니다.",
