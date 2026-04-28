@@ -1,0 +1,16 @@
+export const mockIds = {
+  walletId: "wallet_07KZB3C92",
+  custodyWalletId: "cust_01HXAA9Q1F",
+  issuerWalletId: "iss_wallet_B3C9",
+  tenantId: "tenant_FIN_2026_04",
+  programId: "prog_STBL_KRW_01",
+  keyId: "key_DKG_8C33F1",
+  signId: "sign_A9F2C1D7",
+  requestId: "req_CU_230741",
+  issueRequestId: "req_FS2_001",
+  burnRequestId: "req_FS3_001",
+  liquidityRequestId: "req_FS4_2026Q3",
+  auditEventId: "audit_evt_13B0",
+  cu3RequestId: "req_CU_231001",
+  is1RequestId: "req_IS_290451",
+};
