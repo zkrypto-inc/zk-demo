@@ -4,9 +4,19 @@ import { ApprovalProcessView } from "./views/ApprovalProcessView";
 import { AuditProcessView } from "./views/AuditProcessView";
 import { KeygenProcessView } from "./views/KeygenProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
+import { SequenceProcessView } from "./views/SequenceProcessView";
 
-function renderView(view: ProcessView) {
+function renderView(view: ProcessView, steps: ScenarioStep[] = [], currentStepIndex = 0) {
   switch (view.kind) {
+    case "sequence": {
+      const pastEdges = steps.slice(0, currentStepIndex).flatMap((step) => (
+        step.processView.kind === "sequence" ? [step.processView.activeEdge] : []
+      ));
+      const filteredPastEdges = pastEdges.filter((edge) => (
+        edge.from !== view.activeEdge.from || edge.to !== view.activeEdge.to || edge.label !== view.activeEdge.label
+      ));
+      return <SequenceProcessView actors={view.actors} edge={view.activeEdge} pastEdges={filteredPastEdges} />;
+    }
     case "overview":  return <OverviewProcessView view={view} />;
     case "approval":  return <ApprovalProcessView view={view} />;
     case "keygen":    return <KeygenProcessView view={view} />;
@@ -18,10 +28,12 @@ function renderView(view: ProcessView) {
 
 type Props = {
   currentStep: ScenarioStep;
+  currentStepIndex?: number;
   processView: ProcessView;
+  steps?: ScenarioStep[];
 };
 
-export function ProcessPanel({ currentStep, processView }: Props) {
+export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [] }: Props) {
   return (
     <section className="flex min-h-[650px] flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)]">
       <div className="border-b border-[var(--line)] px-5 py-4">
@@ -39,7 +51,7 @@ export function ProcessPanel({ currentStep, processView }: Props) {
       </div>
 
       <div className="min-h-0 flex-1 p-5">
-        {renderView(processView)}
+        {renderView(processView, steps, currentStepIndex)}
       </div>
     </section>
   );

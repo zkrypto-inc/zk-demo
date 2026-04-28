@@ -1,15 +1,18 @@
 import { useSyncExternalStore } from "react";
-import { scenarioOrder } from "@/scenarios";
-import type { ScenarioId, ScenarioMode } from "@/scenarios/types";
+import { actorGroups, scenarioGroupLookup, scenarioOrder } from "@/scenarios";
+import type { ActorGroupId, ScenarioId, ScenarioMode } from "@/scenarios/types";
 
 export type DemoRoute =
   | { name: "overview" }
   | { name: "mode"; mode: ScenarioMode }
+  | { name: "actor"; actorId: ActorGroupId }
+  | { name: "scenario"; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
   | { name: "demo"; scenarioId: ScenarioId; stepIndex: number };
 
 const modes: ScenarioMode[] = ["platform", "custody", "issuer", "personal"];
 const scenarioIds = new Set<ScenarioId>(scenarioOrder);
 const modeIds = new Set<ScenarioMode>(modes);
+const actorIds = new Set<ActorGroupId>(actorGroups.map((group) => group.id));
 const routeEvent = "zkdemo-route-change";
 
 function cleanPath(pathname: string) {
@@ -18,6 +21,8 @@ function cleanPath(pathname: string) {
 
 export function pathForRoute(route: DemoRoute) {
   if (route.name === "overview") return "/";
+  if (route.name === "actor") return `/${route.actorId}`;
+  if (route.name === "scenario") return `/${route.actorId}/${route.scenarioId}/${route.stepIndex}`;
   if (route.name === "mode") return `/${route.mode}`;
   return `/demo/${route.scenarioId}/${route.stepIndex}`;
 }
@@ -38,8 +43,25 @@ export function parseRoute(pathname: string): DemoRoute {
     };
   }
 
+  if (actorIds.has(parts[0] as ActorGroupId)) {
+    const actorId = parts[0] as ActorGroupId;
+    const maybeScenarioId = parts[1] as ScenarioId | undefined;
+
+    if (maybeScenarioId && scenarioIds.has(maybeScenarioId)) {
+      const rawStep = Number.parseInt(parts[2] ?? "0", 10);
+      return {
+        name: "scenario",
+        actorId,
+        scenarioId: maybeScenarioId,
+        stepIndex: Number.isFinite(rawStep) && rawStep >= 0 ? rawStep : 0,
+      };
+    }
+
+    return { name: "actor", actorId };
+  }
+
   if (modeIds.has(parts[0] as ScenarioMode)) {
-    return { name: "mode", mode: parts[0] as ScenarioMode };
+    return { name: "actor", actorId: parts[0] as ActorGroupId };
   }
 
   return { name: "overview" };
@@ -70,4 +92,13 @@ export function navigateToRoute(route: DemoRoute, replace = false) {
   const method = replace ? "replaceState" : "pushState";
   window.history[method]({}, "", nextPath);
   window.dispatchEvent(new Event(routeEvent));
+}
+
+export function routeForScenario(scenarioId: ScenarioId, stepIndex = 0): DemoRoute {
+  return {
+    name: "scenario",
+    actorId: scenarioGroupLookup[scenarioId],
+    scenarioId,
+    stepIndex,
+  };
 }

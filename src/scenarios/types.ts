@@ -1,7 +1,17 @@
 export type Tone = "neutral" | "accent" | "ok" | "bad" | "warn";
 export type ScenarioMode = "platform" | "custody" | "issuer" | "personal";
+export type ActorGroupId =
+  | "personal"
+  | "custody"
+  | "issuer"
+  | "platform"
+  | "policy-payment"
+  | "risk"
+  | "incident";
+export type Surface = "web" | "app" | "mixed";
 export type ActorType = "mobile" | "web";
 export type StepKind = "user-action" | "system-processing" | "result";
+export type StepPhase = "preview" | "processing" | "result";
 
 export type ScenarioId =
   | "PO-1"
@@ -69,7 +79,21 @@ export type ApproverCard = {
   note?: string;
 };
 
+export type SequenceEdge = {
+  from: string;
+  to: string;
+  label: string;
+  sublabel?: string;
+  tone?: Tone;
+};
+
 export type ProcessView =
+  | {
+      kind: "sequence";
+      actors: string[];
+      activeEdge: SequenceEdge;
+      description?: string;
+    }
   | {
       kind: "overview";
       description: string;
@@ -103,6 +127,7 @@ export type ProcessView =
 export type ScenarioStep = {
   id: string;
   kind: StepKind;
+  phase?: StepPhase;
   label: string;
   trigger: "user" | "auto";
   duration?: number;
@@ -116,6 +141,10 @@ export type ScenarioStep = {
 
 export type Scenario = {
   id: ScenarioId;
+  groupId?: ActorGroupId;
+  planningId?: string;
+  displayId?: string;
+  surface?: Surface;
   name: string;
   shortName: string;
   actor: string;

@@ -12,6 +12,7 @@ import type { Scenario, ScenarioId } from "./types";
 
 export type { Scenario, ScenarioId };
 export * from "./types";
+export * from "./groups";
 
 export const scenarioOrder: ScenarioId[] = [
   "PO-1",
