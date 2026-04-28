@@ -4,20 +4,28 @@ import type { ScenarioStep } from "@/scenarios/types";
 type PlayerOptions = {
   steps: ScenarioStep[];
   scenarioKey: string;
+  initialStepIndex?: number;
+  onStepChange?: (stepIndex: number) => void;
 };
 
-const jitter = (base: number) => base + Math.floor(Math.random() * 280) - 100;
+const clampStep = (stepIndex: number, length: number) => Math.max(0, Math.min(stepIndex, Math.max(0, length - 1)));
 
-export function useScenarioPlayer({ steps, scenarioKey }: PlayerOptions) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, onStepChange }: PlayerOptions) {
+  const [currentStepIndex, setCurrentStepIndex] = useState(() => clampStep(initialStepIndex, steps.length));
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setCurrentStepIndex(0);
-  }, [scenarioKey]);
+    setCurrentStepIndex(clampStep(initialStepIndex, steps.length));
+  }, [initialStepIndex, scenarioKey, steps.length]);
 
   const currentStep = useMemo(() => steps[currentStepIndex], [currentStepIndex, steps]);
   const hasNext = currentStepIndex < steps.length - 1;
+
+  const moveTo = (stepIndex: number) => {
+    const nextStepIndex = clampStep(stepIndex, steps.length);
+    setCurrentStepIndex(nextStepIndex);
+    onStepChange?.(nextStepIndex);
+  };
 
   useEffect(() => {
     if (!currentStep || currentStep.trigger !== "auto" || !currentStep.duration || !hasNext) {
@@ -25,15 +33,15 @@ export function useScenarioPlayer({ steps, scenarioKey }: PlayerOptions) {
     }
 
     timeoutRef.current = window.setTimeout(() => {
-      setCurrentStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
-    }, jitter(currentStep.duration));
+      moveTo(currentStepIndex + 1);
+    }, currentStep.duration);
 
     return () => {
       if (timeoutRef.current !== null) {
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [currentStep, hasNext, steps.length]);
+  }, [currentStep, currentStepIndex, hasNext, steps.length]);
 
   const canAdvanceByUser = Boolean(currentStep && currentStep.trigger === "user" && hasNext);
 
@@ -44,8 +52,9 @@ export function useScenarioPlayer({ steps, scenarioKey }: PlayerOptions) {
     nextLabel: currentStep?.ctaLabel,
     advance: () => {
       if (!canAdvanceByUser) return;
-      setCurrentStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
+      moveTo(currentStepIndex + 1);
     },
-    restart: () => setCurrentStepIndex(0),
+    goTo: moveTo,
+    restart: () => moveTo(0),
   };
 }

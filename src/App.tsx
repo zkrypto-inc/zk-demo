@@ -1,8 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { useDemoRoute } from "@/router";
-import { ModePage } from "@/pages/ModePage";
+import { ActorScenarioListPage } from "@/pages/ActorScenarioListPage";
 import { OverviewPage } from "@/pages/OverviewPage";
-import { scenarios } from "@/scenarios";
+import { ScenarioPage } from "@/pages/ScenarioPage";
 
 function App() {
   const route = useDemoRoute();
@@ -10,8 +10,12 @@ function App() {
   return (
     <AppShell route={route}>
       {route.name === "overview" && <OverviewPage />}
-      {route.name === "mode" && <ModePage mode={route.mode} />}
-      {route.name === "demo" && <ModePage mode={scenarios[route.scenarioId].mode} />}
+      {route.name === "actor" && <ActorScenarioListPage actorId={route.actorId} />}
+      {route.name === "mode" && <ActorScenarioListPage actorId={route.mode} />}
+      {route.name === "scenario" && (
+        <ScenarioPage actorId={route.actorId} scenarioId={route.scenarioId} stepIndex={route.stepIndex} />
+      )}
+      {route.name === "demo" && <ScenarioPage scenarioId={route.scenarioId} stepIndex={route.stepIndex} />}
     </AppShell>
   );
 }

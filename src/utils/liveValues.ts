@@ -107,6 +107,8 @@ export function withLiveProcessView(
   });
 
   switch (view.kind) {
+    case "sequence":
+      return view;
     case "overview":
       return {
         ...view,

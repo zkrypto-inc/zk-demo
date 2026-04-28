@@ -1,20 +1,19 @@
+import { actorGroups, getScenarioDisplayId, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
-import type { ScenarioMode } from "@/scenarios/types";
+import type { ActorGroupId, ScenarioId } from "@/scenarios/types";
+import { useDemoStore } from "@/store/demoStore";
 
 type Props = {
-  currentMode?: ScenarioMode;
+  currentActorId?: ActorGroupId;
+  currentScenarioId?: ScenarioId;
 };
 
-const modeItems: { mode: ScenarioMode; label: string; detail: string }[] = [
-  { mode: "personal", label: "개인 지갑", detail: "앱에서 지갑 생성과 송금" },
-  { mode: "custody", label: "수탁", detail: "웹 콘솔에서 등록·입출금" },
-  { mode: "issuer", label: "발행사", detail: "발행·소각·준비금 요청" },
-  { mode: "platform", label: "플랫폼", detail: "tenant·권한·승인 정책" },
-];
+export function SideNav({ currentActorId, currentScenarioId }: Props) {
+  const completedScenarios = useDemoStore((state) => state.completedScenarios);
+  const stepMap = useDemoStore((state) => state.stepMap);
 
-export function SideNav({ currentMode }: Props) {
   return (
-    <aside className="hidden w-[232px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] lg:block">
+    <aside className="hidden w-[272px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] lg:block">
       <div className="sticky top-0 h-screen overflow-y-auto px-4 py-5">
         <button
           className="mb-6 w-full rounded-md px-2 py-2 text-left hover:bg-[var(--surface-2)]"
@@ -25,21 +24,50 @@ export function SideNav({ currentMode }: Props) {
           <div className="mt-1 text-[20px] font-semibold leading-none text-[var(--ink)]">Demo</div>
         </button>
 
-        <div className="space-y-2">
-          {modeItems.map((item) => {
-            const active = item.mode === currentMode;
+        <div className="space-y-4">
+          {actorGroups.map((group) => {
+            const expanded = group.id === currentActorId || group.scenarioIds.includes(currentScenarioId as ScenarioId);
             return (
-              <button
-                className={`w-full rounded-md px-3 py-3 text-left transition ${
-                  active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink-2)] hover:bg-[var(--surface-2)]"
-                }`}
-                key={item.mode}
-                onClick={() => navigateToRoute({ name: "mode", mode: item.mode })}
-                type="button"
-              >
-                <div className="text-[13px] font-semibold">{item.label}</div>
-                <div className="mt-1 text-[11px] leading-[1.35] text-[var(--muted)]">{item.detail}</div>
-              </button>
+              <div key={group.id}>
+                <button
+                  className={`w-full rounded-md px-3 py-2.5 text-left transition ${
+                    group.id === currentActorId && !currentScenarioId
+                      ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                      : "text-[var(--ink-2)] hover:bg-[var(--surface-2)]"
+                  }`}
+                  onClick={() => navigateToRoute({ name: "actor", actorId: group.id })}
+                  type="button"
+                >
+                  <div className="text-[13px] font-semibold">{group.label}</div>
+                  <div className="mt-1 font-mono text-[10px] text-[var(--muted)]">{group.scenarioIds.length} scenarios</div>
+                </button>
+
+                {expanded && (
+                  <div className="mt-1 space-y-1 border-l border-[var(--line)] pl-3">
+                    {group.scenarioIds.map((scenarioId) => {
+                      const scenario = scenarios[scenarioId];
+                      const active = scenarioId === currentScenarioId;
+                      const completed = completedScenarios.includes(scenarioId);
+                      return (
+                        <button
+                          className={`flex w-full items-start gap-2 rounded-md px-2 py-2 text-left transition ${
+                            active ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "text-[var(--ink-2)] hover:bg-[var(--surface-2)]"
+                          }`}
+                          key={scenarioId}
+                          onClick={() => navigateToRoute({ name: "scenario", actorId: group.id, scenarioId, stepIndex: stepMap[scenarioId] ?? 0 })}
+                          type="button"
+                        >
+                          <span className={`mt-[3px] h-1.5 w-1.5 shrink-0 rounded-full ${completed ? "bg-[var(--ok)]" : active ? "bg-[var(--accent)]" : "bg-[var(--line)]"}`} />
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-[10px]">{getScenarioDisplayId(scenario)}</span>
+                            <span className="mt-0.5 block truncate text-[12px] font-semibold">{scenario.shortName}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
