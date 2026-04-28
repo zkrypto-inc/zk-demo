@@ -97,7 +97,7 @@ export const scenarioCU2: Scenario = {
       trigger: "user",
       ctaLabel: "입금 등록",
       screenId: "CU2-1",
-      description: "단순 주소 조회가 아니라 실제 입금 요청을 만드는 단계로 보이게 해야 합니다.",
+      description: "어떤 자산을 어떤 수량으로 수탁 입금할지 요청을 생성합니다. 온체인 전송 기반으로 처리됩니다.",
       processView: {
         kind: "overview",
         description: "어떤 자산을 어떤 수량으로 수탁 입금할지 등록합니다. 실제 온체인 전송형 요청으로 처리됩니다.",
@@ -115,7 +115,7 @@ export const scenarioCU2: Scenario = {
       trigger: "user",
       ctaLabel: "승인 완료 확인",
       screenId: "CU2-2",
-      description: "이 단계는 업무 승인과 MPC 서명을 분리해 보여주는 핵심 화면입니다.",
+      description: "수탁 관리자 2명이 입금 요청을 순서대로 승인합니다. 2차 승인이 완료된 이후에만 Wallet Service 서명과 온체인 전송 단계가 진행됩니다.",
       processView: {
         kind: "approval",
         description: "수탁 관리자 2명이 입금 요청을 승인합니다. 승인 완료 후에만 Wallet Service 서명과 tx 전송 단계가 열립니다.",
@@ -150,7 +150,7 @@ export const scenarioCU2: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "CU2-4",
-      description: "이 화면은 수탁 입금이 실행되었고 감사 추적이 가능하다는 점을 보여주는 종료 화면입니다.",
+      description: "수탁 입금 처리가 완료되었습니다. Tx Hash와 Audit Event ID를 기준으로 감사 추적이 가능합니다.",
       processView: {
         kind: "audit",
         description: "입금 결과와 이력이 남아 있는 상태를 보여줍니다. 이후 감사나 운영 조회 시 Tx Hash와 Audit Event ID를 기준으로 추적합니다.",

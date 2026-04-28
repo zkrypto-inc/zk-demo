@@ -168,7 +168,7 @@ export const scenarioPO1: Scenario = {
       trigger: "user",
       ctaLabel: "권한 확정",
       screenId: "PO1-3",
-      description: "플랫폼 운영자 화면은 발행사 화면과 다르므로, 여기서는 운영 범위를 먼저 확정해야 합니다.",
+      description: "플랫폼 운영자의 관리 범위와 권한을 설정합니다. Tenant 관리, 역할 관리, 감사 조회 등의 권한을 구분하여 구성합니다.",
       processView: {
         kind: "overview",
         description: "플랫폼 운영자가 어떤 범위까지 관리할지 설정합니다. Tenant 관리·역할 관리·감사 조회 등의 권한을 구분합니다.",
@@ -203,7 +203,7 @@ export const scenarioPO1: Scenario = {
       trigger: "user",
       ctaLabel: "승인 구성 확정",
       screenId: "PO1-5",
-      description: "운영자는 승인 구조를 만들고, 실제 승인 실행은 각 actor 시나리오에서 보여줍니다.",
+      description: "발행·소각·출금 요청에 참여할 승인권자를 지정합니다. 이 구성이 이후 각 운영 시나리오에서 재사용됩니다.",
       processView: {
         kind: "approval",
         description: "누가 승인 체계에 참여하는지 설정합니다. 이후 수탁 출금·발행·소각 요청에서 이 구성이 재사용됩니다.",
@@ -220,7 +220,7 @@ export const scenarioPO1: Scenario = {
       trigger: "auto",
       duration: 800,
       screenId: "PO1-6",
-      description: "이 화면은 플랫폼 운영자 시나리오의 종료 화면이며, 이후 각 actor 전용 시나리오로 분기됩니다.",
+      description: "플랫폼 운영 구조 설정이 완료되었습니다. 이후 발행사·수탁 운영자·개인 사용자 시나리오로 이동할 수 있습니다.",
       processView: {
         kind: "artifact",
         description: "이 Tenant에서 어떤 조직이 어떤 역할로 운영되는지 요약합니다. 수탁·발행·개인 사용자 시나리오로 이동할 수 있습니다.",

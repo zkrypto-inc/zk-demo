@@ -134,7 +134,7 @@ export const scenarioIS1: Scenario = {
       trigger: "user",
       ctaLabel: "승인 완료 확인",
       screenId: "IS1-2",
-      description: "이 단계는 발행사 입장에서 플랫폼 승인 결과를 기다리는 상태를 보여주는 것이 핵심입니다.",
+      description: "플랫폼 운영자가 발행사 등록 요청을 검토합니다. 승인 완료 후에만 지갑 관리자 설정과 지갑 생성이 가능합니다.",
       processView: {
         kind: "approval",
         description: "플랫폼 운영자가 발행사 등록 요청을 검토합니다. 승인 완료 후에만 발행사 측 지갑 관리자 설정과 지갑 생성이 가능합니다.",
@@ -150,7 +150,7 @@ export const scenarioIS1: Scenario = {
       trigger: "user",
       ctaLabel: "관리자 구성 확정",
       screenId: "IS1-3",
-      description: "n명 지갑 관리자와 역할 구성이 핵심이며, 이후 발행·소각 승인 흐름의 기반이 됩니다.",
+      description: "발행사 측 지갑 관리자와 역할을 구성합니다. 이 구성이 이후 발행·소각 요청의 승인 흐름 기반이 됩니다.",
       processView: {
         kind: "overview",
         description: "발행사 측 지갑 관리자 구성을 설정합니다. 누가 지갑 생성 이후 운영과 승인에 참여하는지 정하는 단계입니다.",
@@ -168,7 +168,7 @@ export const scenarioIS1: Scenario = {
       trigger: "auto",
       duration: 1800,
       screenId: "IS1-4",
-      description: "이 단계가 시나리오 A의 운영 콘솔 확장에 해당하는 부분입니다.",
+      description: "Wallet Service가 발행사 전용 지갑의 MPC 키 생성을 수행합니다. 다수 관리자를 전제로 지갑이 안전하게 생성됩니다.",
       processView: {
         kind: "keygen",
         description: "발행사 지갑 생성을 시작하면 Wallet Service의 MPC 과정이 진행됩니다. 여러 관리자를 전제로 지갑이 안전하게 생성됩니다.",
@@ -187,7 +187,7 @@ export const scenarioIS1: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "IS1-5",
-      description: "이 화면은 발행사 온보딩의 종료 화면이자, 실제 운영 시나리오로 넘어가는 분기점입니다.",
+      description: "발행사 지갑 생성이 완료되었습니다. 이후 발행·소각·준비금 시나리오로 이어집니다.",
       processView: {
         kind: "artifact",
         description: "발행사 지갑이 준비되었고 후속 운영 시나리오로 이동할 수 있습니다. 이후 발행·소각·준비금 시나리오가 이 지갑을 기준으로 이어집니다.",

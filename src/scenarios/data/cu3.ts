@@ -152,7 +152,7 @@ export const scenarioCU3: Scenario = {
       trigger: "user",
       ctaLabel: "2차 승인 완료 확인",
       screenId: "CU3-2",
-      description: "출금 승인은 zkMPC 핵심 기능이 아니라 운영·정책 계층입니다. approver_id, policy_version이 감사 증빙에 활용됩니다.",
+      description: "상위 플랫폼이 정책 검토 및 2인 승인을 처리합니다. approver_id와 policy_version이 감사 증빙에 활용됩니다.",
       processView: {
         kind: "approval",
         description: "상위 플랫폼이 정책과 승인 요건을 검토합니다. 2인 승인이 모두 완료되어야 다음 단계로 넘어갑니다.",
@@ -169,7 +169,7 @@ export const scenarioCU3: Scenario = {
       trigger: "user",
       ctaLabel: "서명 요청 진행",
       screenId: "CU3-3",
-      description: "SDS 기준으로 출금 주소는 수탁 화이트리스트 내에 있어야 합니다.",
+      description: "출금 목적지 주소가 수탁 화이트리스트에 등록되어 있는지 검증합니다. 미등록 주소로는 출금이 자동 차단됩니다.",
       processView: {
         kind: "overview",
         description: "목적지 주소가 수탁 화이트리스트 내에 있는지 검증합니다. 미등록 주소로는 출금이 차단됩니다.",
@@ -187,7 +187,7 @@ export const scenarioCU3: Scenario = {
       trigger: "auto",
       duration: 1800,
       screenId: "CU3-4",
-      description: "서명 받아오기가 zkMPC의 직접 가치입니다. unsigned tx가 Wallet Service에 전달되고 raw signature가 반환됩니다.",
+      description: "승인이 완료된 출금 요청의 서명을 Wallet Service에서 생성합니다. unsigned tx가 전달되면 분산 서명 처리 후 raw signature가 반환됩니다.",
       processView: {
         kind: "keygen",
         description: "승인 완료 후 unsigned tx 또는 sign payload가 Wallet Service로 전달됩니다. Wallet Service가 서명 세션을 만들고 raw signature를 반환합니다.",
@@ -224,7 +224,7 @@ export const scenarioCU3: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "CU3-6",
-      description: "감사자는 sign id, wallet id, request id를 기준으로 이력을 조회할 수 있습니다.",
+      description: "출금 결과가 감사 추적 가능한 형태로 기록됩니다. sign id, wallet id, request id를 기준으로 전체 이력을 조회할 수 있습니다.",
       processView: {
         kind: "audit",
         description: "출금 결과가 감사 추적 가능한 형태로 기록되었습니다.",

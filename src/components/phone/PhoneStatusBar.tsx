@@ -31,7 +31,7 @@ function BatteryIcon() {
 
 export function PhoneStatusBar() {
   return (
-    <div className="flex h-[54px] shrink-0 items-center justify-between px-6 text-[var(--ink)]">
+    <div className="flex h-[54px] shrink-0 items-center justify-between pl-7 pr-4 text-[var(--ink)]">
       <span className="text-[15px] font-semibold leading-none">9:41</span>
       <div className="flex items-center gap-[5px]">
         <SignalIcon />

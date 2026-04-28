@@ -129,7 +129,7 @@ export const scenarioFS3: Scenario = {
       trigger: "user",
       ctaLabel: "소각 요청 생성",
       screenId: "FS3-1",
-      description: "발행과 비슷한 UI를 유지하면 사용자가 쉽게 비교할 수 있습니다.",
+      description: "소각할 수량과 사유를 입력하여 소각 요청을 생성합니다. 발행과 동일한 승인 흐름이 적용됩니다.",
       processView: {
         kind: "overview",
         description: "어떤 수량을 어떤 이유로 소각할지 정의합니다. 발행과 유사하지만 반대 방향 흐름입니다.",
@@ -147,7 +147,7 @@ export const scenarioFS3: Scenario = {
       trigger: "user",
       ctaLabel: "수량 확인 완료",
       screenId: "FS3-2",
-      description: "사용자가 실수 없이 요청을 확정하도록 만드는 확인 화면입니다.",
+      description: "소각 대상과 수량을 최종 확인합니다. 현재 유통량과 소각 후 잔량이 함께 표시됩니다.",
       processView: {
         kind: "overview",
         description: "소각 대상과 수량이 맞는지 확인합니다. 현재 유통량과 소각 후 잔량이 함께 표시됩니다.",
@@ -199,7 +199,7 @@ export const scenarioFS3: Scenario = {
       trigger: "auto",
       duration: 1800,
       screenId: "FS3-5",
-      description: "사용자가 보는 핵심은 이제 실제 소각 직전이라는 상태입니다.",
+      description: "두 승인이 완료된 후 소각 실행을 위한 MPC 서명이 진행됩니다.",
       processView: {
         kind: "keygen",
         description: "소각 실행을 위한 보안 서명 단계가 진행됩니다. 기술 처리 전체보다 실행 전 상태를 강조합니다.",
@@ -218,7 +218,7 @@ export const scenarioFS3: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "FS3-6",
-      description: "발행·소각 비교 화면과 이어지면 운영자 이해도가 높습니다.",
+      description: "소각 결과가 기록되고 유통량이 갱신됩니다. 발행 대비 감소한 수량을 이력에서 확인할 수 있습니다.",
       processView: {
         kind: "audit",
         description: "소각 결과가 기록되고 이력으로 남습니다. 발행 대비 어떤 값이 감소했는지 확인할 수 있습니다.",

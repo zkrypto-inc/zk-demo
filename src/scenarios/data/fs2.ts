@@ -133,7 +133,7 @@ export const scenarioFS2: Scenario = {
       trigger: "user",
       ctaLabel: "발행 요청 생성",
       screenId: "FS2-1",
-      description: "사용자는 이 단계에서 발행 의도를 만들고 제출 준비를 합니다.",
+      description: "발행 수량과 관련 정보를 입력하여 발행 요청을 생성합니다. 아직 실행 전이며 이후 승인 단계가 이어집니다.",
       processView: {
         kind: "overview",
         description: "어떤 발행을 요청하는지 정의합니다. 아직 승인 전이며 요청 객체를 만드는 단계입니다.",
@@ -169,7 +169,7 @@ export const scenarioFS2: Scenario = {
       trigger: "user",
       ctaLabel: "1차 승인 완료 확인",
       screenId: "FS2-3",
-      description: "이 단계의 핵심은 업무 승인이 먼저 진행된다는 점을 보여주는 것입니다.",
+      description: "1차 승인자가 발행 요청을 검토합니다. Wallet Service 서명은 모든 승인이 완료된 이후에만 진행됩니다.",
       processView: {
         kind: "approval",
         description: "요청이 Approval Service로 전달되고 첫 번째 승인자 검토가 시작됩니다. 아직 Wallet Service 서명 단계로는 넘어가지 않습니다.",
@@ -186,7 +186,7 @@ export const scenarioFS2: Scenario = {
       trigger: "user",
       ctaLabel: "2차 승인 완료 확인",
       screenId: "FS2-4",
-      description: "두 명의 승인이 모두 끝나야 다음 단계의 Wallet Service 서명 요청으로 넘어갑니다.",
+      description: "2차 승인자가 최종 검토를 완료합니다. 두 승인이 모두 완료되어야 서명 요청 단계로 진행됩니다.",
       processView: {
         kind: "approval",
         description: "두 번째 승인자까지 승인해야 서명 요청이 열립니다. 준법 또는 리스크 관점의 최종 확인 단계입니다.",
@@ -203,7 +203,7 @@ export const scenarioFS2: Scenario = {
       trigger: "auto",
       duration: 1800,
       screenId: "FS2-5",
-      description: "사용자는 이 단계를 실행 직전 보안 처리 정도로 이해하면 충분합니다.",
+      description: "승인 완료 후 발행 실행을 위한 MPC 서명이 진행됩니다. SC Lifecycle이 Wallet Service에 전자서명을 요청합니다.",
       processView: {
         kind: "keygen",
         description: "승인 완료 후 발행 실행을 위한 보안 서명 단계가 진행됩니다. SC Lifecycle이 Wallet Service에 전자서명 요청을 보냅니다.",
@@ -222,7 +222,7 @@ export const scenarioFS2: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "FS2-6",
-      description: "마지막 단계에서는 발행 성공 여부와 이력 저장을 함께 보여줘야 합니다.",
+      description: "발행이 실행되고 결과가 기록됩니다. 전체 처리 이력은 감사 추적이 가능한 형태로 저장됩니다.",
       processView: {
         kind: "audit",
         description: "발행이 실행되고 결과가 기록됩니다. 이후 감사 추적이 가능합니다.",

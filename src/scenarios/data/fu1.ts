@@ -105,7 +105,7 @@ export const scenarioFU1: Scenario = {
       trigger: "user",
       ctaLabel: "지갑 만들기",
       screenId: "FU1-1",
-      description: "가장 중요한 CTA가 분명해야 합니다. 보안 구조 전체보다 생성 시작 상태만 이해하면 됩니다.",
+      description: "지갑 생성 요청을 시작합니다. 내부적으로 MPC 기반 분산 키 생성 프로세스가 시작됩니다.",
       processView: {
         kind: "overview",
         description: "지갑 생성을 시작합니다. 사용자는 보안 구조 전체보다 생성 시작 상태만 이해하면 됩니다.",
@@ -123,7 +123,7 @@ export const scenarioFU1: Scenario = {
       trigger: "auto",
       duration: 1200,
       screenId: "FU1-2",
-      description: "사용자는 기술명을 몰라도 안전하게 준비 중이라는 감각을 가져가면 됩니다.",
+      description: "Wallet Service가 MPC 기반 보안 키 생성을 시작합니다. 개인 키는 단일 서버에 보관되지 않습니다.",
       processView: {
         kind: "keygen",
         description: "보안 키 생성이 시작되었습니다. 앱에는 지갑 준비 상태가 단계별로 표시됩니다.",
@@ -161,7 +161,7 @@ export const scenarioFU1: Scenario = {
       trigger: "auto",
       duration: 800,
       screenId: "FU1-4",
-      description: "이 단계부터 사용자는 실제 지갑을 가진 것으로 인식합니다.",
+      description: "키 생성이 완료되고 지갑이 계정에 연결됩니다. 즉시 사용 가능한 상태로 전환됩니다.",
       processView: {
         kind: "keygen",
         description: "지갑이 계정에 연결되었습니다. 사용 가능한 상태로 바뀌었음을 보여줍니다.",
@@ -180,7 +180,7 @@ export const scenarioFU1: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "FU1-5",
-      description: "결과가 명확하게 보이는 종료 화면이 필요합니다.",
+      description: "지갑 생성이 완료되고 주소 매핑이 확정되었습니다. Wallet ID와 지갑 주소가 발급됩니다.",
       processView: {
         kind: "artifact",
         description: "지갑 정보가 사용자 화면에 표시됩니다. 최종 결과 화면으로 마무리됩니다.",

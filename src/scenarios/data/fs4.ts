@@ -130,7 +130,7 @@ export const scenarioFS4: Scenario = {
       trigger: "user",
       ctaLabel: "요청 생성",
       screenId: "FS4-1",
-      description: "사용자는 이 단계에서 어떤 요청을 올리는지만 정의합니다.",
+      description: "유동성 충전 또는 준비금 관리를 위한 요청을 생성합니다. 요청 유형과 금액을 정의하는 단계입니다.",
       processView: {
         kind: "overview",
         description: "준비금 또는 유동성 관리 요청을 시작합니다. 아직 실행이 아니라 요청 생성 단계입니다.",
@@ -148,7 +148,7 @@ export const scenarioFS4: Scenario = {
       trigger: "user",
       ctaLabel: "사유 등록 완료",
       screenId: "FS4-2",
-      description: "단순 입출금이 아니라 감사 가능한 요청이라는 점이 드러나야 합니다.",
+      description: "요청 사유와 증빙 파일을 등록합니다. 등록된 정보는 이후 감사 조회 시 이력으로 활용됩니다.",
       processView: {
         kind: "overview",
         description: "요청 사유와 증빙 파일을 등록합니다. 등록된 정보는 이력에서 조회할 수 있습니다.",
@@ -166,7 +166,7 @@ export const scenarioFS4: Scenario = {
       trigger: "user",
       ctaLabel: "플랫폼 승인 완료 확인",
       screenId: "FS4-3",
-      description: "SDS 기준으로 승인 순서는 관계없습니다. 발행사와 플랫폼이 병렬로 승인합니다.",
+      description: "발행사와 플랫폼 운영자가 병렬로 승인을 진행합니다. 승인 순서는 고정되지 않으며 두 조직 모두 완료해야 다음 단계로 진행됩니다.",
       processView: {
         kind: "approval",
         description: "두 조직의 승인 상태를 병렬적으로 보여줍니다. 승인 순서가 고정되지 않은 구조입니다.",
@@ -183,7 +183,7 @@ export const scenarioFS4: Scenario = {
       trigger: "user",
       ctaLabel: "처리 완료 확인",
       screenId: "FS4-4",
-      description: "발행사의 출금 계좌는 사전 등록되어 있어야 합니다.",
+      description: "양측 승인 완료 후 사전 등록된 원화계좌를 통해 실제 입출금 처리가 이루어집니다.",
       processView: {
         kind: "overview",
         description: "승인이 끝난 뒤 실제 원화계좌 처리로 이어집니다. 은행 처리 또는 외부 계좌 처리가 연결됩니다.",
@@ -201,7 +201,7 @@ export const scenarioFS4: Scenario = {
       trigger: "user",
       ctaLabel: "이력 확인",
       screenId: "FS4-5",
-      description: "이 단계는 실행 결과보다 증빙 가능성을 보여주는 역할이 강합니다.",
+      description: "처리된 요청, 승인 내역, 실행 결과가 모두 감사 로그로 기록됩니다.",
       processView: {
         kind: "audit",
         description: "요청과 승인과 처리가 모두 기록됩니다. 이후 감사자가 무엇을 보게 되는지 연결해 줍니다.",
