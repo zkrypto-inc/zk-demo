@@ -99,9 +99,32 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
-        <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
-        <div className="mt-2 text-[22px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+      <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+        <div className="min-w-0 flex-1">
+          <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
+          <div className="mt-2 text-[22px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+        </div>
+        {player.canStopAuto && (
+          <button
+            aria-label="자동 진행 정지"
+            className="mt-1 inline-flex shrink-0 items-center gap-2 rounded-md border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2 text-[12px] font-medium text-[var(--ink-2)] transition hover:border-[var(--ink-2)] hover:text-[var(--ink)]"
+            onClick={player.stopAuto}
+            type="button"
+          >
+            <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-current" />
+            멈춤
+          </button>
+        )}
+        {player.autoStopped && player.currentStepIndex < scenario.steps.length - 1 && (
+          <button
+            aria-label="다음 단계로 진행"
+            className="mt-1 inline-flex shrink-0 items-center gap-2 rounded-md bg-[var(--accent)] px-3 py-2 text-[12px] font-medium text-white transition hover:opacity-90"
+            onClick={() => player.goTo(player.currentStepIndex + 1)}
+            type="button"
+          >
+            다음 단계 →
+          </button>
+        )}
       </div>
 
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
@@ -111,10 +134,8 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
               activeActionLabel={player.nextLabel}
               actor={screenActor}
               canAdvance={player.canAdvanceByUser}
-              canStopAuto={player.canStopAuto}
               onAdvance={player.advance}
               onFieldChange={handleFieldChange}
-              onStopAuto={player.stopAuto}
               screen={screen}
               stepIndicator={`step ${player.currentStepIndex + 1} / ${scenario.steps.length}`}
             />
@@ -123,10 +144,8 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
               activeActionLabel={player.nextLabel}
               actor={screenActor}
               canAdvance={player.canAdvanceByUser}
-              canStopAuto={player.canStopAuto}
               onAdvance={player.advance}
               onFieldChange={handleFieldChange}
-              onStopAuto={player.stopAuto}
               scenarioId={scenario.id}
               screen={screen}
               stepIndicator={`step ${player.currentStepIndex + 1} / ${scenario.steps.length}`}

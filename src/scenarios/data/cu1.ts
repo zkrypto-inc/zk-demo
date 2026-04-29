@@ -190,9 +190,9 @@ export const scenarioCU1: Scenario = {
         progress: 72,
         nodes: [
           { label: "파티 노드", value: "세션 조율", tone: "accent" },
-          { label: "노드 1", value: "상호 통신 완료", tone: "ok" },
-          { label: "노드 2", value: "상호 통신 완료", tone: "ok" },
-          { label: "노드 3", value: "키 생성 중", tone: "warn" },
+          { label: "노드 1", value: "완료", tone: "ok" },
+          { label: "노드 2", value: "처리 중", tone: "warn" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
         ],
       },
     },

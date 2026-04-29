@@ -10,9 +10,7 @@ type Props = {
   stepIndicator?: string;
   activeActionLabel?: string;
   canAdvance?: boolean;
-  canStopAuto?: boolean;
   onAdvance?: () => void;
-  onStopAuto?: () => void;
   onFieldChange?: (screenId: string, label: string, value: string) => void;
 };
 
@@ -23,9 +21,7 @@ export function PhoneContainer({
   stepIndicator,
   activeActionLabel,
   canAdvance = false,
-  canStopAuto = false,
   onAdvance,
-  onStopAuto,
   onFieldChange,
 }: Props) {
   return (
@@ -56,25 +52,13 @@ export function PhoneContainer({
         <div className="relative flex h-full flex-col overflow-hidden rounded-[50px] bg-[var(--surface)]">
           <div className="absolute left-1/2 top-[10px] z-20 h-[28px] w-[92px] -translate-x-1/2 rounded-[20px] bg-black" />
           <PhoneStatusBar />
-          <div className="flex h-11 shrink-0 items-center justify-between border-b border-[var(--line)] px-5">
-            <button className="text-[18px] font-semibold text-[var(--ink-2)]" type="button">
-              &lt;
+          <div className="relative flex h-11 shrink-0 items-center justify-center border-b border-[var(--line)] px-5">
+            <button className="absolute left-4 flex h-7 w-7 items-center justify-center text-[var(--ink-2)]" type="button">
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
             <div className="text-[14px] font-semibold text-[var(--ink)]">zkWallet</div>
-            {canStopAuto ? (
-              <button
-                aria-label="자동 진행 정지"
-                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--ink-2)]"
-                onClick={onStopAuto}
-                type="button"
-              >
-                <span className="h-2.5 w-2.5 rounded-[1px] bg-current" />
-              </button>
-            ) : (
-              <div className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-semibold text-[var(--ink-2)]">
-                Demo
-              </div>
-            )}
           </div>
           <PhoneScreen
             screen={screen}

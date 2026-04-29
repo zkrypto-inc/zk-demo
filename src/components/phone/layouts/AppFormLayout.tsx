@@ -19,25 +19,26 @@ export function AppFormLayout({ screen, canAdvance, activeActionLabel, onAdvance
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--ink-2)]">
               {section.title}
             </div>
-            <div className="space-y-3">
-              {section.fields.map((field) => (
-                <div key={`${section.title}-${field.label}`}>
-                  <div className="mb-1.5 text-[12px] text-[var(--ink-2)]">{field.label}</div>
-                  {isEditableField(field) ? (
+            <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]">
+              {section.fields.map((field, i) => (
+                isEditableField(field) ? (
+                  <div key={`${section.title}-${field.label}`} className={`px-4 py-3 ${i > 0 ? "border-t border-[var(--line)]" : ""}`}>
+                    <div className="mb-1.5 text-[12px] text-[var(--ink-2)]">{field.label}</div>
                     <input
                       aria-label={field.label}
-                      className="w-full rounded-[12px] border border-[var(--line)] bg-[var(--surface)] px-4 py-3 font-mono text-[13px] leading-[1.5] text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                      className="w-full rounded-[10px] border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2.5 font-mono text-[13px] leading-[1.5] text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
                       onChange={(event) => onFieldChange?.(screen.id, field.label, event.target.value)}
                       value={field.value}
                     />
-                  ) : (
-                    <div
-                      className={`w-full rounded-[12px] border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3 font-mono text-[13px] leading-[1.5] ${toneText(field.tone)} ${field.tone === "ok" ? "border-[var(--ok)] bg-[var(--ok-soft)]" : field.tone === "bad" ? "border-[var(--bad)] bg-[var(--bad-soft)]" : ""}`}
-                    >
+                  </div>
+                ) : (
+                  <div key={`${section.title}-${field.label}`} className={`flex items-center justify-between gap-3 px-4 py-3 ${i > 0 ? "border-t border-[var(--line)]" : ""}`}>
+                    <span className="text-[13px] text-[var(--ink-2)]">{field.label}</span>
+                    <span className={`break-all text-right font-mono text-[13px] font-medium leading-[1.4] ${toneText(field.tone)}`}>
                       {field.value}
-                    </div>
-                  )}
-                </div>
+                    </span>
+                  </div>
+                )
               ))}
             </div>
           </div>
