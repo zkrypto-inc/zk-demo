@@ -9,7 +9,7 @@ export type DemoRoute =
   | { name: "scenario"; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
   | { name: "demo"; scenarioId: ScenarioId; stepIndex: number };
 
-const modes: ScenarioMode[] = ["platform", "custody", "issuer", "personal"];
+const modes: ScenarioMode[] = ["custody", "issuer", "personal"];
 const scenarioIds = new Set<ScenarioId>(scenarioOrder);
 const modeIds = new Set<ScenarioMode>(modes);
 const actorIds = new Set<ActorGroupId>(actorGroups.map((group) => group.id));

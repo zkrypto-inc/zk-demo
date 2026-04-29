@@ -189,13 +189,12 @@ export const scenarioCU3: Scenario = {
       screenId: "CU3-4",
       description: "승인이 완료된 출금 요청의 서명을 Wallet Service에서 생성합니다. unsigned tx가 전달되면 분산 서명 처리 후 raw signature가 반환됩니다.",
       processView: {
-        kind: "keygen",
+        kind: "overview",
         description: "승인 완료 후 unsigned tx 또는 sign payload가 Wallet Service로 전달됩니다. Wallet Service가 서명 세션을 만들고 raw signature를 반환합니다.",
-        progress: 60,
-        nodes: [
-          { label: "Signer 1", value: "partial sig 완료", tone: "ok" },
-          { label: "Signer 2", value: "partial sig 완료", tone: "ok" },
-          { label: "Signer 3", value: "조합 중", tone: "warn" },
+        cards: [
+          { label: "승인 상태", value: "2-of-2 완료", tone: "ok" },
+          { label: "서명 상태", value: "생성 중", tone: "warn" },
+          { label: "반환값", value: "raw signature" },
         ],
       },
     },

@@ -201,13 +201,12 @@ export const scenarioFS3: Scenario = {
       screenId: "FS3-5",
       description: "두 승인이 완료된 후 소각 실행을 위한 MPC 서명이 진행됩니다.",
       processView: {
-        kind: "keygen",
+        kind: "overview",
         description: "소각 실행을 위한 보안 서명 단계가 진행됩니다. 기술 처리 전체보다 실행 전 상태를 강조합니다.",
-        progress: 55,
-        nodes: [
-          { label: "Signer 1", value: "partial sig", tone: "ok" },
-          { label: "Signer 2", value: "조합 중", tone: "warn" },
-          { label: "Signer 3", value: "대기 중" },
+        cards: [
+          { label: "승인 정책", value: "2-of-2 완료", tone: "ok" },
+          { label: "서명 상태", value: "진행 중", tone: "warn" },
+          { label: "처리 대상", value: "소각 실행" },
         ],
       },
     },

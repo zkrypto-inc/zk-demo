@@ -205,13 +205,12 @@ export const scenarioFS2: Scenario = {
       screenId: "FS2-5",
       description: "승인 완료 후 발행 실행을 위한 MPC 서명이 진행됩니다. SC Lifecycle이 Wallet Service에 전자서명을 요청합니다.",
       processView: {
-        kind: "keygen",
+        kind: "overview",
         description: "승인 완료 후 발행 실행을 위한 보안 서명 단계가 진행됩니다. SC Lifecycle이 Wallet Service에 전자서명 요청을 보냅니다.",
-        progress: 65,
-        nodes: [
-          { label: "Signer 1", value: "partial sig", tone: "ok" },
-          { label: "Signer 2", value: "partial sig", tone: "ok" },
-          { label: "Signer 3", value: "조합 중", tone: "warn" },
+        cards: [
+          { label: "승인 정책", value: "2-of-2 완료", tone: "ok" },
+          { label: "서명 상태", value: "요청 중", tone: "warn" },
+          { label: "요청 주체", value: "SC Lifecycle" },
         ],
       },
     },

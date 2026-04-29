@@ -14,7 +14,8 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-1",
       layout: "form",
-      title: "법인 사용자 등록 및 관리자 지정",
+      actor: "고객(수탁 요청자)",
+      title: "법인 사용자 등록 및 수탁 관리자 지정",
       subtitle: "수탁 등록 요청 시작",
       status: "대기",
       sections: [
@@ -40,7 +41,8 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-2",
       layout: "approval",
-      title: "플랫폼 수탁 승인 대기",
+      actor: "수탁사(수탁 관리자)",
+      title: "플랫폼 수탁 승인",
       subtitle: "운영 플랫폼 검토 중",
       status: "승인 대기",
       sections: [
@@ -54,11 +56,15 @@ export const scenarioCU1: Scenario = {
           ],
         },
       ],
-      actions: [{ id: "check-approval", label: "승인 완료 확인", tone: "accent" }],
+      actions: [
+        { id: "approve-custody", label: "승인", tone: "accent" },
+        { id: "reject-custody", label: "거절", tone: "bad" },
+      ],
     },
     {
       id: "CU1-3",
       layout: "dashboard",
+      actor: "수탁사(수탁 관리자)",
       title: "수탁 전용 지갑 생성 요청",
       subtitle: "승인 완료 — 지갑 개설 가능",
       status: "승인 완료",
@@ -77,12 +83,13 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-4",
       layout: "processing",
+      actor: "고객(수탁 요청자)",
       title: "보안 키 생성 진행 중",
-      subtitle: "Wallet Service MPC Keygen",
+      subtitle: "Wallet Service MPC 키 생성",
       status: "처리 중",
       sections: [
         {
-          title: "Keygen 상태",
+          title: "키 생성 상태",
           fields: [
             { label: "처리 상태", value: "진행 중", tone: "warn" },
             { label: "보안 처리", value: "분산 키 생성 (MPC)" },
@@ -94,6 +101,7 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-5",
       layout: "result",
+      actor: "고객(수탁 요청자)",
       title: "수탁 지갑 개설 완료",
       subtitle: "이후 수탁 입금·출금 시나리오로 이동",
       status: "완료",
@@ -139,14 +147,14 @@ export const scenarioCU1: Scenario = {
       kind: "system-processing",
       label: "플랫폼 수탁 승인",
       trigger: "user",
-      ctaLabel: "승인 완료 확인",
+      ctaLabel: "승인",
       screenId: "CU1-2",
-      description: "플랫폼 운영자가 수탁 등록 요청을 검토하고 승인합니다. 승인이 완료되어야만 지갑 생성 단계로 진행됩니다.",
+      description: "수탁사가 수탁 등록 요청을 검토하고 해당 수탁 건을 승인 또는 거절합니다. 승인이 완료되어야만 지갑 생성 단계로 진행됩니다.",
       processView: {
         kind: "approval",
-        description: "플랫폼이 수탁 등록 요청을 검토하고 승인합니다. 승인 완료 후에만 수탁 전용 지갑 생성 요청이 열립니다.",
+        description: "수탁 관리자가 수탁 등록 요청을 검토합니다. 승인 완료 후에만 수탁 전용 지갑 생성 요청이 열립니다.",
         approvers: [
-          { name: "플랫폼 운영자", role: "수탁 등록 검토", status: "approved", note: "법인 서류 확인 완료" },
+          { name: "수탁사", role: "수탁 건 승인", status: "pending", note: "승인 또는 거절 가능" },
         ],
       },
     },
@@ -171,20 +179,20 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-S4",
       kind: "system-processing",
-      label: "Keygen",
+      label: "키 생성",
       trigger: "auto",
       duration: 1800,
       screenId: "CU1-4",
-      description: "Wallet Service가 MPC 기반 분산 키 생성(Keygen)을 수행합니다. 개인 키는 단일 서버에 존재하지 않으며, 여러 노드가 협력하여 지갑 키를 안전하게 생성합니다.",
+      description: "Wallet Service가 MPC 기반 키 생성을 수행합니다. 개인 키는 단일 서버에 존재하지 않으며, 여러 노드가 협력하여 지갑 키를 안전하게 생성합니다.",
       processView: {
         kind: "keygen",
-        description: "Wallet Service가 MPC 기반 keygen을 수행합니다. 수탁 전용 지갑이 분산 보안 처리로 안전하게 준비됩니다.",
+        description: "파티 노드와 노드 1, 노드 2, 노드 3이 상호 통신하며 수탁 전용 지갑 키를 생성합니다.",
         progress: 72,
         nodes: [
-          { label: "Node 1", value: "완료", tone: "ok" },
-          { label: "Node 2", value: "완료", tone: "ok" },
-          { label: "Node 3", value: "처리 중", tone: "warn" },
-          { label: "Key 조합", value: "대기 중" },
+          { label: "파티 노드", value: "세션 조율", tone: "accent" },
+          { label: "노드 1", value: "상호 통신 완료", tone: "ok" },
+          { label: "노드 2", value: "상호 통신 완료", tone: "ok" },
+          { label: "노드 3", value: "키 생성 중", tone: "warn" },
         ],
       },
     },

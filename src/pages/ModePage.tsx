@@ -799,14 +799,18 @@ function CustodyWorkspace() {
             { name: "수탁 관리자 B", role: "출금 2차 승인", status: withdrawApprovals >= 2 ? "approved" : withdrawApprovals === 1 ? "pending" : "waiting", note: withdrawAddress },
           ],
     };
-  } else if (nav === "wallet" || nav === "sign") {
+  } else if (nav === "wallet") {
     processView = {
       kind: "keygen",
-      description: nav === "wallet" ? "수탁 운영자가 승인된 법인의 지갑을 생성합니다." : "2인 승인 완료 후 서명 및 전송을 실행합니다.",
-      progress: nav === "sign" ? 75 : walletStatus === "운영 가능" ? 100 : 45,
-      nodes: nav === "wallet"
-        ? [{ label: "Wallet Service", value: "지갑 생성", tone: "accent" }, { label: "수탁 상태", value: custodyStatus, tone: toneForStatus(custodyStatus) }, { label: "Wallet ID", value: walletId || "대기 중", tone: walletId ? "ok" : "warn" }]
-        : [{ label: "Wallet Service", value: "서명 생성", tone: "accent" }, { label: "승인 상태", value: `${withdrawApprovals}/2 완료`, tone: "ok" }, { label: "Sign ID", value: withdrawSignId || "대기 중", tone: withdrawSignId ? "ok" : "warn" }],
+      description: "수탁 운영자가 승인된 법인의 지갑을 생성합니다.",
+      progress: walletStatus === "운영 가능" ? 100 : 45,
+      nodes: [{ label: "Wallet Service", value: "지갑 생성", tone: "accent" }, { label: "수탁 상태", value: custodyStatus, tone: toneForStatus(custodyStatus) }, { label: "Wallet ID", value: walletId || "대기 중", tone: walletId ? "ok" : "warn" }],
+    };
+  } else if (nav === "sign") {
+    processView = {
+      kind: "overview",
+      description: "2인 승인 완료 후 서명 및 전송을 실행합니다.",
+      cards: [{ label: "Wallet Service", value: "서명 생성", tone: "accent" }, { label: "승인 상태", value: `${withdrawApprovals}/2 완료`, tone: "ok" }, { label: "Sign ID", value: withdrawSignId || "대기 중", tone: withdrawSignId ? "ok" : "warn" }],
     };
   } else if (nav === "withdraw" && withdrawStatus === "전송 완료") {
     processView = { kind: "artifact", description: "출금 서명 및 전송이 완료되었습니다.", items: [{ label: "Sign ID", value: withdrawSignId, tone: "accent" }, { label: "출금 금액", value: withdrawAmount }, { label: "목적지", value: withdrawAddress }] };
@@ -1175,15 +1179,25 @@ function PersonalWorkspace() {
               { name: "Wallet Service", role: "확인 이후 서명 생성", status: "waiting", note: signId },
             ],
           }
-        : focus === "signing" || walletStatus === "키 생성 중"
+        : focus === "signing"
+          ? {
+              kind: "overview",
+              description: current.description,
+              cards: [
+                { label: "Wallet Address", value: address, tone: "ok" },
+                { label: "Sign ID", value: signId || "대기", tone: signId ? "accent" : "neutral" },
+                { label: "Wallet Service", value: "서명 생성 중", tone: "warn" },
+              ],
+            }
+        : walletStatus === "키 생성 중"
           ? {
               kind: "keygen",
               description: current.description,
-              progress: focus === "signing" ? 72 : 54,
+              progress: 54,
               nodes: [
                 { label: "Wallet Address", value: address, tone: "ok" },
                 { label: "Sign ID", value: signId || "대기", tone: signId ? "accent" : "neutral" },
-                { label: "Wallet Service", value: focus === "signing" ? "서명 생성 중" : "키 회전 중", tone: "warn" },
+                { label: "Wallet Service", value: "키 회전 중", tone: "warn" },
               ],
             }
           : focus === "signed"
@@ -1710,10 +1724,9 @@ function IssuerWorkspace() {
     };
   } else if (currentScreen.layout === "processing") {
     processView = {
-      kind: "keygen",
+      kind: "overview",
       description: currentScreen.subtitle,
-      progress: 78,
-      nodes: [
+      cards: [
         { label: "Wallet Service", value: currentScreen.title, tone: "accent" },
         { label: "승인 정책", value: "2-of-2 완료", tone: "ok" },
         { label: "처리 금액", value: currentScreen.id.includes("mint") ? issueAmount : burnAmount },
