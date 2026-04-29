@@ -32,7 +32,7 @@ export const actorGroups: ActorGroup[] = [
     shortLabel: "발행사",
     description: "발행사 등록, 발행, 소각, 준비금 요청을 생성하고 승인 상태를 확인합니다.",
     surface: "web",
-    scenarioIds: ["IS-1", "FS-2", "FS-3", "FS-4"],
+    scenarioIds: ["IS-1", "FS-2", "FS-3"],
   },
   {
     id: "platform",

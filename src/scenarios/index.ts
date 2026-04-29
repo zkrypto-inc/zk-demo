@@ -17,7 +17,7 @@ export * from "./groups";
 export const scenarioOrder: ScenarioId[] = [
   "PO-1",
   "CU-1", "CU-2", "CU-3",
-  "IS-1", "FS-2", "FS-3", "FS-4",
+  "IS-1", "FS-2", "FS-3",
   "FU-1", "FU-2",
 ];
 
