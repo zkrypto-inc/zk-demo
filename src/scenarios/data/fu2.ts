@@ -143,13 +143,12 @@ export const scenarioFU2: Scenario = {
       screenId: "FU2-3",
       description: "MPC 서명에 참여할 Signer 노드 구성이 시작됩니다. 임계값 서명 방식으로 특정 노드 단독으로는 서명이 불가능합니다.",
       processView: {
-        kind: "keygen",
+        kind: "overview",
         description: "서명에 필요한 보안 처리 구성이 준비됩니다. 앱에는 서명 준비 상태가 표시됩니다.",
-        progress: 40,
-        nodes: [
-          { label: "Signer 1", value: "선정 완료", tone: "ok" },
-          { label: "Signer 2", value: "선정 완료", tone: "ok" },
-          { label: "Signer 3", value: "선정 중", tone: "warn" },
+        cards: [
+          { label: "요청 상태", value: "검증 완료", tone: "ok" },
+          { label: "서명 준비", value: "진행 중", tone: "warn" },
+          { label: "정책", value: "임계값 서명" },
         ],
       },
     },
@@ -162,13 +161,12 @@ export const scenarioFU2: Scenario = {
       screenId: "FU2-4",
       description: "각 Signer 노드가 부분 서명(Partial Signature)을 생성하고 조합합니다. 완전한 서명은 조합이 완료된 후 생성됩니다.",
       processView: {
-        kind: "keygen",
+        kind: "overview",
         description: "서명 조합 과정이 진행 중입니다. 보안 처리가 단계적으로 이뤄지는 느낌만 전달하면 충분합니다.",
-        progress: 75,
-        nodes: [
-          { label: "Signer 1", value: "partial sig 완료", tone: "ok" },
-          { label: "Signer 2", value: "partial sig 완료", tone: "ok" },
-          { label: "Signer 3", value: "조합 중", tone: "warn" },
+        cards: [
+          { label: "부분 서명", value: "생성 완료", tone: "ok" },
+          { label: "조합 상태", value: "진행 중", tone: "warn" },
+          { label: "결과", value: "raw signature 반환 예정" },
         ],
       },
     },

@@ -55,6 +55,7 @@ export type ScreenLayout =
 export type UserScreen = {
   id: string;
   layout: ScreenLayout;
+  actor?: string;
   title: string;
   subtitle: string;
   status: string;

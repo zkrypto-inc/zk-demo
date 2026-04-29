@@ -90,17 +90,18 @@ export function WebApprovalLayout({ screen, canAdvance, activeActionLabel, onAdv
         <div className="flex gap-2 border-t border-[var(--line)] px-4 py-3">
           {screen.actions.map((action) => {
             const isActive = canAdvance && action.label === activeActionLabel;
+            const isStaticAction = action.tone === "bad";
             return (
               <button
                 key={action.id}
                 type="button"
-                disabled={!isActive}
+                disabled={!isActive && !isStaticAction}
                 onClick={() => isActive && onAdvance?.()}
                 className={`inline-flex h-9 flex-1 items-center justify-center rounded-md text-[13px] font-semibold transition-opacity
                   ${action.tone === "accent" ? "bg-[var(--accent)] text-white"
                   : action.tone === "bad" ? "bg-[var(--bad)] text-white"
                   : "border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink)]"}
-                  ${!isActive ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
+                  ${!isActive && !isStaticAction ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
               >
                 {action.label}
               </button>

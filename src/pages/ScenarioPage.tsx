@@ -57,6 +57,7 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
   const screen = withLiveScreenValues(baseScreen, storeState, scenario.id);
   const processView = withLiveProcessView(currentStep.processView, storeState, scenario.id);
   const displayId = getScenarioDisplayId(scenario);
+  const screenActor = screen.actor ?? scenario.actor;
 
   useEffect(() => {
     demoStore.setStep(scenario.id, player.currentStepIndex);
@@ -98,25 +99,34 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
         </div>
       </div>
 
+      <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+        <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
+        <div className="mt-2 text-[22px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+      </div>
+
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
         <div className="min-w-0">
           {scenario.actorType === "mobile" ? (
             <PhoneContainer
               activeActionLabel={player.nextLabel}
-              actor={scenario.actor}
+              actor={screenActor}
               canAdvance={player.canAdvanceByUser}
+              canStopAuto={player.canStopAuto}
               onAdvance={player.advance}
               onFieldChange={handleFieldChange}
+              onStopAuto={player.stopAuto}
               screen={screen}
               stepIndicator={`step ${player.currentStepIndex + 1} / ${scenario.steps.length}`}
             />
           ) : (
             <WebContainer
               activeActionLabel={player.nextLabel}
-              actor={scenario.actor}
+              actor={screenActor}
               canAdvance={player.canAdvanceByUser}
+              canStopAuto={player.canStopAuto}
               onAdvance={player.advance}
               onFieldChange={handleFieldChange}
+              onStopAuto={player.stopAuto}
               scenarioId={scenario.id}
               screen={screen}
               stepIndicator={`step ${player.currentStepIndex + 1} / ${scenario.steps.length}`}

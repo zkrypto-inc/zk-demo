@@ -10,7 +10,9 @@ type Props = {
   stepIndicator?: string;
   activeActionLabel?: string;
   canAdvance?: boolean;
+  canStopAuto?: boolean;
   onAdvance?: () => void;
+  onStopAuto?: () => void;
   onFieldChange?: (screenId: string, label: string, value: string) => void;
 };
 
@@ -21,7 +23,9 @@ export function PhoneContainer({
   stepIndicator,
   activeActionLabel,
   canAdvance = false,
+  canStopAuto = false,
   onAdvance,
+  onStopAuto,
   onFieldChange,
 }: Props) {
   return (
@@ -57,9 +61,20 @@ export function PhoneContainer({
               &lt;
             </button>
             <div className="text-[14px] font-semibold text-[var(--ink)]">zkWallet</div>
-            <div className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-semibold text-[var(--ink-2)]">
-              Demo
-            </div>
+            {canStopAuto ? (
+              <button
+                aria-label="자동 진행 정지"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--ink-2)]"
+                onClick={onStopAuto}
+                type="button"
+              >
+                <span className="h-2.5 w-2.5 rounded-[1px] bg-current" />
+              </button>
+            ) : (
+              <div className="rounded-full bg-[var(--surface-2)] px-2 py-0.5 text-[10px] font-semibold text-[var(--ink-2)]">
+                Demo
+              </div>
+            )}
           </div>
           <PhoneScreen
             screen={screen}

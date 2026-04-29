@@ -34,14 +34,6 @@ export const actorGroups: ActorGroup[] = [
     surface: "web",
     scenarioIds: ["IS-1", "FS-2", "FS-3"],
   },
-  {
-    id: "platform",
-    label: "플랫폼 운영",
-    shortLabel: "플랫폼",
-    description: "tenant, 프로그램, 역할, 승인 정책을 설정하는 플랫폼 관리자 흐름입니다.",
-    surface: "web",
-    scenarioIds: ["PO-1"],
-  },
 ];
 
 export const actorGroupById = Object.fromEntries(

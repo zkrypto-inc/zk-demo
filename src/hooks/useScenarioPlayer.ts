@@ -12,10 +12,12 @@ const clampStep = (stepIndex: number, length: number) => Math.max(0, Math.min(st
 
 export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, onStepChange }: PlayerOptions) {
   const [currentStepIndex, setCurrentStepIndex] = useState(() => clampStep(initialStepIndex, steps.length));
+  const [autoStopped, setAutoStopped] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setCurrentStepIndex(clampStep(initialStepIndex, steps.length));
+    setAutoStopped(false);
   }, [initialStepIndex, scenarioKey, steps.length]);
 
   const currentStep = useMemo(() => steps[currentStepIndex], [currentStepIndex, steps]);
@@ -23,12 +25,13 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
 
   const moveTo = (stepIndex: number) => {
     const nextStepIndex = clampStep(stepIndex, steps.length);
+    setAutoStopped(false);
     setCurrentStepIndex(nextStepIndex);
     onStepChange?.(nextStepIndex);
   };
 
   useEffect(() => {
-    if (!currentStep || currentStep.trigger !== "auto" || !currentStep.duration || !hasNext) {
+    if (!currentStep || currentStep.trigger !== "auto" || !currentStep.duration || !hasNext || autoStopped) {
       return undefined;
     }
 
@@ -41,18 +44,28 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [currentStep, currentStepIndex, hasNext, steps.length]);
+  }, [autoStopped, currentStep, currentStepIndex, hasNext, steps.length]);
 
   const canAdvanceByUser = Boolean(currentStep && currentStep.trigger === "user" && hasNext);
+  const canStopAuto = Boolean(currentStep && currentStep.trigger === "auto" && currentStep.duration && hasNext && !autoStopped);
 
   return {
     currentStep,
     currentStepIndex,
     canAdvanceByUser,
+    canStopAuto,
+    autoStopped,
     nextLabel: currentStep?.ctaLabel,
     advance: () => {
       if (!canAdvanceByUser) return;
       moveTo(currentStepIndex + 1);
+    },
+    stopAuto: () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setAutoStopped(true);
     },
     goTo: moveTo,
     restart: () => moveTo(0),
