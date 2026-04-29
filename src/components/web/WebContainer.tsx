@@ -8,9 +8,7 @@ type Props = {
   stepIndicator?: string;
   activeActionLabel?: string;
   canAdvance?: boolean;
-  canStopAuto?: boolean;
   onAdvance?: () => void;
-  onStopAuto?: () => void;
   onFieldChange?: (screenId: string, label: string, value: string) => void;
 };
 
@@ -36,9 +34,7 @@ export function WebContainer({
   stepIndicator,
   activeActionLabel,
   canAdvance = false,
-  canStopAuto = false,
   onAdvance,
-  onStopAuto,
   onFieldChange,
 }: Props) {
   const context = navContext[scenarioId];
@@ -102,18 +98,6 @@ export function WebContainer({
                 live demo
               </div>
             </div>
-            {canStopAuto && (
-              <div className="flex justify-end border-b border-[var(--line)] px-4 py-2">
-                <button
-                  aria-label="자동 진행 정지"
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-2)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
-                  onClick={onStopAuto}
-                  type="button"
-                >
-                  <span className="h-3 w-3 rounded-[1px] bg-current" />
-                </button>
-              </div>
-            )}
             <WebScreen
               activeActionLabel={activeActionLabel}
               actor={actor}
