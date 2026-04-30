@@ -109,7 +109,6 @@ export const scenarioFU1: Scenario = {
       processView: {
         kind: "overview",
         description: "지갑 생성을 시작합니다.",
-        cardsPosition: "aboveSequence",
         cards: [
           { label: "지갑 유형", value: "개인 지갑" },
           { label: "보안 방식", value: "MPC 기반 분산 처리" },
@@ -161,6 +160,7 @@ export const scenarioFU1: Scenario = {
           { label: "노드 2", value: "처리 중", tone: "warn" },
           { label: "노드 3", value: "처리 중", tone: "warn" },
         ],
+        sequence: walletRequestSeq("warn"),
       },
     },
     {
@@ -182,6 +182,7 @@ export const scenarioFU1: Scenario = {
           { label: "노드 2", value: "완료", tone: "ok" },
           { label: "노드 3", value: "완료", tone: "ok" },
         ],
+        sequence: walletRequestSeq("ok"),
       },
     },
     {

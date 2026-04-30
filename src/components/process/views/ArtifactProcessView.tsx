@@ -1,25 +1,13 @@
 import { toneText } from "@/utils/tone";
-import type { ProcessView, SequenceEdge } from "@/scenarios/types";
-import { SequenceProcessView } from "./SequenceProcessView";
+import type { ProcessView } from "@/scenarios/types";
 
 type Props = {
   view: Extract<ProcessView, { kind: "artifact" }>;
-  seqPastEdges?: SequenceEdge[];
 };
 
-export function ArtifactProcessView({ view, seqPastEdges }: Props) {
+export function ArtifactProcessView({ view }: Props) {
   return (
     <div>
-      {view.sequence && (
-        <div className="mb-5 h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
-          <SequenceProcessView
-            actors={view.sequence.actors}
-            edge={view.sequence.activeEdge}
-            pastEdges={seqPastEdges}
-            compact
-          />
-        </div>
-      )}
       <p className="mb-5 text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {view.items.map((item) => (

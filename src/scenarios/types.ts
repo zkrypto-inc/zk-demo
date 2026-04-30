@@ -106,7 +106,6 @@ export type ProcessView =
       kind: "overview";
       description: string;
       cards?: StatusCard[];
-      cardsPosition?: "aboveSequence" | "belowSequence";
       sequence?: SequenceContext;
     }
   | {
@@ -135,6 +134,7 @@ export type ProcessView =
       description: string;
       logs: string[];
       summary?: StatusCard[];
+      sequence?: SequenceContext;
     };
 
 // --- Scenario step ---

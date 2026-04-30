@@ -1,5 +1,22 @@
 import { mockIds } from "@/mocks/ids";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["플랫폼 운영자", "스테이블코인 플랫폼", "연계 조직"] as const;
+
+const operatorSeq = (label: string, tone: "accent" | "ok" = "accent"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "플랫폼 운영자", to: "스테이블코인 플랫폼", label, tone },
+});
+
+const platformSeq = (label: string, tone: "accent" | "ok" = "accent"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "연계 조직", label, tone },
+});
+
+const resultSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "플랫폼 운영자", label: "운영 준비 완료", tone: "ok" },
+});
 
 export const scenarioPO1: Scenario = {
   id: "PO-1",
@@ -141,6 +158,7 @@ export const scenarioPO1: Scenario = {
           { label: "상태", value: "활성", tone: "ok" },
           { label: "연결 서비스", value: "Wallet Service + Audit" },
         ],
+        sequence: operatorSeq("Tenant 선택"),
       },
     },
     {
@@ -159,6 +177,7 @@ export const scenarioPO1: Scenario = {
           { label: "자산", value: "KRW 스테이블코인" },
           { label: "네트워크", value: "Ethereum" },
         ],
+        sequence: operatorSeq("프로그램 생성"),
       },
     },
     {
@@ -177,6 +196,7 @@ export const scenarioPO1: Scenario = {
           { label: "역할 관리", value: "허용", tone: "ok" },
           { label: "자산 직접 이동", value: "차단", tone: "bad" },
         ],
+        sequence: operatorSeq("권한 설정"),
       },
     },
     {
@@ -194,6 +214,7 @@ export const scenarioPO1: Scenario = {
           { label: "발행사", value: "KFIN Corp.", tone: "ok" },
           { label: "수탁 운영자", value: "SafeVault Inc.", tone: "ok" },
         ],
+        sequence: platformSeq("역할 연결"),
       },
     },
     {
@@ -232,6 +253,7 @@ export const scenarioPO1: Scenario = {
           { label: "승인 구조", value: "2-of-2 필수" },
           { label: "상태", value: "운영 준비 완료", tone: "ok" },
         ],
+        sequence: resultSeq(),
       },
     },
   ],

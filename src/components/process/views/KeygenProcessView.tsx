@@ -1,10 +1,8 @@
 import { toneText } from "@/utils/tone";
-import type { ProcessView, SequenceEdge, StatusCard } from "@/scenarios/types";
-import { SequenceProcessView } from "./SequenceProcessView";
+import type { ProcessView, StatusCard } from "@/scenarios/types";
 
 type Props = {
   view: Extract<ProcessView, { kind: "keygen" }>;
-  seqPastEdges?: SequenceEdge[];
 };
 
 function NodeBox({ node }: { node?: StatusCard }) {
@@ -44,7 +42,7 @@ function MutualArrow() {
   );
 }
 
-export function KeygenProcessView({ view, seqPastEdges }: Props) {
+export function KeygenProcessView({ view }: Props) {
   const partyNode = view.nodes.find((n) => n.tone === "accent");
   const workerNodes = partyNode
     ? view.nodes.filter((n) => n !== partyNode)
@@ -52,16 +50,6 @@ export function KeygenProcessView({ view, seqPastEdges }: Props) {
 
   return (
     <div className="space-y-4">
-      {view.sequence && (
-        <div className="h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
-          <SequenceProcessView
-            actors={view.sequence.actors}
-            edge={view.sequence.activeEdge}
-            pastEdges={seqPastEdges}
-            compact
-          />
-        </div>
-      )}
       <p className="text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
 
       <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">

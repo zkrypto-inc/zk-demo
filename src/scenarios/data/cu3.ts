@@ -6,6 +6,11 @@ import type { Scenario, SequenceContext } from "@/scenarios/types";
 const seqActors = ["수탁 운영자", "수탁사", "zkWallet(Custody)"] as const;
 const seqPastBase = [{ from: "수탁 운영자", to: "수탁사", label: "출금 요청" }];
 
+const withdrawRequestSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "수탁 운영자", to: "수탁사", label: "출금 요청", tone: "accent" },
+});
+
 const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
   actors: [...seqActors],
   activeEdge: { from: "수탁사", to: "zkWallet(Custody)", label: "서명 요청", tone },
@@ -156,6 +161,7 @@ export const scenarioCU3: Scenario = {
           { label: "목적지", value: mockHashes.withdrawalAddress },
           { label: "요청 ID", value: mockIds.cu3RequestId },
         ],
+        sequence: withdrawRequestSeq(),
       },
     },
     {

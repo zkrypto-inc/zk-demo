@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import type { ProcessView, ScenarioStep, SequenceEdge } from "@/scenarios/types";
+import type { ProcessView, ScenarioStep, SequenceContext, SequenceEdge } from "@/scenarios/types";
 import { ArtifactProcessView } from "./views/ArtifactProcessView";
 import { ApprovalProcessView } from "./views/ApprovalProcessView";
 import { AuditProcessView } from "./views/AuditProcessView";
@@ -18,50 +18,57 @@ function dedupeAndFilter(edges: SequenceEdge[], activeEdge: SequenceEdge): Seque
 
 function collectEmbeddedSequencePast(steps: ScenarioStep[], currentStepIndex: number): SequenceEdge[] {
   return steps.slice(0, currentStepIndex).flatMap((step) => {
-    const pv = step.processView;
-    if (pv.kind === "sequence") return [pv.activeEdge];
-    if ((pv.kind === "keygen" || pv.kind === "artifact" || pv.kind === "overview") && pv.sequence) return [pv.sequence.activeEdge];
-    return [];
+    const sequence = extractSequence(step.processView);
+    return sequence ? [sequence.activeEdge] : [];
   });
 }
 
-function renderView(view: ProcessView, steps: ScenarioStep[] = [], currentStepIndex = 0) {
+function extractSequence(view?: ProcessView): SequenceContext | undefined {
+  if (!view) return undefined;
+
+  if (view.kind === "sequence") {
+    return {
+      actors: view.actors,
+      activeEdge: view.activeEdge,
+      pastEdges: view.pastEdges,
+    };
+  }
+
+  if (
+    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit") &&
+    view.sequence
+  ) {
+    return view.sequence;
+  }
+
+  return undefined;
+}
+
+function resolveTopSequence(processView: ProcessView, steps: ScenarioStep[], currentStepIndex: number) {
+  const currentSequence = extractSequence(processView);
+  if (currentSequence) return currentSequence;
+
+  for (let i = currentStepIndex - 1; i >= 0; i -= 1) {
+    const previousSequence = extractSequence(steps[i]?.processView);
+    if (previousSequence) return previousSequence;
+  }
+
+  return undefined;
+}
+
+function renderView(view: ProcessView) {
   switch (view.kind) {
     case "sequence": {
-      const computedPast = steps.slice(0, currentStepIndex).flatMap((step) => (
-        step.processView.kind === "sequence" ? [step.processView.activeEdge] : []
-      ));
-      const filteredPast = dedupeAndFilter([...(view.pastEdges ?? []), ...computedPast], view.activeEdge);
-      return <SequenceProcessView actors={view.actors} edge={view.activeEdge} pastEdges={filteredPast} />;
+      return view.description
+        ? <p className="text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
+        : null;
     }
     case "overview": {
-      const seqPast = view.sequence
-        ? dedupeAndFilter(
-            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
-            view.sequence.activeEdge,
-          )
-        : undefined;
-      return <OverviewProcessView view={view} seqPastEdges={seqPast} />;
+      return <OverviewProcessView view={view} />;
     }
     case "approval":  return <ApprovalProcessView view={view} />;
-    case "keygen": {
-      const seqPast = view.sequence
-        ? dedupeAndFilter(
-            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
-            view.sequence.activeEdge,
-          )
-        : undefined;
-      return <KeygenProcessView view={view} seqPastEdges={seqPast} />;
-    }
-    case "artifact": {
-      const seqPast = view.sequence
-        ? dedupeAndFilter(
-            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
-            view.sequence.activeEdge,
-          )
-        : undefined;
-      return <ArtifactProcessView view={view} seqPastEdges={seqPast} />;
-    }
+    case "keygen":    return <KeygenProcessView view={view} />;
+    case "artifact":  return <ArtifactProcessView view={view} />;
     case "audit":     return <AuditProcessView view={view} />;
     default:          return null;
   }
@@ -75,6 +82,14 @@ type Props = {
 };
 
 export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [] }: Props) {
+  const topSequence = resolveTopSequence(processView, steps, currentStepIndex);
+  const topSequencePast = topSequence
+    ? dedupeAndFilter(
+        [...(topSequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
+        topSequence.activeEdge,
+      )
+    : undefined;
+
   return (
     <section className="flex min-h-[650px] flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)]">
       <div className="border-b border-[var(--line)] px-5 py-4">
@@ -100,7 +115,17 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
           >
-            {renderView(processView, steps, currentStepIndex)}
+            {topSequence && (
+              <div className="mb-5 h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
+                <SequenceProcessView
+                  actors={topSequence.actors}
+                  edge={topSequence.activeEdge}
+                  pastEdges={topSequencePast}
+                  compact
+                />
+              </div>
+            )}
+            {renderView(processView)}
           </motion.div>
         </AnimatePresence>
       </div>

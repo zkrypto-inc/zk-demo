@@ -1,6 +1,27 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["발행사 관리자", "스테이블코인 플랫폼", "원화계좌"] as const;
+const liquidityRequestEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "유동성 요청" };
+const reasonEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "사유 기록" };
+
+const issuerSeq = (edge: typeof liquidityRequestEdge | typeof reasonEdge): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { ...edge, tone: "accent" },
+});
+
+const accountSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "원화계좌", label: "계좌 처리", tone: "warn" },
+  pastEdges: [liquidityRequestEdge, reasonEdge],
+});
+
+const resultSeq = (label: string): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "발행사 관리자", label, tone: "ok" },
+  pastEdges: [liquidityRequestEdge, reasonEdge],
+});
 
 export const scenarioFS4: Scenario = {
   id: "FS-4",
@@ -139,6 +160,7 @@ export const scenarioFS4: Scenario = {
           { label: "금액", value: mockAmounts.liquidityAmount },
           { label: "요청 ID", value: mockIds.liquidityRequestId },
         ],
+        sequence: issuerSeq(liquidityRequestEdge),
       },
     },
     {
@@ -157,6 +179,7 @@ export const scenarioFS4: Scenario = {
           { label: "관련 규정", value: "내규 제15조" },
           { label: "증빙", value: "첨부 완료", tone: "ok" },
         ],
+        sequence: issuerSeq(reasonEdge),
       },
     },
     {
@@ -192,6 +215,7 @@ export const scenarioFS4: Scenario = {
           { label: "출금 계좌", value: "사전 등록 완료", tone: "ok" },
           { label: "처리 상태", value: "진행 중", tone: "warn" },
         ],
+        sequence: accountSeq(),
       },
     },
     {
@@ -212,6 +236,7 @@ export const scenarioFS4: Scenario = {
           `[완료] 플랫폼 승인`,
           `[완료] 원화계좌 처리 · ${mockAmounts.liquidityAmount}`,
         ],
+        sequence: resultSeq("Audit Log 기록"),
       },
     },
     {
@@ -238,6 +263,7 @@ export const scenarioFS4: Scenario = {
           { label: "금액", value: mockAmounts.liquidityAmount },
           { label: "상태", value: "처리 완료", tone: "ok" },
         ],
+        sequence: resultSeq("이력 확인"),
       },
     },
   ],

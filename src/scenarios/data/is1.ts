@@ -1,6 +1,27 @@
 import { mockIds } from "@/mocks/ids";
 import { mockHashes } from "@/mocks/hashes";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["발행사 관리자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
+const registrationEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "발행사 등록 요청" };
+const adminConfigEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "관리자 구성" };
+
+const issuerSeq = (edge: typeof registrationEdge | typeof adminConfigEdge): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { ...edge, tone: "accent" },
+});
+
+const walletSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "지갑 생성/키 생성", tone },
+  pastEdges: [registrationEdge, adminConfigEdge],
+});
+
+const walletResultSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "zkWallet(Custody)", to: "스테이블코인 플랫폼", label: "지갑 주소 발급", tone: "ok" },
+  pastEdges: [registrationEdge, adminConfigEdge],
+});
 
 export const scenarioIS1: Scenario = {
   id: "IS-1",
@@ -126,6 +147,7 @@ export const scenarioIS1: Scenario = {
           { label: "요청 ID", value: mockIds.is1RequestId },
           { label: "단계", value: "조직 온보딩" },
         ],
+        sequence: issuerSeq(registrationEdge),
       },
     },
     {
@@ -162,6 +184,7 @@ export const scenarioIS1: Scenario = {
           { label: "최소 승인수", value: "2명" },
           { label: "전체 관리자 수", value: "3명" },
         ],
+        sequence: issuerSeq(adminConfigEdge),
       },
     },
     {
@@ -181,6 +204,7 @@ export const scenarioIS1: Scenario = {
           { label: "Node B", value: "완료", tone: "ok" },
           { label: "Node C", value: "처리 중", tone: "warn" },
         ],
+        sequence: walletSeq("warn"),
       },
     },
     {
@@ -201,6 +225,7 @@ export const scenarioIS1: Scenario = {
           { label: "관리자 연결", value: "3명 활성", tone: "ok" },
           { label: "상태", value: "운영 준비 완료", tone: "ok" },
         ],
+        sequence: walletResultSeq(),
       },
     },
   ],

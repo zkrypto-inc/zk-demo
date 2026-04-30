@@ -1,6 +1,26 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["발행사 관리자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
+const burnRequestEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "상환 요청" };
+
+const burnRequestSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { ...burnRequestEdge, tone: "accent" },
+});
+
+const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "서명 요청", tone },
+  pastEdges: [burnRequestEdge],
+});
+
+const resultSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "발행사 관리자", label: "상환 완료", tone: "ok" },
+  pastEdges: [burnRequestEdge],
+});
 
 export const scenarioFS3: Scenario = {
   id: "FS-3",
@@ -116,6 +136,7 @@ export const scenarioFS3: Scenario = {
           { label: "소각 수량", value: mockAmounts.burnAmount },
           { label: "코인 심볼", value: "KRW" },
         ],
+        sequence: burnRequestSeq(),
       },
     },
     {
@@ -168,6 +189,7 @@ export const scenarioFS3: Scenario = {
           { label: "서명 상태", value: "진행 중", tone: "warn" },
           { label: "처리 대상", value: "상환 실행" },
         ],
+        sequence: signingSeq("warn"),
       },
     },
     {
@@ -186,6 +208,7 @@ export const scenarioFS3: Scenario = {
           { label: "소각 후 잔량", value: mockAmounts.circulatingAfterBurn },
           { label: "코인 심볼", value: "KRW" },
         ],
+        sequence: resultSeq(),
       },
     },
   ],

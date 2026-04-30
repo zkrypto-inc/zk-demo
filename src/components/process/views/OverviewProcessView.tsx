@@ -1,10 +1,8 @@
 import { toneText } from "@/utils/tone";
-import type { ProcessView, SequenceEdge } from "@/scenarios/types";
-import { SequenceProcessView } from "./SequenceProcessView";
+import type { ProcessView } from "@/scenarios/types";
 
 type Props = {
   view: Extract<ProcessView, { kind: "overview" }>;
-  seqPastEdges?: SequenceEdge[];
 };
 
 function OverviewCards({ cards }: { cards?: Extract<ProcessView, { kind: "overview" }>["cards"] }) {
@@ -23,37 +21,9 @@ function OverviewCards({ cards }: { cards?: Extract<ProcessView, { kind: "overvi
   );
 }
 
-function OverviewSequence({ view, seqPastEdges }: Props) {
-  if (!view.sequence) return null;
-
-  return (
-    <div className="h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
-      <SequenceProcessView
-        actors={view.sequence.actors}
-        edge={view.sequence.activeEdge}
-        pastEdges={seqPastEdges}
-        compact
-      />
-    </div>
-  );
-}
-
-export function OverviewProcessView({ view, seqPastEdges }: Props) {
-  const cardsAboveSequence = view.cardsPosition === "aboveSequence";
-
-  if (cardsAboveSequence) {
-    return (
-      <div className="space-y-5">
-        <p className="text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
-        <OverviewCards cards={view.cards} />
-        <OverviewSequence view={view} seqPastEdges={seqPastEdges} />
-      </div>
-    );
-  }
-
+export function OverviewProcessView({ view }: Props) {
   return (
     <div className="space-y-5">
-      <OverviewSequence view={view} seqPastEdges={seqPastEdges} />
       <p className="text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
       <OverviewCards cards={view.cards} />
     </div>

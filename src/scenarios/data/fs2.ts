@@ -1,6 +1,27 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["발행사 관리자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
+const issueRequestEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "발행 요청" };
+const reserveEdge = { from: "발행사 관리자", to: "스테이블코인 플랫폼", label: "준비금 등록" };
+
+const issuerRequestSeq = (edge: typeof issueRequestEdge | typeof reserveEdge): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { ...edge, tone: "accent" },
+});
+
+const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "서명 요청", tone },
+  pastEdges: [issueRequestEdge, reserveEdge],
+});
+
+const resultSeq = (): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "발행사 관리자", label: "발행 완료", tone: "ok" },
+  pastEdges: [issueRequestEdge, reserveEdge],
+});
 
 export const scenarioFS2: Scenario = {
   id: "FS-2",
@@ -141,6 +162,7 @@ export const scenarioFS2: Scenario = {
           { label: "발행 수량", value: mockAmounts.issueAmount },
           { label: "코인 심볼", value: "KRW" },
         ],
+        sequence: issuerRequestSeq(issueRequestEdge),
       },
     },
     {
@@ -160,6 +182,7 @@ export const scenarioFS2: Scenario = {
           { label: "MMF", value: "36,000,000,000원" },
           { label: "채권", value: "36,000,000,000원" },
         ],
+        sequence: issuerRequestSeq(reserveEdge),
       },
     },
     {
@@ -212,6 +235,7 @@ export const scenarioFS2: Scenario = {
           { label: "서명 상태", value: "요청 중", tone: "warn" },
           { label: "요청 주체", value: "SC Lifecycle" },
         ],
+        sequence: signingSeq("warn"),
       },
     },
     {
@@ -232,6 +256,7 @@ export const scenarioFS2: Scenario = {
           { label: "준비금 총액", value: mockAmounts.reserveAmount },
           { label: "준비금 구성", value: "현금 40% / MMF 30% / 채권 30%" },
         ],
+        sequence: resultSeq(),
       },
     },
   ],
