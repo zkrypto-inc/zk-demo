@@ -24,12 +24,11 @@ export const scenarioCU2: Scenario = {
           fields: [
             { label: "자산", value: "KRW 스테이블코인" },
             { label: "입금 수량", value: mockAmounts.depositAmount },
-            { label: "수탁 지갑", value: mockIds.custodyWalletId },
             { label: "사유", value: "초기 수탁 자산 납입" },
           ],
         },
       ],
-      actions: [{ id: "submit-deposit", label: "입금 등록", tone: "accent" }],
+      actions: [{ id: "submit-deposit", label: "수탁 요청", tone: "accent" }],
     },
     {
       id: "CU2-2",
@@ -73,7 +72,7 @@ export const scenarioCU2: Scenario = {
       id: "CU2-4",
       layout: "result",
       title: "입금 이력 확인",
-      subtitle: "입금 완료 및 감사 추적 가능",
+      subtitle: "입금 완료",
       status: "완료",
       sections: [
         {
@@ -81,8 +80,6 @@ export const scenarioCU2: Scenario = {
           fields: [
             { label: "Tx Hash", value: mockHashes.txHash, tone: "accent" },
             { label: "입금 수량", value: mockAmounts.depositAmount },
-            { label: "Request ID", value: mockIds.requestId },
-            { label: "Audit Event ID", value: mockIds.auditEventId },
             { label: "상태", value: "입금 완료", tone: "ok" },
           ],
         },
@@ -95,7 +92,7 @@ export const scenarioCU2: Scenario = {
       kind: "user-action",
       label: "수탁 내역 등록",
       trigger: "user",
-      ctaLabel: "입금 등록",
+      ctaLabel: "수탁 요청",
       screenId: "CU2-1",
       description: "어떤 자산을 어떤 수량으로 수탁 입금할지 요청을 생성합니다. 온체인 전송 기반으로 처리됩니다.",
       processView: {
@@ -104,7 +101,6 @@ export const scenarioCU2: Scenario = {
         cards: [
           { label: "자산", value: "KRW 스테이블코인" },
           { label: "입금 수량", value: mockAmounts.depositAmount },
-          { label: "수탁 지갑", value: mockIds.custodyWalletId },
         ],
       },
     },
@@ -150,20 +146,13 @@ export const scenarioCU2: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "CU2-4",
-      description: "수탁 입금 처리가 완료되었습니다. Tx Hash와 Audit Event ID를 기준으로 감사 추적이 가능합니다.",
+      description: "수탁 입금 처리가 완료되었습니다. Tx Hash를 기준으로 온체인 이력을 확인할 수 있습니다.",
       processView: {
-        kind: "audit",
-        description: "입금 결과와 이력이 남아 있는 상태를 보여줍니다. 이후 감사나 운영 조회 시 Tx Hash와 Audit Event ID를 기준으로 추적합니다.",
-        logs: [
-          `[완료] 수탁 입금 등록 · req=${mockIds.requestId}`,
-          `[완료] 1차 승인 · 이수민`,
-          `[완료] 2차 승인 · 최종원`,
-          `[완료] Wallet Service 서명 · sign=${mockIds.signId}`,
-          `[완료] 온체인 tx 브로드캐스트 · tx=${mockHashes.txHash}`,
-        ],
-        summary: [
+        kind: "artifact",
+        description: "입금 결과가 기록되었습니다. Tx Hash를 기준으로 온체인 이력을 확인할 수 있습니다.",
+        items: [
           { label: "Tx Hash", value: mockHashes.txHash, tone: "accent" },
-          { label: "Audit Event ID", value: mockIds.auditEventId },
+          { label: "입금 수량", value: mockAmounts.depositAmount },
           { label: "상태", value: "입금 완료", tone: "ok" },
         ],
       },

@@ -10,7 +10,7 @@ export const scenarioCU3: Scenario = {
   actor: "수탁 운영자",
   actorType: "web",
   mode: "custody",
-  summary: "출금 요청·승인·화이트리스트 검증을 거쳐 Wallet Service 서명으로 이어지는 출금 흐름입니다.",
+  summary: "출금 요청·승인을 거쳐 Wallet Service 서명으로 이어지는 출금 흐름입니다.",
   screens: [
     {
       id: "CU3-1",
@@ -52,24 +52,6 @@ export const scenarioCU3: Scenario = {
       actions: [{ id: "confirm-approve", label: "2차 승인 완료 확인", tone: "accent" }],
     },
     {
-      id: "CU3-3",
-      layout: "dashboard",
-      title: "화이트리스트 주소 검증",
-      subtitle: "출금 목적지 주소 확인",
-      status: "검증 중",
-      sections: [
-        {
-          title: "주소 검증",
-          fields: [
-            { label: "목적지 주소", value: mockHashes.withdrawalAddress },
-            { label: "화이트리스트 등록", value: "확인됨", tone: "ok" },
-            { label: "검증 결과", value: "통과", tone: "ok" },
-          ],
-        },
-      ],
-      actions: [{ id: "confirm-whitelist", label: "서명 요청 진행", tone: "accent" }],
-    },
-    {
       id: "CU3-4",
       layout: "processing",
       title: "Wallet Service 서명 요청",
@@ -108,19 +90,14 @@ export const scenarioCU3: Scenario = {
       id: "CU3-6",
       layout: "result",
       title: "출금 이력 확인",
-      subtitle: "감사 추적 가능한 출금 완료",
+      subtitle: "출금 완료",
       status: "완료",
       sections: [
         {
           title: "출금 결과",
           fields: [
-            { label: "Request ID", value: mockIds.cu3RequestId, tone: "accent" },
-            { label: "Sign ID", value: mockIds.signId },
-            { label: "Tx Hash", value: mockHashes.cu3TxHash },
-            { label: "Audit Event ID", value: mockIds.auditEventId },
-            { label: "Approver 1", value: "이수민" },
-            { label: "Approver 2", value: "최종원" },
-            { label: "상태", value: "출금 완료", tone: "ok" },
+            { label: "Tx Hash", value: mockHashes.cu3TxHash, tone: "accent" },
+            { label: "Raw Signature", value: mockHashes.rawSignature },
           ],
         },
       ],
@@ -159,24 +136,6 @@ export const scenarioCU3: Scenario = {
         approvers: [
           { name: "이수민", role: "대표 (1차 승인)", status: "approved" },
           { name: "최종원", role: "CFO (2차 승인)", status: "pending", note: "검토 중" },
-        ],
-      },
-    },
-    {
-      id: "CU3-S3",
-      kind: "system-processing",
-      label: "화이트리스트 주소 검증",
-      trigger: "user",
-      ctaLabel: "서명 요청 진행",
-      screenId: "CU3-3",
-      description: "출금 목적지 주소가 수탁 화이트리스트에 등록되어 있는지 검증합니다. 미등록 주소로는 출금이 자동 차단됩니다.",
-      processView: {
-        kind: "overview",
-        description: "목적지 주소가 수탁 화이트리스트 내에 있는지 검증합니다. 미등록 주소로는 출금이 차단됩니다.",
-        cards: [
-          { label: "목적지 주소", value: mockHashes.withdrawalAddress },
-          { label: "화이트리스트", value: "등록 확인", tone: "ok" },
-          { label: "검증 결과", value: "통과", tone: "ok" },
         ],
       },
     },
@@ -223,22 +182,13 @@ export const scenarioCU3: Scenario = {
       trigger: "auto",
       duration: 600,
       screenId: "CU3-6",
-      description: "출금 결과가 감사 추적 가능한 형태로 기록됩니다. sign id, wallet id, request id를 기준으로 전체 이력을 조회할 수 있습니다.",
+      description: "출금 결과가 기록됩니다. Tx Hash와 Raw Signature로 처리 결과를 확인할 수 있습니다.",
       processView: {
-        kind: "audit",
-        description: "출금 결과가 감사 추적 가능한 형태로 기록되었습니다.",
-        logs: [
-          `[완료] 출금 요청 생성 · req=${mockIds.cu3RequestId}`,
-          `[완료] 1차 승인 · 이수민`,
-          `[완료] 2차 승인 · 최종원`,
-          `[완료] 화이트리스트 검증 · ${mockHashes.withdrawalAddress}`,
-          `[완료] Wallet Service 서명 · sign=${mockIds.signId}`,
-          `[완료] 온체인 브로드캐스트 · tx=${mockHashes.cu3TxHash}`,
-        ],
-        summary: [
-          { label: "Sign ID", value: mockIds.signId, tone: "accent" },
-          { label: "Tx Hash", value: mockHashes.cu3TxHash },
-          { label: "상태", value: "출금 완료", tone: "ok" },
+        kind: "artifact",
+        description: "출금 결과가 기록되었습니다. Tx Hash와 Raw Signature로 처리 결과를 확인합니다.",
+        items: [
+          { label: "Tx Hash", value: mockHashes.cu3TxHash, tone: "accent" },
+          { label: "Raw Signature", value: mockHashes.rawSignature },
         ],
       },
     },

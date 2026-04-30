@@ -1,7 +1,11 @@
 import { toneText } from "@/utils/tone";
-import type { ProcessView, StatusCard } from "@/scenarios/types";
+import type { ProcessView, SequenceEdge, StatusCard } from "@/scenarios/types";
+import { SequenceProcessView } from "./SequenceProcessView";
 
-type Props = { view: Extract<ProcessView, { kind: "keygen" }> };
+type Props = {
+  view: Extract<ProcessView, { kind: "keygen" }>;
+  seqPastEdges?: SequenceEdge[];
+};
 
 function NodeBox({ node }: { node?: StatusCard }) {
   const tone = node?.tone;
@@ -40,16 +44,24 @@ function MutualArrow() {
   );
 }
 
-export function KeygenProcessView({ view }: Props) {
-  const partyNode = view.nodes.find(
-    (n) => n.tone === "accent" || n.label.includes("파티") || n.label.toLowerCase().includes("party"),
-  );
+export function KeygenProcessView({ view, seqPastEdges }: Props) {
+  const partyNode = view.nodes.find((n) => n.tone === "accent");
   const workerNodes = partyNode
     ? view.nodes.filter((n) => n !== partyNode)
     : view.nodes;
 
   return (
     <div className="space-y-4">
+      {view.sequence && (
+        <div className="h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
+          <SequenceProcessView
+            actors={view.sequence.actors}
+            edge={view.sequence.activeEdge}
+            pastEdges={seqPastEdges}
+            compact
+          />
+        </div>
+      )}
       <p className="text-[14px] leading-[1.65] text-[var(--ink-2)]">{view.description}</p>
 
       <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4">
@@ -58,7 +70,7 @@ export function KeygenProcessView({ view }: Props) {
           <div className="min-w-[140px] rounded-lg border-2 border-[var(--accent)] bg-[var(--accent-soft)] px-8 py-3 text-center">
             <div className="text-[10px] font-semibold uppercase tracking-[0.06em] text-[var(--accent)]">조율</div>
             <div className="mt-0.5 text-[15px] font-bold text-[var(--ink)]">
-              {partyNode?.label ?? "파티 노드"}
+              {partyNode?.label ?? "관리자 노드"}
             </div>
             {partyNode?.value && (
               <div className={`mt-0.5 text-[11px] font-medium ${toneText(partyNode.tone)}`}>
@@ -110,19 +122,24 @@ export function KeygenProcessView({ view }: Props) {
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[12px] font-medium text-[var(--ink-2)]">진행률</span>
-          <span className="font-mono text-[12px] text-[var(--accent)]">{view.progress}%</span>
+      {view.showProgress !== false && (
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[12px] font-medium text-[var(--ink-2)]">
+              {view.progressLabel ?? "진행률"}
+            </span>
+            {view.showProgressValue !== false && (
+              <span className="font-mono text-[12px] text-[var(--accent)]">{view.progress}%</span>
+            )}
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]">
+            <div
+              className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
+              style={{ width: `${view.progress}%` }}
+            />
+          </div>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]">
-          <div
-            className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
-            style={{ width: `${view.progress}%` }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

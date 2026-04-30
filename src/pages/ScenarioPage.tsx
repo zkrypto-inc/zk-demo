@@ -94,8 +94,31 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
           <h1 className="mt-2 text-[26px] font-semibold leading-tight text-[var(--ink)]">{scenario.name}</h1>
           <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
         </div>
-        <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
-          step {player.currentStepIndex + 1} / {scenario.steps.length}
+        <div className="flex items-center gap-2">
+          <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
+            step {player.currentStepIndex + 1} / {scenario.steps.length}
+          </div>
+          <button
+            type="button"
+            onClick={player.toggleManualMode}
+            className={`inline-flex h-7 items-center gap-1.5 rounded px-3 text-[11px] font-medium transition ${
+              player.manualMode
+                ? "bg-[var(--accent)] text-white"
+                : "border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]"
+            }`}
+          >
+            {player.manualMode ? (
+              <>
+                <span className="inline-block h-2 w-2 shrink-0 rounded-[2px] bg-current" />
+                수동
+              </>
+            ) : (
+              <>
+                <svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><polygon points="0,0 8,4.5 0,9" /></svg>
+                자동
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -115,11 +138,11 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
             멈춤
           </button>
         )}
-        {player.autoStopped && player.currentStepIndex < scenario.steps.length - 1 && (
+        {(player.manualMode || player.autoStopped) && player.hasNext && (
           <button
             aria-label="다음 단계로 진행"
             className="mt-1 inline-flex shrink-0 items-center gap-2 rounded-md bg-[var(--accent)] px-3 py-2 text-[12px] font-medium text-white transition hover:opacity-90"
-            onClick={() => player.goTo(player.currentStepIndex + 1)}
+            onClick={player.advanceManual}
             type="button"
           >
             다음 단계 →
@@ -162,10 +185,6 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
 
         <aside className="space-y-4">
           <StepTracker currentStepIndex={player.currentStepIndex} onStepSelect={handleStepSelect} steps={scenario.steps} />
-          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-            <div className="text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">설명</div>
-            <div className="mt-3 text-[13px] leading-[1.65] text-[var(--ink)]">{currentStep.description}</div>
-          </div>
           {group && group.scenarioIds.length > 1 && (
             <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
               <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">같은 사용자 유형</div>

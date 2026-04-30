@@ -88,17 +88,26 @@ export type SequenceEdge = {
   tone?: Tone;
 };
 
+export type SequenceContext = {
+  actors: string[];
+  activeEdge: SequenceEdge;
+  pastEdges?: SequenceEdge[];
+};
+
 export type ProcessView =
   | {
       kind: "sequence";
       actors: string[];
       activeEdge: SequenceEdge;
+      pastEdges?: SequenceEdge[];
       description?: string;
     }
   | {
       kind: "overview";
       description: string;
       cards?: StatusCard[];
+      cardsPosition?: "aboveSequence" | "belowSequence";
+      sequence?: SequenceContext;
     }
   | {
       kind: "approval";
@@ -109,12 +118,17 @@ export type ProcessView =
       kind: "keygen";
       description: string;
       progress: number;
+      showProgress?: boolean;
+      progressLabel?: string;
+      showProgressValue?: boolean;
       nodes: StatusCard[];
+      sequence?: SequenceContext;
     }
   | {
       kind: "artifact";
       description: string;
       items: StatusCard[];
+      sequence?: SequenceContext;
     }
   | {
       kind: "audit";
