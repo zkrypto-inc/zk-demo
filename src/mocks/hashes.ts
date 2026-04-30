@@ -7,4 +7,5 @@ export const mockHashes = {
   txHash: "0xa1f2c77b340f8893",
   cu3TxHash: "0xb2f3c88a451f9904",
   publicKey: "03a2f1b07d814e0bc9",
+  rawSignature: "3044022059d9f7b32b5c6e8a10220abcdef01234567890abc",
 };

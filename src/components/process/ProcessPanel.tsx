@@ -1,4 +1,5 @@
-import type { ProcessView, ScenarioStep } from "@/scenarios/types";
+import { AnimatePresence, motion } from "framer-motion";
+import type { ProcessView, ScenarioStep, SequenceEdge } from "@/scenarios/types";
 import { ArtifactProcessView } from "./views/ArtifactProcessView";
 import { ApprovalProcessView } from "./views/ApprovalProcessView";
 import { AuditProcessView } from "./views/AuditProcessView";
@@ -6,21 +7,61 @@ import { KeygenProcessView } from "./views/KeygenProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
 import { SequenceProcessView } from "./views/SequenceProcessView";
 
+function dedupeAndFilter(edges: SequenceEdge[], activeEdge: SequenceEdge): SequenceEdge[] {
+  const unique = edges.filter((e, i, arr) =>
+    i === arr.findIndex(x => x.from === e.from && x.to === e.to && x.label === e.label)
+  );
+  return unique.filter(e =>
+    e.from !== activeEdge.from || e.to !== activeEdge.to || e.label !== activeEdge.label
+  );
+}
+
+function collectEmbeddedSequencePast(steps: ScenarioStep[], currentStepIndex: number): SequenceEdge[] {
+  return steps.slice(0, currentStepIndex).flatMap((step) => {
+    const pv = step.processView;
+    if (pv.kind === "sequence") return [pv.activeEdge];
+    if ((pv.kind === "keygen" || pv.kind === "artifact" || pv.kind === "overview") && pv.sequence) return [pv.sequence.activeEdge];
+    return [];
+  });
+}
+
 function renderView(view: ProcessView, steps: ScenarioStep[] = [], currentStepIndex = 0) {
   switch (view.kind) {
     case "sequence": {
-      const pastEdges = steps.slice(0, currentStepIndex).flatMap((step) => (
+      const computedPast = steps.slice(0, currentStepIndex).flatMap((step) => (
         step.processView.kind === "sequence" ? [step.processView.activeEdge] : []
       ));
-      const filteredPastEdges = pastEdges.filter((edge) => (
-        edge.from !== view.activeEdge.from || edge.to !== view.activeEdge.to || edge.label !== view.activeEdge.label
-      ));
-      return <SequenceProcessView actors={view.actors} edge={view.activeEdge} pastEdges={filteredPastEdges} />;
+      const filteredPast = dedupeAndFilter([...(view.pastEdges ?? []), ...computedPast], view.activeEdge);
+      return <SequenceProcessView actors={view.actors} edge={view.activeEdge} pastEdges={filteredPast} />;
     }
-    case "overview":  return <OverviewProcessView view={view} />;
+    case "overview": {
+      const seqPast = view.sequence
+        ? dedupeAndFilter(
+            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
+            view.sequence.activeEdge,
+          )
+        : undefined;
+      return <OverviewProcessView view={view} seqPastEdges={seqPast} />;
+    }
     case "approval":  return <ApprovalProcessView view={view} />;
-    case "keygen":    return <KeygenProcessView view={view} />;
-    case "artifact":  return <ArtifactProcessView view={view} />;
+    case "keygen": {
+      const seqPast = view.sequence
+        ? dedupeAndFilter(
+            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
+            view.sequence.activeEdge,
+          )
+        : undefined;
+      return <KeygenProcessView view={view} seqPastEdges={seqPast} />;
+    }
+    case "artifact": {
+      const seqPast = view.sequence
+        ? dedupeAndFilter(
+            [...(view.sequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
+            view.sequence.activeEdge,
+          )
+        : undefined;
+      return <ArtifactProcessView view={view} seqPastEdges={seqPast} />;
+    }
     case "audit":     return <AuditProcessView view={view} />;
     default:          return null;
   }
@@ -40,7 +81,7 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
-              화면 설명 / 처리 개요
+              처리 개요
             </div>
             <div className="mt-2 text-[24px] font-semibold leading-tight text-[var(--ink)]">{currentStep.label}</div>
           </div>
@@ -51,7 +92,17 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
       </div>
 
       <div className="min-h-0 flex-1 p-5">
-        {renderView(processView, steps, currentStepIndex)}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            {renderView(processView, steps, currentStepIndex)}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );

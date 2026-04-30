@@ -1,6 +1,16 @@
 import { mockIds } from "@/mocks/ids";
 import { mockHashes } from "@/mocks/hashes";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["사용자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
+const seqPastBase = [{ from: "사용자", to: "스테이블코인 플랫폼", label: "가입" }];
+
+// FU1-S2~S4에서 SC→WalletService 화살표를 계속 유지하며 tone만 변경
+const keygenSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "지갑 생성/키 생성", tone },
+  pastEdges: seqPastBase,
+});
 
 export const scenarioFU1: Scenario = {
   id: "FU-1",
@@ -17,17 +27,8 @@ export const scenarioFU1: Scenario = {
       title: "새 지갑 만들기",
       subtitle: "지갑 생성을 시작합니다",
       status: "대기",
-      sections: [
-        {
-          title: "안내",
-          fields: [
-            { label: "지갑 유형", value: "개인 지갑" },
-            { label: "보안 방식", value: "분산 보안 처리" },
-            { label: "안내", value: "개인키는 단일 서버에 저장되지 않습니다" },
-          ],
-        },
-      ],
-      actions: [{ id: "start-keygen", label: "지갑 만들기", tone: "accent" }],
+      sections: [],
+      actions: [{ id: "start-keygen", label: "지갑 개설", tone: "accent" }],
     },
     {
       id: "FU1-2",
@@ -39,7 +40,7 @@ export const scenarioFU1: Scenario = {
         {
           title: "처리 상태",
           fields: [
-            { label: "처리", value: "분산 보안 처리 중", tone: "warn" },
+            { label: "처리", value: "MPC 연산 처리 중", tone: "warn" },
             { label: "안내", value: "잠시만 기다려주세요" },
           ],
         },
@@ -48,15 +49,14 @@ export const scenarioFU1: Scenario = {
     {
       id: "FU1-3",
       layout: "processing",
-      title: "생성 진행 중",
+      title: "키 생성 진행 중",
       subtitle: "지갑 준비 중 — 완료까지 잠시 기다려주세요",
       status: "처리 중",
       sections: [
         {
           title: "진행 상태",
           fields: [
-            { label: "진행률", value: "72%" },
-            { label: "예상 완료", value: "수 초 내" },
+            { label: "처리 상태", value: "안전하게 키 생성 중", tone: "warn" },
           ],
         },
       ],
@@ -64,8 +64,8 @@ export const scenarioFU1: Scenario = {
     {
       id: "FU1-4",
       layout: "processing",
-      title: "지갑 연결 완료",
-      subtitle: "계정에 지갑이 연결되었습니다",
+      title: "키 생성 완료",
+      subtitle: "키 생성이 완료되었습니다",
       status: "진행 중",
       sections: [
         {
@@ -81,7 +81,7 @@ export const scenarioFU1: Scenario = {
     {
       id: "FU1-5",
       layout: "result",
-      title: "지갑 준비 완료",
+      title: "지갑 개설 완료",
       subtitle: "주소와 잔액이 확인됩니다",
       status: "완료",
       sections: [
@@ -91,6 +91,7 @@ export const scenarioFU1: Scenario = {
             { label: "지갑 주소", value: mockHashes.userAddress },
             { label: "Wallet ID", value: mockIds.walletId, tone: "accent" },
             { label: "잔액", value: "0 KRW" },
+            { label: "코인", value: "KRW" },
             { label: "상태", value: "사용 가능", tone: "ok" },
           ],
         },
@@ -103,17 +104,14 @@ export const scenarioFU1: Scenario = {
       kind: "user-action",
       label: "지갑 생성 요청",
       trigger: "user",
-      ctaLabel: "지갑 만들기",
+      ctaLabel: "지갑 개설",
       screenId: "FU1-1",
       description: "지갑 생성 요청을 시작합니다. 내부적으로 MPC 기반 분산 키 생성 프로세스가 시작됩니다.",
       processView: {
-        kind: "overview",
-        description: "지갑 생성을 시작합니다. 사용자는 보안 구조 전체보다 생성 시작 상태만 이해하면 됩니다.",
-        cards: [
-          { label: "지갑 유형", value: "개인 지갑" },
-          { label: "보안 방식", value: "MPC 기반 분산 처리" },
-          { label: "Wallet ID", value: mockIds.walletId },
-        ],
+        kind: "sequence",
+        actors: [...seqActors],
+        activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "지갑 생성/키 생성", tone: "accent" },
+        pastEdges: seqPastBase,
       },
     },
     {
@@ -129,17 +127,18 @@ export const scenarioFU1: Scenario = {
         description: "보안 키 생성이 시작되었습니다. 앱에는 지갑 준비 상태가 단계별로 표시됩니다.",
         progress: 20,
         nodes: [
-          { label: "파티 노드", value: "세션 시작", tone: "accent" },
-          { label: "노드 1", value: "초기화 중", tone: "warn" },
-          { label: "노드 2", value: "대기 중", tone: "neutral" },
-          { label: "노드 3", value: "대기 중", tone: "neutral" },
+          { label: "관리자 노드", value: "세션 시작", tone: "accent" },
+          { label: "노드 1", value: "대기 중", tone: "warn" },
+          { label: "노드 2", value: "대기 중", tone: "warn" },
+          { label: "노드 3", value: "대기 중", tone: "warn" },
         ],
+        sequence: keygenSeq("warn"),
       },
     },
     {
       id: "FU1-S3",
       kind: "system-processing",
-      label: "생성 진행 상태 확인",
+      label: "키 생성 진행 중",
       trigger: "auto",
       duration: 1500,
       screenId: "FU1-3",
@@ -149,37 +148,39 @@ export const scenarioFU1: Scenario = {
         description: "지갑 생성이 진행 중입니다. 단계형 로딩 또는 상태 카드로 표현됩니다.",
         progress: 72,
         nodes: [
-          { label: "파티 노드", value: "세션 조율 중", tone: "accent" },
-          { label: "노드 1", value: "완료", tone: "ok" },
+          { label: "관리자 노드", value: "세션 조율 중", tone: "accent" },
+          { label: "노드 1", value: "처리 중", tone: "warn" },
           { label: "노드 2", value: "처리 중", tone: "warn" },
-          { label: "노드 3", value: "대기 중", tone: "neutral" },
+          { label: "노드 3", value: "처리 중", tone: "warn" },
         ],
+        sequence: keygenSeq("warn"),
       },
     },
     {
       id: "FU1-S4",
       kind: "system-processing",
-      label: "지갑 연결 완료",
+      label: "키 생성 완료",
       trigger: "auto",
       duration: 800,
       screenId: "FU1-4",
       description: "키 생성이 완료되고 지갑이 계정에 연결됩니다. 즉시 사용 가능한 상태로 전환됩니다.",
       processView: {
         kind: "keygen",
-        description: "지갑이 계정에 연결되었습니다. 사용 가능한 상태로 바뀌었음을 보여줍니다.",
+        description: "키 생성이 완료되었습니다. 사용 가능한 상태로 바뀌었음을 보여줍니다.",
         progress: 100,
         nodes: [
-          { label: "파티 노드", value: "완료", tone: "ok" },
+          { label: "관리자 노드", value: "완료", tone: "accent" },
           { label: "노드 1", value: "완료", tone: "ok" },
           { label: "노드 2", value: "완료", tone: "ok" },
           { label: "노드 3", value: "완료", tone: "ok" },
         ],
+        sequence: keygenSeq("ok"),
       },
     },
     {
       id: "FU1-S5",
       kind: "result",
-      label: "주소 매핑 완료",
+      label: "지갑 개설 완료",
       trigger: "auto",
       duration: 600,
       screenId: "FU1-5",
@@ -191,8 +192,14 @@ export const scenarioFU1: Scenario = {
           { label: "Wallet ID", value: mockIds.walletId, tone: "accent" },
           { label: "지갑 주소", value: mockHashes.userAddress },
           { label: "Key ID", value: mockIds.keyId },
+          { label: "코인", value: "KRW" },
           { label: "상태", value: "사용 가능", tone: "ok" },
         ],
+        sequence: {
+          actors: [...seqActors],
+          activeEdge: { from: "zkWallet(Custody)", to: "스테이블코인 플랫폼", label: "지갑 주소 발급", tone: "ok" },
+          pastEdges: seqPastBase,
+        },
       },
     },
   ],

@@ -13,12 +13,17 @@ const clampStep = (stepIndex: number, length: number) => Math.max(0, Math.min(st
 export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, onStepChange }: PlayerOptions) {
   const [currentStepIndex, setCurrentStepIndex] = useState(() => clampStep(initialStepIndex, steps.length));
   const [autoStopped, setAutoStopped] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setCurrentStepIndex(clampStep(initialStepIndex, steps.length));
     setAutoStopped(false);
   }, [initialStepIndex, scenarioKey, steps.length]);
+
+  useEffect(() => {
+    setManualMode(false);
+  }, [scenarioKey]);
 
   const currentStep = useMemo(() => steps[currentStepIndex], [currentStepIndex, steps]);
   const hasNext = currentStepIndex < steps.length - 1;
@@ -31,7 +36,7 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
   };
 
   useEffect(() => {
-    if (!currentStep || currentStep.trigger !== "auto" || !currentStep.duration || !hasNext || autoStopped) {
+    if (!currentStep || currentStep.trigger !== "auto" || !currentStep.duration || !hasNext || autoStopped || manualMode) {
       return undefined;
     }
 
@@ -44,20 +49,28 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [autoStopped, currentStep, currentStepIndex, hasNext, steps.length]);
+  }, [autoStopped, manualMode, currentStep, currentStepIndex, hasNext, steps.length]);
 
   const canAdvanceByUser = Boolean(currentStep && currentStep.trigger === "user" && hasNext);
-  const canStopAuto = Boolean(currentStep && currentStep.trigger === "auto" && currentStep.duration && hasNext && !autoStopped);
+  const canStopAuto = !manualMode && Boolean(currentStep && currentStep.trigger === "auto" && currentStep.duration && hasNext && !autoStopped);
+  const canAdvanceManual = hasNext;
 
   return {
     currentStep,
     currentStepIndex,
+    hasNext,
     canAdvanceByUser,
     canStopAuto,
     autoStopped,
+    manualMode,
+    canAdvanceManual,
     nextLabel: currentStep?.ctaLabel,
     advance: () => {
       if (!canAdvanceByUser) return;
+      moveTo(currentStepIndex + 1);
+    },
+    advanceManual: () => {
+      if (!hasNext) return;
       moveTo(currentStepIndex + 1);
     },
     stopAuto: () => {
@@ -66,6 +79,14 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
         timeoutRef.current = null;
       }
       setAutoStopped(true);
+    },
+    toggleManualMode: () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setAutoStopped(false);
+      setManualMode(m => !m);
     },
     goTo: moveTo,
     restart: () => moveTo(0),
