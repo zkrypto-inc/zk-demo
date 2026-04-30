@@ -3,12 +3,12 @@ import { mockAmounts } from "@/mocks/amounts";
 import { mockHashes } from "@/mocks/hashes";
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
-const seqActors = ["수탁 운영자", "수탁사", "zkWallet(Custody)"] as const;
-const seqPastBase = [{ from: "수탁 운영자", to: "수탁사", label: "출금 요청" }];
+const seqActors = ["고객(법인 고객)", "수탁사", "zkWallet(Custody)"] as const;
+const seqPastBase = [{ from: "고객(법인 고객)", to: "수탁사", label: "출금 요청" }];
 
 const withdrawRequestSeq = (): SequenceContext => ({
   actors: [...seqActors],
-  activeEdge: { from: "수탁 운영자", to: "수탁사", label: "출금 요청", tone: "accent" },
+  activeEdge: { from: "고객(법인 고객)", to: "수탁사", label: "출금 요청", tone: "accent" },
 });
 
 const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
@@ -27,7 +27,7 @@ export const scenarioCU3: Scenario = {
   id: "CU-3",
   name: "수탁용 출금",
   shortName: "수탁 출금",
-  actor: "수탁 운영자",
+  actor: "고객(법인 고객)",
   actorType: "web",
   mode: "custody",
   summary: "출금 요청·승인을 거쳐 Wallet Service 서명으로 이어지는 출금 흐름입니다.",
@@ -185,7 +185,7 @@ export const scenarioCU3: Scenario = {
       description: "출금 요청을 생성합니다. 요청 생성 후 승인, 주소 확인, 서명, 전송 상태가 순서대로 기록됩니다.",
       processView: {
         kind: "overview",
-        description: "법인 사용자 또는 운영자가 출금 요청을 생성합니다. 아직 실행 전이며 상위 플랫폼이 정책과 승인 요건을 검토하는 단계가 이어집니다.",
+        description: "고객(법인 고객)이 출금 요청을 생성합니다. 아직 실행 전이며 상위 플랫폼이 정책과 승인 요건을 검토하는 단계가 이어집니다.",
         cards: [
           { label: "출금 수량", value: mockAmounts.withdrawAmount },
           { label: "목적지", value: mockHashes.withdrawalAddress },

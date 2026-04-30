@@ -3,12 +3,12 @@ import { mockAmounts } from "@/mocks/amounts";
 import { mockHashes } from "@/mocks/hashes";
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
-const seqActors = ["법인 사용자", "수탁사", "zkWallet(Custody)"] as const;
-const seqPastBase = [{ from: "법인 사용자", to: "수탁사", label: "수탁 입금 요청" }];
+const seqActors = ["고객(법인 고객)", "수탁사", "zkWallet(Custody)"] as const;
+const seqPastBase = [{ from: "고객(법인 고객)", to: "수탁사", label: "수탁 입금 요청" }];
 
 const depositRequestSeq = (): SequenceContext => ({
   actors: [...seqActors],
-  activeEdge: { from: "법인 사용자", to: "수탁사", label: "수탁 입금 요청", tone: "accent" },
+  activeEdge: { from: "고객(법인 고객)", to: "수탁사", label: "수탁 입금 요청", tone: "accent" },
 });
 
 const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
@@ -27,7 +27,7 @@ export const scenarioCU2: Scenario = {
   id: "CU-2",
   name: "수탁용 입금",
   shortName: "수탁 입금",
-  actor: "법인 사용자",
+  actor: "고객(법인 고객)",
   actorType: "web",
   mode: "custody",
   summary: "수탁 내역을 등록하고 관리자 승인을 거쳐 온체인 입금 tx가 전송되는 흐름입니다.",

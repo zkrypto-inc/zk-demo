@@ -15,15 +15,15 @@ export const scenarioCU1: Scenario = {
   id: "CU-1",
   name: "수탁 등록 및 지갑 개설",
   shortName: "수탁 개설",
-  actor: "수탁 운영자",
+  actor: "고객(법인 고객)",
   actorType: "web",
   mode: "custody",
-  summary: "법인 사용자 등록 후 수탁 승인을 거쳐 MPC 기반 전용 지갑을 개설하는 흐름입니다.",
+  summary: "고객(법인 고객) 등록 후 수탁 승인을 거쳐 MPC 기반 전용 지갑을 개설하는 흐름입니다.",
   screens: [
     {
       id: "CU1-1",
       layout: "form",
-      actor: "고객(수탁 요청자)",
+      actor: "고객(법인 고객)",
       title: "수탁 정보 등록",
       subtitle: "수탁 등록 요청 시작",
       status: "대기",
@@ -73,7 +73,7 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-3",
       layout: "dashboard",
-      actor: "수탁사(수탁 관리자)",
+      actor: "수탁사(법인 고객)",
       title: "수탁 전용 지갑 생성 요청",
       subtitle: "승인 완료 — 지갑 개설 가능",
       status: "승인 완료",
@@ -167,14 +167,14 @@ export const scenarioCU1: Scenario = {
     {
       id: "CU1-S1",
       kind: "user-action",
-      label: "법인 사용자 등록 및 수탁 관리자 지정",
+      label: "고객(법인 고객) 등록 및 수탁 관리자 지정",
       trigger: "user",
       ctaLabel: "수탁 등록 요청",
       screenId: "CU1-1",
       description: "법인 정보와 지갑 운영 참여자를 등록합니다. 이후 승인 완료 시 수탁 전용 지갑을 생성할 수 있습니다.",
       processView: {
         kind: "overview",
-        description: "법인 사용자가 수탁 등록을 요청하고 수탁 관리자 3명을 지정합니다. 아직 지갑 생성 전이며 조직과 관리자 구성을 완료하는 단계입니다.",
+        description: "고객(법인 고객)이 수탁 등록을 요청하고 수탁 관리자 3명을 지정합니다. 아직 지갑 생성 전이며 조직과 관리자 구성을 완료하는 단계입니다.",
         cards: [
           { label: "법인명", value: "대한자산운용 주식회사" },
           { label: "관리자 수", value: "3명" },
