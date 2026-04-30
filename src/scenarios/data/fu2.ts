@@ -60,13 +60,13 @@ export const scenarioFU2: Scenario = {
       id: "FU2-3",
       layout: "processing",
       title: "서명 생성 진행 중",
-      subtitle: "서명 진행중.",
+      subtitle: "서명 진행중",
       status: "처리 중",
       sections: [
         {
           title: "서명 상태",
           fields: [
-            { label: "처리", value: "서명 진행중.", tone: "warn" },
+            { label: "처리", value: "서명 진행중", tone: "warn" },
           ],
         },
       ],

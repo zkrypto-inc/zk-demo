@@ -95,16 +95,46 @@ export const scenarioCU3: Scenario = {
     {
       id: "CU3-4",
       layout: "processing",
-      title: "Wallet Service 서명 요청",
-      subtitle: "zkMPC 서명 생성 중",
+      title: "서명 생성 시작",
+      subtitle: "서명 시작..",
       status: "처리 중",
       sections: [
         {
-          title: "서명 진행",
+          title: "서명 상태",
           fields: [
-            { label: "승인 상태", value: "완료", tone: "ok" },
+            { label: "처리", value: "서명 시작..", tone: "warn" },
+            { label: "안내", value: "잠시만 기다려주세요" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "CU3-4b",
+      layout: "processing",
+      title: "서명 생성 진행 중",
+      subtitle: "서명 진행 중",
+      status: "처리 중",
+      sections: [
+        {
+          title: "서명 상태",
+          fields: [
+            { label: "처리", value: "서명 진행 중", tone: "warn" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "CU3-4c",
+      layout: "processing",
+      title: "서명 생성 완료",
+      subtitle: "서명 완료",
+      status: "진행 중",
+      sections: [
+        {
+          title: "서명 상태",
+          fields: [
+            { label: "서명 상태", value: "완료", tone: "ok" },
             { label: "Sign ID", value: mockIds.signId },
-            { label: "서명 상태", value: "partial signature 조합 중", tone: "warn" },
           ],
         },
       ],
@@ -201,20 +231,67 @@ export const scenarioCU3: Scenario = {
     {
       id: "CU3-S4",
       kind: "system-processing",
-      label: "Wallet Service 서명 요청",
+      label: "서명 생성 시작",
       trigger: "auto",
-      duration: 1800,
+      duration: 1200,
       screenId: "CU3-4",
-      description: "승인이 완료된 출금 요청의 서명을 Wallet Service에서 생성합니다. unsigned tx가 전달되면 분산 서명 처리 후 raw signature가 반환됩니다.",
+      description: "MPC 서명에 참여할 Signer 노드 구성이 시작됩니다. 임계값 서명 방식으로 특정 노드 단독으로는 서명이 불가능합니다.",
       processView: {
-        kind: "overview",
-        description: "승인 완료 후 unsigned tx 또는 sign payload가 Wallet Service로 전달됩니다. Wallet Service가 서명 세션을 만들고 raw signature를 반환합니다.",
-        cards: [
-          { label: "승인 상태", value: "2-of-2 완료", tone: "ok" },
-          { label: "서명 상태", value: "생성 중", tone: "warn" },
-          { label: "반환값", value: "raw signature" },
+        kind: "keygen",
+        description: "MPC 서명에 참여할 Signer 노드 구성이 시작됩니다. 임계값 서명 방식으로 특정 노드 단독으로는 서명이 불가능합니다.",
+        progress: 20,
+        showProgress: false,
+        nodes: [
+          { label: "관리자 노드", value: "세션 시작", tone: "accent" },
+          { label: "노드 1", value: "대기 중", tone: "neutral" },
+          { label: "노드 2", value: "대기 중", tone: "neutral" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
         ],
         sequence: signingSeq("warn"),
+      },
+    },
+    {
+      id: "CU3-S4b",
+      kind: "system-processing",
+      label: "서명 생성 진행",
+      trigger: "auto",
+      duration: 1500,
+      screenId: "CU3-4b",
+      description: "서명에 필요한 노드 1, 2가 부분 서명(Partial Signature)을 생성합니다. 노드 3은 이번 서명에 참여하지 않습니다.",
+      processView: {
+        kind: "keygen",
+        description: "서명에 필요한 노드 1, 2가 부분 서명(Partial Signature)을 생성합니다. 노드 3은 이번 서명에 참여하지 않습니다.",
+        progress: 65,
+        showProgress: false,
+        nodes: [
+          { label: "관리자 노드", value: "세션 조율 중", tone: "accent" },
+          { label: "노드 1", value: "처리 중", tone: "warn" },
+          { label: "노드 2", value: "처리 중", tone: "warn" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
+        ],
+        sequence: signingSeq("warn"),
+      },
+    },
+    {
+      id: "CU3-S4c",
+      kind: "system-processing",
+      label: "서명 생성 완료",
+      trigger: "auto",
+      duration: 800,
+      screenId: "CU3-4c",
+      description: "threshold 서명을 통한 분산 서명 완료. 노드 1, 2의 부분 서명이 조합되어 최종 서명이 생성됩니다.",
+      processView: {
+        kind: "keygen",
+        description: "threshold 서명을 통한 분산 서명 완료. 노드 1, 2의 부분 서명이 조합되어 최종 서명이 생성됩니다.",
+        progress: 100,
+        showProgress: false,
+        nodes: [
+          { label: "관리자 노드", value: "완료", tone: "accent" },
+          { label: "노드 1", value: "완료", tone: "ok" },
+          { label: "노드 2", value: "완료", tone: "ok" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
+        ],
+        sequence: signatureReturnSeq("ok"),
       },
     },
     {
