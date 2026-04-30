@@ -133,8 +133,7 @@ export const scenarioFU2: Scenario = {
       processView: {
         kind: "sequence",
         actors: [...seqActors],
-        activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "서명 요청", tone: "accent" },
-        pastEdges: seqPastBase,
+        activeEdge: { from: "사용자", to: "스테이블코인 플랫폼", label: "거래 요청", tone: "accent" },
       },
     },
     {
@@ -151,8 +150,8 @@ export const scenarioFU2: Scenario = {
         progress: 20,
         nodes: [
           { label: "관리자 노드", value: "세션 시작", tone: "accent" },
-          { label: "노드 1", value: "대기 중", tone: "warn" },
-          { label: "노드 2", value: "대기 중", tone: "warn" },
+          { label: "노드 1", value: "대기 중", tone: "neutral" },
+          { label: "노드 2", value: "대기 중", tone: "neutral" },
           { label: "노드 3", value: "대기 중", tone: "neutral" },
         ],
         sequence: signingSeq("warn"),

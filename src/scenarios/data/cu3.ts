@@ -44,7 +44,7 @@ export const scenarioCU3: Scenario = {
           fields: [
             { label: "요청 ID", value: mockIds.cu3RequestId },
             { label: "1차 승인 (이수민)", value: "완료", tone: "ok" },
-            { label: "2차 승인 (최종원)", value: "대기 중", tone: "warn" },
+            { label: "2차 승인 (최종원)", value: "대기 중", tone: "neutral" },
             { label: "Policy 버전", value: "v3.2" },
           ],
         },

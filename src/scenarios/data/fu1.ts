@@ -1,13 +1,19 @@
 import { mockIds } from "@/mocks/ids";
 import { mockHashes } from "@/mocks/hashes";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
 
 const seqActors = ["사용자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
-const seqPastBase = [{ from: "사용자", to: "스테이블코인 플랫폼", label: "가입" }];
+const seqPastBase = [{ from: "사용자", to: "스테이블코인 플랫폼", label: "지갑 개설 요청" }];
+
+const walletRequestSeq = (tone: "warn" | "ok" | "accent"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "지갑 생성/키 생성", tone },
+  pastEdges: seqPastBase,
+});
 
 export const scenarioFU1: Scenario = {
   id: "FU-1",
-  name: "지갑 생성 → Keygen",
+  name: "지갑 생성",
   shortName: "지갑 생성",
   actor: "개인 사용자",
   actorType: "mobile",
@@ -110,8 +116,7 @@ export const scenarioFU1: Scenario = {
         ],
         sequence: {
           actors: [...seqActors],
-          activeEdge: { from: "스테이블코인 플랫폼", to: "zkWallet(Custody)", label: "지갑 생성/키 생성", tone: "accent" },
-          pastEdges: seqPastBase,
+          activeEdge: { from: "사용자", to: "스테이블코인 플랫폼", label: "지갑 개설 요청", tone: "accent" },
         },
       },
     },
@@ -130,10 +135,11 @@ export const scenarioFU1: Scenario = {
         showProgress: false,
         nodes: [
           { label: "관리자 노드", value: "세션 시작", tone: "accent" },
-          { label: "노드 1", value: "대기 중", tone: "warn" },
-          { label: "노드 2", value: "대기 중", tone: "warn" },
-          { label: "노드 3", value: "대기 중", tone: "warn" },
+          { label: "노드 1", value: "대기 중", tone: "neutral" },
+          { label: "노드 2", value: "대기 중", tone: "neutral" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
         ],
+        sequence: walletRequestSeq("warn"),
       },
     },
     {

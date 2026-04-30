@@ -42,7 +42,7 @@ export const scenarioCU2: Scenario = {
           fields: [
             { label: "요청 ID", value: mockIds.requestId },
             { label: "1차 승인 (이수민)", value: "완료", tone: "ok" },
-            { label: "2차 승인 (최종원)", value: "대기 중", tone: "warn" },
+            { label: "2차 승인 (최종원)", value: "대기 중", tone: "neutral" },
             { label: "Approval Group", value: "2-of-2 필수" },
           ],
         },

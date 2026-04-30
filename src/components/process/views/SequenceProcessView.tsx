@@ -84,6 +84,19 @@ function hasSameActorPair(a: SequenceEdge, b?: SequenceEdge) {
   return (a.from === b.from && a.to === b.to) || (a.from === b.to && a.to === b.from);
 }
 
+function TransferPulse({ path, stroke }: { path: string; stroke: string }) {
+  return (
+    <g>
+      <circle fill={stroke} opacity="0.95" r="4.8">
+        <animateMotion dur="1.45s" path={path} repeatCount="indefinite" />
+      </circle>
+      <circle fill="white" opacity="0.85" r="1.8">
+        <animateMotion dur="1.45s" path={path} repeatCount="indefinite" />
+      </circle>
+    </g>
+  );
+}
+
 export function SequenceProcessView({ actors, edge, pastEdges = [], compact = false }: Props) {
   const activeActors = new Set<string>();
   pastEdges.forEach((pastEdge) => {
@@ -122,6 +135,7 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
               return (
                 <>
                   <path d={geometry.d} fill="none" stroke={stroke} strokeLinecap="round" strokeWidth="2.2" />
+                  <TransferPulse path={geometry.d} stroke={stroke} />
                   <polygon fill={stroke} points={geometry.arrow} />
                   <text fill={stroke} fontSize="12" fontWeight="600" textAnchor="middle" x={geometry.labelX} y={geometry.labelY}>
                     {edge.label}

@@ -240,9 +240,9 @@ export const scenarioCU1: Scenario = {
         progress: 20,
         nodes: [
           { label: "관리자 노드", value: "세션 시작", tone: "accent" },
-          { label: "노드 1", value: "대기 중", tone: "warn" },
-          { label: "노드 2", value: "대기 중", tone: "warn" },
-          { label: "노드 3", value: "대기 중", tone: "warn" },
+          { label: "노드 1", value: "대기 중", tone: "neutral" },
+          { label: "노드 2", value: "대기 중", tone: "neutral" },
+          { label: "노드 3", value: "대기 중", tone: "neutral" },
         ],
         sequence: keygenSeq("warn"),
       },
