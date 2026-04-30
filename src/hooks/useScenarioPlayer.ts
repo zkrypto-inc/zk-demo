@@ -78,7 +78,8 @@ export function useScenarioPlayer({ steps, scenarioKey, initialStepIndex = 0, on
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      setAutoStopped(true);
+      setAutoStopped(false);
+      setManualMode(true);
     },
     toggleManualMode: () => {
       if (timeoutRef.current !== null) {

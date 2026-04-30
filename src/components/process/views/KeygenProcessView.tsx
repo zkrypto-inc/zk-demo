@@ -122,19 +122,24 @@ export function KeygenProcessView({ view, seqPastEdges }: Props) {
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[12px] font-medium text-[var(--ink-2)]">진행률</span>
-          <span className="font-mono text-[12px] text-[var(--accent)]">{view.progress}%</span>
+      {view.showProgress !== false && (
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[12px] font-medium text-[var(--ink-2)]">
+              {view.progressLabel ?? "진행률"}
+            </span>
+            {view.showProgressValue !== false && (
+              <span className="font-mono text-[12px] text-[var(--accent)]">{view.progress}%</span>
+            )}
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]">
+            <div
+              className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
+              style={{ width: `${view.progress}%` }}
+            />
+          </div>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--line)]">
-          <div
-            className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
-            style={{ width: `${view.progress}%` }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -185,10 +185,6 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
 
         <aside className="space-y-4">
           <StepTracker currentStepIndex={player.currentStepIndex} onStepSelect={handleStepSelect} steps={scenario.steps} />
-          <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
-            <div className="text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">설명</div>
-            <div className="mt-3 text-[13px] leading-[1.65] text-[var(--ink)]">{currentStep.description}</div>
-          </div>
           {group && group.scenarioIds.length > 1 && (
             <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
               <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">같은 사용자 유형</div>

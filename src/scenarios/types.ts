@@ -106,6 +106,7 @@ export type ProcessView =
       kind: "overview";
       description: string;
       cards?: StatusCard[];
+      cardsPosition?: "aboveSequence" | "belowSequence";
       sequence?: SequenceContext;
     }
   | {
@@ -117,6 +118,9 @@ export type ProcessView =
       kind: "keygen";
       description: string;
       progress: number;
+      showProgress?: boolean;
+      progressLabel?: string;
+      showProgressValue?: boolean;
       nodes: StatusCard[];
       sequence?: SequenceContext;
     }

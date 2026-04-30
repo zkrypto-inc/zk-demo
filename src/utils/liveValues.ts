@@ -60,7 +60,7 @@ export function resolveLiveValue(
 
   for (const candidate of candidates) {
     const exact = scenarioValues[candidate];
-    if (exact !== undefined) return exact;
+    if (exact !== undefined && exact.trim() !== "") return exact;
   }
 
   const normalizedLabel = normalize(label);
@@ -70,7 +70,7 @@ export function resolveLiveValue(
       normalizedLabel.includes(normalizedStored) ||
       normalizedStored.includes(normalizedLabel)
     ) {
-      return value;
+      if (value.trim() !== "") return value;
     }
   }
 
