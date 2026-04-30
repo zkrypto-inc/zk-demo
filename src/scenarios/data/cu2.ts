@@ -1,7 +1,16 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
 import { mockHashes } from "@/mocks/hashes";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["법인 사용자", "수탁사", "zkWallet(Custody)"] as const;
+const seqPastBase = [{ from: "법인 사용자", to: "수탁사", label: "수탁 입금 요청" }];
+
+const signatureReturnSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "zkWallet(Custody)", to: "수탁사", label: "서명 반환", tone },
+  pastEdges: seqPastBase,
+});
 
 export const scenarioCU2: Scenario = {
   id: "CU-2",
@@ -33,24 +42,45 @@ export const scenarioCU2: Scenario = {
     {
       id: "CU2-2",
       layout: "approval",
-      title: "수탁 관리자 승인",
-      subtitle: "Approval Service — 2인 승인 대기",
+      title: "1차 승인",
+      subtitle: "Approval Service — 1차 검토",
       status: "승인 대기",
       sections: [
         {
-          title: "승인 현황",
+          title: "승인 상태",
+          fields: [
+            { label: "요청 ID", value: mockIds.requestId },
+            { label: "1차 승인자", value: "이수민 (대표)" },
+            { label: "상태", value: "검토 중", tone: "warn" },
+            { label: "2차 승인자", value: "최종원 (CFO)" },
+            { label: "2차 상태", value: "대기 중", tone: "neutral" },
+          ],
+        },
+      ],
+      actions: [{ id: "confirm-first-approval", label: "1차 승인 완료 확인", tone: "accent" }],
+    },
+    {
+      id: "CU2-3",
+      layout: "approval",
+      title: "2차 승인",
+      subtitle: "Approval Service — 2차 검토",
+      status: "승인 대기",
+      sections: [
+        {
+          title: "승인 상태",
           fields: [
             { label: "요청 ID", value: mockIds.requestId },
             { label: "1차 승인 (이수민)", value: "완료", tone: "ok" },
-            { label: "2차 승인 (최종원)", value: "대기 중", tone: "neutral" },
+            { label: "2차 승인자", value: "최종원 (CFO)" },
+            { label: "상태", value: "검토 중", tone: "warn" },
             { label: "Approval Group", value: "2-of-2 필수" },
           ],
         },
       ],
-      actions: [{ id: "check-approval", label: "승인 완료 확인", tone: "accent" }],
+      actions: [{ id: "confirm-second-approval", label: "2차 승인 완료 확인", tone: "accent" }],
     },
     {
-      id: "CU2-3",
+      id: "CU2-4",
       layout: "processing",
       title: "서명 생성 및 Tx 전송",
       subtitle: "Wallet Service 서명 → 온체인 전송",
@@ -69,7 +99,7 @@ export const scenarioCU2: Scenario = {
       actions: [{ id: "confirm-tx", label: "Tx 확인", tone: "accent" }],
     },
     {
-      id: "CU2-4",
+      id: "CU2-5",
       layout: "result",
       title: "입금 이력 확인",
       subtitle: "입금 완료",
@@ -107,14 +137,31 @@ export const scenarioCU2: Scenario = {
     {
       id: "CU2-S2",
       kind: "system-processing",
-      label: "수탁 관리자 승인",
+      label: "1차 승인",
       trigger: "user",
-      ctaLabel: "승인 완료 확인",
+      ctaLabel: "1차 승인 완료 확인",
       screenId: "CU2-2",
-      description: "수탁 관리자 2명이 입금 요청을 순서대로 승인합니다. 2차 승인이 완료된 이후에만 Wallet Service 서명과 온체인 전송 단계가 진행됩니다.",
+      description: "1차 승인자가 수탁 입금 요청을 검토합니다. 승인 완료 후 2차 승인 단계로 넘어갑니다.",
       processView: {
         kind: "approval",
-        description: "수탁 관리자 2명이 입금 요청을 승인합니다. 승인 완료 후에만 Wallet Service 서명과 tx 전송 단계가 열립니다.",
+        description: "1차 승인자가 수탁 입금 요청을 검토합니다. 아직 Wallet Service 서명과 tx 전송 단계로는 넘어가지 않습니다.",
+        approvers: [
+          { name: "이수민", role: "대표 (1차 승인)", status: "pending", note: "검토 중" },
+          { name: "최종원", role: "CFO (2차 승인)", status: "waiting" },
+        ],
+      },
+    },
+    {
+      id: "CU2-S3",
+      kind: "system-processing",
+      label: "2차 승인",
+      trigger: "user",
+      ctaLabel: "2차 승인 완료 확인",
+      screenId: "CU2-3",
+      description: "2차 승인자가 수탁 입금 요청을 최종 검토합니다. 2인 승인이 모두 완료되어야 Wallet Service 서명과 온체인 전송이 진행됩니다.",
+      processView: {
+        kind: "approval",
+        description: "2차 승인자가 수탁 입금 요청을 검토합니다. 승인 완료 후 Wallet Service 서명과 tx 전송 단계가 열립니다.",
         approvers: [
           { name: "이수민", role: "대표 (1차 승인)", status: "approved" },
           { name: "최종원", role: "CFO (2차 승인)", status: "pending", note: "검토 중" },
@@ -122,12 +169,12 @@ export const scenarioCU2: Scenario = {
       },
     },
     {
-      id: "CU2-S3",
+      id: "CU2-S4",
       kind: "system-processing",
       label: "서명 생성 / Tx 전송",
       trigger: "auto",
       duration: 2000,
-      screenId: "CU2-3",
+      screenId: "CU2-4",
       description: "승인된 입금 요청에 대해 서명과 전송 상태를 확인합니다.",
       processView: {
         kind: "overview",
@@ -137,15 +184,16 @@ export const scenarioCU2: Scenario = {
           { label: "Sign ID", value: mockIds.signId, tone: "accent" },
           { label: "Tx 전송", value: "상위 플랫폼 담당" },
         ],
+        sequence: signatureReturnSeq("ok"),
       },
     },
     {
-      id: "CU2-S4",
+      id: "CU2-S5",
       kind: "result",
       label: "입금 이력 확인",
       trigger: "auto",
       duration: 600,
-      screenId: "CU2-4",
+      screenId: "CU2-5",
       description: "수탁 입금 처리가 완료되었습니다. Tx Hash를 기준으로 온체인 이력을 확인할 수 있습니다.",
       processView: {
         kind: "artifact",

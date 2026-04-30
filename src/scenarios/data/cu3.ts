@@ -1,7 +1,22 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
 import { mockHashes } from "@/mocks/hashes";
-import type { Scenario } from "@/scenarios/types";
+import type { Scenario, SequenceContext } from "@/scenarios/types";
+
+const seqActors = ["수탁 운영자", "수탁사", "zkWallet(Custody)"] as const;
+const seqPastBase = [{ from: "수탁 운영자", to: "수탁사", label: "출금 요청" }];
+
+const signingSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "수탁사", to: "zkWallet(Custody)", label: "서명 요청", tone },
+  pastEdges: seqPastBase,
+});
+
+const signatureReturnSeq = (tone: "warn" | "ok"): SequenceContext => ({
+  actors: [...seqActors],
+  activeEdge: { from: "zkWallet(Custody)", to: "수탁사", label: "서명 반환", tone },
+  pastEdges: seqPastBase,
+});
 
 export const scenarioCU3: Scenario = {
   id: "CU-3",
@@ -35,8 +50,28 @@ export const scenarioCU3: Scenario = {
     {
       id: "CU3-2",
       layout: "approval",
-      title: "승인 / Policy 검토",
-      subtitle: "Approval Service 검토 중",
+      title: "1차 승인",
+      subtitle: "Approval Service — 1차 검토",
+      status: "승인 대기",
+      sections: [
+        {
+          title: "승인 상태",
+          fields: [
+            { label: "요청 ID", value: mockIds.cu3RequestId },
+            { label: "1차 승인자", value: "이수민 (대표)" },
+            { label: "상태", value: "검토 중", tone: "warn" },
+            { label: "2차 승인자", value: "최종원 (CFO)" },
+            { label: "2차 상태", value: "대기 중", tone: "neutral" },
+          ],
+        },
+      ],
+      actions: [{ id: "confirm-first-approve", label: "1차 승인 완료 확인", tone: "accent" }],
+    },
+    {
+      id: "CU3-3",
+      layout: "approval",
+      title: "2차 승인 / Policy 검토",
+      subtitle: "Approval Service — 2차 검토",
       status: "승인 대기",
       sections: [
         {
@@ -44,12 +79,13 @@ export const scenarioCU3: Scenario = {
           fields: [
             { label: "요청 ID", value: mockIds.cu3RequestId },
             { label: "1차 승인 (이수민)", value: "완료", tone: "ok" },
-            { label: "2차 승인 (최종원)", value: "대기 중", tone: "neutral" },
+            { label: "2차 승인자", value: "최종원 (CFO)" },
+            { label: "상태", value: "검토 중", tone: "warn" },
             { label: "Policy 버전", value: "v3.2" },
           ],
         },
       ],
-      actions: [{ id: "confirm-approve", label: "2차 승인 완료 확인", tone: "accent" }],
+      actions: [{ id: "confirm-second-approve", label: "2차 승인 완료 확인", tone: "accent" }],
     },
     {
       id: "CU3-4",
@@ -125,17 +161,34 @@ export const scenarioCU3: Scenario = {
     {
       id: "CU3-S2",
       kind: "system-processing",
-      label: "승인 / Policy 검토",
+      label: "1차 승인",
       trigger: "user",
-      ctaLabel: "2차 승인 완료 확인",
+      ctaLabel: "1차 승인 완료 확인",
       screenId: "CU3-2",
-      description: "상위 플랫폼이 정책 검토 및 2인 승인을 처리합니다. approver_id와 policy_version이 감사 증빙에 활용됩니다.",
+      description: "1차 승인자가 출금 요청을 검토합니다. 승인 완료 후 2차 승인과 정책 검토 단계로 넘어갑니다.",
       processView: {
         kind: "approval",
-        description: "상위 플랫폼이 정책과 승인 요건을 검토합니다. 2인 승인이 모두 완료되어야 다음 단계로 넘어갑니다.",
+        description: "1차 승인자가 출금 요청을 검토합니다. 아직 Wallet Service 서명 단계로는 넘어가지 않습니다.",
+        approvers: [
+          { name: "이수민", role: "대표 (1차 승인)", status: "pending", note: "검토 중" },
+          { name: "최종원", role: "CFO (2차 승인)", status: "waiting" },
+        ],
+      },
+    },
+    {
+      id: "CU3-S3",
+      kind: "system-processing",
+      label: "2차 승인 / Policy 검토",
+      trigger: "user",
+      ctaLabel: "2차 승인 완료 확인",
+      screenId: "CU3-3",
+      description: "2차 승인자가 출금 요청을 최종 검토하고 정책 조건을 확인합니다. 2인 승인이 모두 완료되어야 Wallet Service 서명 요청으로 넘어갑니다.",
+      processView: {
+        kind: "approval",
+        description: "2차 승인과 정책 검토가 함께 진행됩니다. 승인 완료 후에만 Wallet Service 서명 요청이 열립니다.",
         approvers: [
           { name: "이수민", role: "대표 (1차 승인)", status: "approved" },
-          { name: "최종원", role: "CFO (2차 승인)", status: "pending", note: "검토 중" },
+          { name: "최종원", role: "CFO (2차 승인)", status: "pending", note: "Policy v3.2 검토 중" },
         ],
       },
     },
@@ -155,6 +208,7 @@ export const scenarioCU3: Scenario = {
           { label: "서명 상태", value: "생성 중", tone: "warn" },
           { label: "반환값", value: "raw signature" },
         ],
+        sequence: signingSeq("warn"),
       },
     },
     {
@@ -173,6 +227,7 @@ export const scenarioCU3: Scenario = {
           { label: "Tx Hash", value: mockHashes.cu3TxHash, tone: "accent" },
           { label: "브로드캐스트", value: "상위 플랫폼 담당" },
         ],
+        sequence: signatureReturnSeq("ok"),
       },
     },
     {

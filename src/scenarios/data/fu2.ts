@@ -148,6 +148,7 @@ export const scenarioFU2: Scenario = {
         kind: "keygen",
         description: "MPC 서명에 참여할 Signer 노드 구성이 시작됩니다. 임계값 서명 방식으로 특정 노드 단독으로는 서명이 불가능합니다.",
         progress: 20,
+        showProgress: false,
         nodes: [
           { label: "관리자 노드", value: "세션 시작", tone: "accent" },
           { label: "노드 1", value: "대기 중", tone: "neutral" },
@@ -169,6 +170,7 @@ export const scenarioFU2: Scenario = {
         kind: "keygen",
         description: "서명에 필요한 노드 1, 2가 부분 서명(Partial Signature)을 생성합니다. 노드 3은 이번 서명에 참여하지 않습니다.",
         progress: 65,
+        showProgress: false,
         nodes: [
           { label: "관리자 노드", value: "세션 조율 중", tone: "accent" },
           { label: "노드 1", value: "처리 중", tone: "warn" },
@@ -190,6 +192,7 @@ export const scenarioFU2: Scenario = {
         kind: "keygen",
         description: "threshold 서명을 통한 분산 서명 완료. 노드 1, 2의 부분 서명이 조합되어 최종 서명이 생성됩니다.",
         progress: 100,
+        showProgress: false,
         nodes: [
           { label: "관리자 노드", value: "완료", tone: "accent" },
           { label: "노드 1", value: "완료", tone: "ok" },
