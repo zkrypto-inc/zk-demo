@@ -12,21 +12,23 @@ import {
   scenarios,
   scenarioGroupLookup,
 } from "@/scenarios";
-import type { ActorGroupId, ScenarioId } from "@/scenarios/types";
+import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { demoStore, useDemoStore } from "@/store/demoStore";
 import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
 
 type Props = {
   actorId?: ActorGroupId;
+  productId?: ProductId;
   scenarioId: ScenarioId;
   stepIndex: number;
 };
 
-export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
+export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Props) {
   const scenario = scenarios[scenarioId];
   const storeState = useDemoStore((state) => state);
   const resolvedActorId = actorId ?? scenarioGroupLookup[scenarioId] ?? scenario.mode;
   const group = actorGroupById[resolvedActorId] ?? getScenarioGroup(scenario);
+  const resolvedProductId = productId ?? group?.productId ?? "zkwallet";
 
   const player = useScenarioPlayer({
     steps: scenario.steps,
@@ -40,6 +42,7 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
       navigateToRoute(
         {
           name: "scenario",
+          productId: resolvedProductId,
           actorId: resolvedActorId,
           scenarioId: scenario.id,
           stepIndex: nextStepIndex,
@@ -79,12 +82,16 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
       <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] pb-4 xl:flex-row xl:items-end">
         <div>
           <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--ink-2)]">
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "overview" })} type="button">
+            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">
               Demo Home
             </button>
             <span>/</span>
+            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">
+              {resolvedProductId}
+            </button>
+            <span>/</span>
             {group && (
-              <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "actor", actorId: group.id })} type="button">
+              <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "actor", productId: resolvedProductId, actorId: group.id })} type="button">
                 {group.label}
               </button>
             )}
@@ -199,7 +206,7 @@ export function ScenarioPage({ actorId, scenarioId, stepIndex }: Props) {
                       }`}
                       disabled={active}
                       key={peerId}
-                      onClick={() => navigateToRoute({ name: "scenario", actorId: group.id, scenarioId: peerId, stepIndex: storeState.stepMap[peerId] ?? 0 })}
+                      onClick={() => navigateToRoute({ name: "scenario", productId: resolvedProductId, actorId: group.id, scenarioId: peerId, stepIndex: storeState.stepMap[peerId] ?? 0 })}
                       type="button"
                     >
                       <span className="font-mono">{getScenarioDisplayId(peer)}</span> · {peer.shortName}

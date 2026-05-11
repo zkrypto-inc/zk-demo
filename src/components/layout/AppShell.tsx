@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { DemoRoute } from "@/router";
-import { scenarioGroupLookup } from "@/scenarios";
+import { actorGroups, scenarioGroupLookup } from "@/scenarios";
+import type { ProductId } from "@/scenarios/types";
 import { SideNav } from "./SideNav";
 
 type Props = {
@@ -9,20 +10,34 @@ type Props = {
 };
 
 export function AppShell({ children, route }: Props) {
-  const currentActorId =
-    route.name === "actor" || route.name === "scenario"
-      ? route.actorId
-      : route.name === "demo"
-        ? scenarioGroupLookup[route.scenarioId]
-        : route.name === "mode"
-          ? route.mode
-          : undefined;
-  const currentScenarioId = route.name === "scenario" || route.name === "demo" ? route.scenarioId : undefined;
+  let productId: ProductId | undefined;
+  let currentActorId: string | undefined;
+  let currentScenarioId: string | undefined;
+
+  if (route.name === "product") {
+    productId = route.productId;
+  } else if (route.name === "actor") {
+    productId = route.productId;
+    currentActorId = route.actorId;
+  } else if (route.name === "scenario") {
+    productId = route.productId;
+    currentActorId = route.actorId;
+    currentScenarioId = route.scenarioId;
+  } else if (route.name === "demo") {
+    const actorId = scenarioGroupLookup[route.scenarioId];
+    productId = actorGroups.find((g) => g.id === actorId)?.productId;
+    currentActorId = actorId;
+    currentScenarioId = route.scenarioId;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <div className="flex min-h-screen">
-        <SideNav currentActorId={currentActorId} currentScenarioId={currentScenarioId} />
+        <SideNav
+          currentActorId={currentActorId as Parameters<typeof SideNav>[0]["currentActorId"]}
+          currentScenarioId={currentScenarioId as Parameters<typeof SideNav>[0]["currentScenarioId"]}
+          productId={productId}
+        />
         <div className="min-w-0 flex-1">
           <main className="px-5 pb-14 pt-6 xl:px-8 2xl:px-10">
             <div className="mx-auto max-w-[1760px]">{children}</div>

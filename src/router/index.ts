@@ -1,29 +1,38 @@
 import { useSyncExternalStore } from "react";
 import { actorGroups, scenarioGroupLookup, scenarioOrder } from "@/scenarios";
-import type { ActorGroupId, ScenarioId, ScenarioMode } from "@/scenarios/types";
+import type { ActorGroupId, ProductId, ScenarioId, ScenarioMode } from "@/scenarios/types";
 
 export type DemoRoute =
-  | { name: "overview" }
-  | { name: "mode"; mode: ScenarioMode }
-  | { name: "actor"; actorId: ActorGroupId }
-  | { name: "scenario"; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
+  | { name: "landing" }
+  | { name: "product"; productId: ProductId }
+  | { name: "actor"; productId: ProductId; actorId: ActorGroupId }
+  | { name: "scenario"; productId: ProductId; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
   | { name: "demo"; scenarioId: ScenarioId; stepIndex: number };
 
+const products: ProductId[] = ["zkwallet", "zktransfer", "zkpasskey", "zkporl"];
 const modes: ScenarioMode[] = ["custody", "issuer", "personal"];
 const scenarioIds = new Set<ScenarioId>(scenarioOrder);
 const modeIds = new Set<ScenarioMode>(modes);
+const productIds = new Set<ProductId>(products);
 const actorIds = new Set<ActorGroupId>(actorGroups.map((group) => group.id));
 const routeEvent = "zkdemo-route-change";
+
+const modeToProduct: Record<string, ProductId> = {
+  custody: "zkwallet",
+  issuer: "zkwallet",
+  personal: "zkwallet",
+  platform: "zkwallet",
+};
 
 function cleanPath(pathname: string) {
   return pathname.replace(/\/+$/, "") || "/";
 }
 
 export function pathForRoute(route: DemoRoute) {
-  if (route.name === "overview") return "/";
-  if (route.name === "actor") return `/${route.actorId}`;
-  if (route.name === "scenario") return `/${route.actorId}/${route.scenarioId}/${route.stepIndex}`;
-  if (route.name === "mode") return `/${route.mode}`;
+  if (route.name === "landing") return "/";
+  if (route.name === "product") return `/${route.productId}`;
+  if (route.name === "actor") return `/${route.productId}/${route.actorId}`;
+  if (route.name === "scenario") return `/${route.productId}/${route.actorId}/${route.scenarioId}/${route.stepIndex}`;
   return `/demo/${route.scenarioId}/${route.stepIndex}`;
 }
 
@@ -31,9 +40,10 @@ export function parseRoute(pathname: string): DemoRoute {
   const parts = cleanPath(pathname).split("/").filter(Boolean);
 
   if (parts.length === 0) {
-    return { name: "overview" };
+    return { name: "landing" };
   }
 
+  // /demo/:scenarioId/:step (legacy direct-link)
   if (parts[0] === "demo" && scenarioIds.has(parts[1] as ScenarioId)) {
     const rawStep = Number.parseInt(parts[2] ?? "0", 10);
     return {
@@ -43,28 +53,59 @@ export function parseRoute(pathname: string): DemoRoute {
     };
   }
 
+  // /:productId/...
+  if (productIds.has(parts[0] as ProductId)) {
+    const productId = parts[0] as ProductId;
+    const maybeActorId = parts[1] as ActorGroupId | undefined;
+
+    if (maybeActorId && actorIds.has(maybeActorId)) {
+      const actorId = maybeActorId;
+      const maybeScenarioId = parts[2] as ScenarioId | undefined;
+
+      if (maybeScenarioId && scenarioIds.has(maybeScenarioId)) {
+        const rawStep = Number.parseInt(parts[3] ?? "0", 10);
+        return {
+          name: "scenario",
+          productId,
+          actorId,
+          scenarioId: maybeScenarioId,
+          stepIndex: Number.isFinite(rawStep) && rawStep >= 0 ? rawStep : 0,
+        };
+      }
+
+      return { name: "actor", productId, actorId };
+    }
+
+    return { name: "product", productId };
+  }
+
+  // legacy mode shortcuts (/custody, /personal) → /zkwallet/:actorId
+  if (modeIds.has(parts[0] as ScenarioMode)) {
+    const actorId = parts[0] as ActorGroupId;
+    return { name: "actor", productId: modeToProduct[parts[0]] ?? "zkwallet", actorId };
+  }
+
+  // legacy /:actorId/:scenarioId/:step without product prefix
   if (actorIds.has(parts[0] as ActorGroupId)) {
     const actorId = parts[0] as ActorGroupId;
+    const productId: ProductId = actorGroups.find((g) => g.id === actorId)?.productId ?? "zkwallet";
     const maybeScenarioId = parts[1] as ScenarioId | undefined;
 
     if (maybeScenarioId && scenarioIds.has(maybeScenarioId)) {
       const rawStep = Number.parseInt(parts[2] ?? "0", 10);
       return {
         name: "scenario",
+        productId,
         actorId,
         scenarioId: maybeScenarioId,
         stepIndex: Number.isFinite(rawStep) && rawStep >= 0 ? rawStep : 0,
       };
     }
 
-    return { name: "actor", actorId };
+    return { name: "actor", productId, actorId };
   }
 
-  if (modeIds.has(parts[0] as ScenarioMode)) {
-    return { name: "actor", actorId: parts[0] as ActorGroupId };
-  }
-
-  return { name: "overview" };
+  return { name: "landing" };
 }
 
 function getSnapshot() {
@@ -95,9 +136,12 @@ export function navigateToRoute(route: DemoRoute, replace = false) {
 }
 
 export function routeForScenario(scenarioId: ScenarioId, stepIndex = 0): DemoRoute {
+  const actorId = scenarioGroupLookup[scenarioId];
+  const productId: ProductId = actorGroups.find((g) => g.id === actorId)?.productId ?? "zkwallet";
   return {
     name: "scenario",
-    actorId: scenarioGroupLookup[scenarioId],
+    productId,
+    actorId,
     scenarioId,
     stepIndex,
   };

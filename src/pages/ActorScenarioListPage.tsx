@@ -1,10 +1,11 @@
 import { actorGroupById, getScenarioDisplayId, getScenarioSurface, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
-import type { ActorGroupId, Scenario } from "@/scenarios/types";
+import type { ActorGroupId, ProductId, Scenario } from "@/scenarios/types";
 import { useDemoStore } from "@/store/demoStore";
 
 type Props = {
   actorId: ActorGroupId;
+  productId?: ProductId;
 };
 
 const surfaceLabels = {
@@ -20,8 +21,8 @@ function ScenarioCard({ scenario, completed, currentStep }: { scenario: Scenario
 
   return (
     <button
-      className="group grid w-full gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.07)] md:grid-cols-[minmax(0,1fr)_160px]"
-      onClick={() => navigateToRoute({ name: "scenario", actorId: scenario.groupId ?? scenario.mode, scenarioId: scenario.id, stepIndex: currentStep })}
+      className="group flex min-h-[200px] w-full flex-col justify-between rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 text-left transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-[0_14px_38px_rgba(15,23,42,0.08)]"
+      onClick={() => navigateToRoute({ name: "scenario", productId: scenario.groupId ? (actorGroupById[scenario.groupId]?.productId ?? "zkwallet") : "zkwallet", actorId: scenario.groupId ?? scenario.mode, scenarioId: scenario.id, stepIndex: currentStep })}
       type="button"
     >
       <div className="min-w-0">
@@ -30,15 +31,15 @@ function ScenarioCard({ scenario, completed, currentStep }: { scenario: Scenario
           <span className="inline-flex h-5 items-center rounded bg-[var(--surface-2)] px-2 text-[10px] font-semibold text-[var(--ink-2)]">
             {surfaceLabels[surface]}
           </span>
+          <span className="inline-flex h-5 items-center rounded bg-[var(--surface-2)] px-2 font-mono text-[10px] text-[var(--muted)]">
+            {scenario.steps.length} steps
+          </span>
         </div>
-        <div className="mt-2 text-[17px] font-semibold text-[var(--ink)]">{scenario.shortName}</div>
-        <div className="mt-2 text-[13px] leading-[1.55] text-[var(--ink-2)]">{scenario.summary}</div>
+        <div className="mt-3 text-[20px] font-semibold text-[var(--ink)]">{scenario.shortName}</div>
+        <div className="mt-2 text-[13px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</div>
       </div>
-      <div className="flex flex-col items-start justify-between gap-3 md:items-end">
-        <div className="inline-flex h-6 items-center rounded bg-[var(--surface-2)] px-2 font-mono text-[11px] text-[var(--muted)]">
-          {scenario.steps.length} steps
-        </div>
-        <div className={`text-[12px] font-semibold ${completed ? "text-[var(--ok)]" : currentStep > 0 ? "text-[var(--accent)]" : "text-[var(--ink-2)]"}`}>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <div className={`text-[12px] font-semibold ${completed ? "text-[var(--ok)]" : currentStep > 0 ? "text-[var(--accent)]" : "text-[var(--muted)]"}`}>
           {status}
         </div>
         <div className="text-[13px] font-semibold text-[var(--accent)] group-hover:underline">시나리오 열기</div>
@@ -47,8 +48,9 @@ function ScenarioCard({ scenario, completed, currentStep }: { scenario: Scenario
   );
 }
 
-export function ActorScenarioListPage({ actorId }: Props) {
+export function ActorScenarioListPage({ actorId, productId }: Props) {
   const group = actorGroupById[actorId];
+  const resolvedProductId = productId ?? group?.productId ?? "zkwallet";
   const stepMap = useDemoStore((state) => state.stepMap);
   const completedScenarios = useDemoStore((state) => state.completedScenarios);
 
@@ -83,7 +85,7 @@ export function ActorScenarioListPage({ actorId }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {groupScenarios.map((scenario) => (
           <ScenarioCard
             completed={completedScenarios.includes(scenario.id)}

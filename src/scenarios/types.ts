@@ -1,11 +1,14 @@
 export type Tone = "neutral" | "accent" | "ok" | "bad" | "warn";
-export type ScenarioMode = "platform" | "custody" | "issuer" | "personal";
+export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkporl";
+export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident";
 export type ActorGroupId =
   | "personal"
   | "custody"
   | "issuer"
   | "platform"
   | "policy-payment"
+  | "zt-user"
+  | "auditor"
   | "risk"
   | "incident";
 export type Surface = "web" | "app" | "mixed";
@@ -23,7 +26,11 @@ export type ScenarioId =
   | "FS-3"
   | "FS-4"
   | "FU-1"
-  | "FU-2";
+  | "FU-2"
+  | "ZT-1"
+  | "ZT-5"
+  | "ZP-1"
+  | "ZP-4";
 
 // --- User screen types ---
 
@@ -31,6 +38,7 @@ export type Field = {
   label: string;
   value: string;
   tone?: Tone;
+  picker?: string;
 };
 
 export type Section = {
@@ -57,6 +65,7 @@ export type UserScreen = {
   layout: ScreenLayout;
   actor?: string;
   title: string;
+  animateProcessing?: boolean;
   subtitle: string;
   status: string;
   sections: Section[];
@@ -134,6 +143,11 @@ export type ProcessView =
       description: string;
       logs: string[];
       summary?: StatusCard[];
+      sequence?: SequenceContext;
+    }
+  | {
+      kind: "merkle";
+      phase: "generating" | "complete";
       sequence?: SequenceContext;
     };
 

@@ -4,6 +4,7 @@ import { ArtifactProcessView } from "./views/ArtifactProcessView";
 import { ApprovalProcessView } from "./views/ApprovalProcessView";
 import { AuditProcessView } from "./views/AuditProcessView";
 import { KeygenProcessView } from "./views/KeygenProcessView";
+import { MerkleProcessView } from "./views/MerkleProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
 import { SequenceProcessView } from "./views/SequenceProcessView";
 
@@ -35,7 +36,7 @@ function extractSequence(view?: ProcessView): SequenceContext | undefined {
   }
 
   if (
-    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit") &&
+    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit" || view.kind === "merkle") &&
     view.sequence
   ) {
     return view.sequence;
@@ -70,6 +71,7 @@ function renderView(view: ProcessView) {
     case "keygen":    return <KeygenProcessView view={view} />;
     case "artifact":  return <ArtifactProcessView view={view} />;
     case "audit":     return <AuditProcessView view={view} />;
+    case "merkle":    return <MerkleProcessView view={view} />;
     default:          return null;
   }
 }
@@ -87,7 +89,7 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
     ? dedupeAndFilter(
         [...(topSequence.pastEdges ?? []), ...collectEmbeddedSequencePast(steps, currentStepIndex)],
         topSequence.activeEdge,
-      )
+      ).filter((e) => topSequence.actors.includes(e.from) && topSequence.actors.includes(e.to))
     : undefined;
 
   return (

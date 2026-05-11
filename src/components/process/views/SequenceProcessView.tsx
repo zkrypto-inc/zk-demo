@@ -79,9 +79,24 @@ function edgeGeometry(actors: string[], edge: SequenceEdge, offsetPx = 0) {
   };
 }
 
-function hasSameActorPair(a: SequenceEdge, b?: SequenceEdge) {
-  if (!b) return false;
-  return (a.from === b.from && a.to === b.to) || (a.from === b.to && a.to === b.from);
+function directionalOffset(target: SequenceEdge, allEdges: SequenceEdge[], actors: string[]): number {
+  const tFromIdx = actors.indexOf(target.from);
+  const tToIdx = actors.indexOf(target.to);
+  if (tFromIdx === tToIdx) return 0;
+  const tForward = tFromIdx < tToIdx;
+  const hasOpposite = allEdges.some((e) => {
+    if (e === target) return false;
+    const samePair =
+      (e.from === target.from && e.to === target.to) ||
+      (e.from === target.to && e.to === target.from);
+    if (!samePair) return false;
+    const eFromIdx = actors.indexOf(e.from);
+    const eToIdx = actors.indexOf(e.to);
+    if (eFromIdx === eToIdx) return false;
+    return (eFromIdx < eToIdx) !== tForward;
+  });
+  if (!hasOpposite) return 0;
+  return tForward ? 14 : -14;
 }
 
 function TransferPulse({ path, stroke }: { path: string; stroke: string }) {
@@ -107,6 +122,7 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
     activeActors.add(edge.from);
     activeActors.add(edge.to);
   }
+  const allEdges: SequenceEdge[] = edge ? [...pastEdges, edge] : [...pastEdges];
 
   return (
     <div className={`flex flex-col ${compact ? "h-full" : "min-h-[460px]"}`}>
@@ -118,7 +134,7 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
       >
         {pastEdges.map((pastEdge, index) => {
           if (pastEdge.from === pastEdge.to) return null;
-          const geometry = edgeGeometry(actors, pastEdge, hasSameActorPair(pastEdge, edge) ? 14 : 0);
+          const geometry = edgeGeometry(actors, pastEdge, directionalOffset(pastEdge, allEdges, actors));
           return (
             <g key={`${pastEdge.from}-${pastEdge.to}-${index}`} opacity="0.28">
               <path d={geometry.d} fill="none" stroke="var(--ink-2)" strokeWidth="1.4" />
@@ -130,7 +146,7 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
         {edge && edge.from !== edge.to && (
           <g>
             {(() => {
-              const geometry = edgeGeometry(actors, edge);
+              const geometry = edgeGeometry(actors, edge, directionalOffset(edge, allEdges, actors));
               const stroke = toneColor(edge.tone);
               return (
                 <>

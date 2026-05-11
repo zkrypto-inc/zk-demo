@@ -1,6 +1,7 @@
 import { actorGroups, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
 import { useDemoStore } from "@/store/demoStore";
+import type { ProductId } from "@/scenarios/types";
 
 const surfaceLabels = {
   app: "모바일 앱",
@@ -32,7 +33,7 @@ export function OverviewPage() {
             <button
               className="flex min-h-[220px] flex-col justify-between rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 text-left transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-[0_14px_38px_rgba(15,23,42,0.08)]"
               key={group.id}
-              onClick={() => navigateToRoute({ name: "actor", actorId: group.id })}
+              onClick={() => navigateToRoute({ name: "actor", productId: group.productId as ProductId, actorId: group.id })}
               type="button"
             >
               <div>
