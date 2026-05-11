@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { UserScreen } from "@/scenarios/types";
 import { toneText } from "@/utils/tone";
 
@@ -13,9 +14,39 @@ export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvan
   const highlightFields = allFields.filter((f) => f.tone === "accent" || f.tone === "ok");
   const otherFields = allFields.filter((f) => f.tone !== "accent" && f.tone !== "ok");
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const startY = useRef(0);
+  const startTop = useRef(0);
+  const dragging = useRef(false);
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    const el = scrollRef.current;
+    if (!el) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragging.current = true;
+    startY.current = e.clientY;
+    startTop.current = el.scrollTop;
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragging.current || !scrollRef.current) return;
+    scrollRef.current.scrollTop = startTop.current + (startY.current - e.clientY);
+  }
+
+  function onPointerUp() {
+    dragging.current = false;
+  }
+
   return (
     <div className="flex flex-1 flex-col px-5">
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto py-4">
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto py-4"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        style={{ cursor: "grab" }}
+      >
         <div className="flex flex-col items-center gap-3 py-2">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-full"

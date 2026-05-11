@@ -23,6 +23,10 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "FS-4": { menuItem: "준비금", pageTitle: "유동성 관리", host: "issuer.zkwallet.io" },
   "FU-1": { menuItem: "지갑", pageTitle: "지갑 만들기", host: "app.zkwallet.io" },
   "FU-2": { menuItem: "거래", pageTitle: "거래 서명", host: "app.zkwallet.io" },
+  "ZT-1": { menuItem: "전송", pageTitle: "프라이버시 전송", host: "app.zktransfer.io" },
+  "ZT-5": { menuItem: "결제", pageTitle: "CBDC·바우처 결제", host: "app.zktransfer.io" },
+  "ZP-1": { menuItem: "대시보드", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
+  "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkporl.io" },
 };
 
 const menuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];

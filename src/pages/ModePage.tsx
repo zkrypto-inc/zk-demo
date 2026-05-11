@@ -62,6 +62,31 @@ const modeMeta: Record<ScenarioMode, { title: string; eyebrow: string; summary: 
     eyebrow: "Web Console",
     summary: "Tenant, 프로그램, 운영 주체 연결, 승인 정책을 운영자별 콘솔로 구성합니다.",
   },
+  "policy-payment": {
+    title: "정책 운영자",
+    eyebrow: "Web Console",
+    summary: "프라이버시 전송 정책과 QR 결제 프로그램을 설정하는 관리자 흐름입니다.",
+  },
+  "zt-user": {
+    title: "개인 사용자 전송",
+    eyebrow: "Mobile App",
+    summary: "스테이블코인·CBDC·바우처를 프라이버시 보존 방식으로 전송합니다.",
+  },
+  auditor: {
+    title: "감사자",
+    eyebrow: "Web Console",
+    summary: "감사 키를 사용해 프라이버시 전송 내역을 복호화하고 검토합니다.",
+  },
+  risk: {
+    title: "리스크 운영자",
+    eyebrow: "Web Console",
+    summary: "거래소 준비금·부채 ZK Proof 생성과 검증 결과를 모니터링합니다.",
+  },
+  incident: {
+    title: "보안관제·사고대응",
+    eyebrow: "Web Console",
+    summary: "이상징후 탐지, 증명 실패 케이스를 확인하고 차단 조치를 실행합니다.",
+  },
 };
 
 function makeEventId(index: number) {
