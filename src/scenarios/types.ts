@@ -45,9 +45,22 @@ export type Field = {
   options?: string[];
 };
 
+export type DataTableColumn = {
+  key: string;
+  label: string;
+  align?: "left" | "center" | "right";
+  width?: string;
+};
+
+export type DataTable = {
+  columns: DataTableColumn[];
+  rows: Record<string, string>[];
+};
+
 export type Section = {
   title: string;
   fields: Field[];
+  table?: DataTable;
 };
 
 export type ScreenAction = {

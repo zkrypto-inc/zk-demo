@@ -79,11 +79,20 @@ export const scenarioZP1: Scenario = {
         },
         {
           title: "이벤트 목록 (최근 3건)",
-          fields: [
-            { label: "event_id: evt_001", value: "BTC +0.5 | 체결" },
-            { label: "event_id: evt_002", value: "USDC -150 | 출금" },
-            { label: "event_id: evt_003", value: "ETH +1.2 | 입금" },
-          ],
+          fields: [],
+          table: {
+            columns: [
+              { key: "eventId", label: "event_id" },
+              { key: "asset", label: "자산 이름" },
+              { key: "delta", label: "delta" },
+              { key: "eventType", label: "이벤트 종류" },
+            ],
+            rows: [
+              { eventId: "evt_001", asset: "BTC", delta: "+0.5", eventType: "체결" },
+              { eventId: "evt_002", asset: "USDC", delta: "-150", eventType: "출금" },
+              { eventId: "evt_003", asset: "ETH", delta: "+1.2", eventType: "입금" },
+            ],
+          },
         },
       ],
     },

@@ -1,5 +1,6 @@
 import { toneText } from "@/utils/tone";
 import type { UserScreen } from "@/scenarios/types";
+import { DataTable } from "../DataTable";
 
 type Props = {
   screen: UserScreen;
@@ -19,28 +20,32 @@ export function WebDashboardLayout({ screen, canAdvance, activeActionLabel, onAd
             <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--ink-2)]">
               {section.title}
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              {section.fields.map((field) => (
-                <div
-                  key={`${section.title}-${field.label}`}
-                  className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3"
-                  style={
-                    field.tone === "ok"
-                      ? { borderColor: "var(--ok)", backgroundColor: "var(--ok-soft)" }
-                      : field.tone === "bad"
-                      ? { borderColor: "var(--bad)", backgroundColor: "var(--bad-soft)" }
-                      : field.tone === "accent"
-                      ? { borderColor: "var(--accent)", backgroundColor: "var(--accent-soft)" }
-                      : {}
-                  }
-                >
-                  <div className="mb-1 text-[10px] text-[var(--ink-2)]">{field.label}</div>
-                  <div className={`break-all font-mono text-[12px] font-semibold leading-[1.3] ${toneText(field.tone)}`}>
-                    {field.value}
+            {section.table ? (
+              <DataTable table={section.table} />
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {section.fields.map((field) => (
+                  <div
+                    key={`${section.title}-${field.label}`}
+                    className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-3"
+                    style={
+                      field.tone === "ok"
+                        ? { borderColor: "var(--ok)", backgroundColor: "var(--ok-soft)" }
+                        : field.tone === "bad"
+                        ? { borderColor: "var(--bad)", backgroundColor: "var(--bad-soft)" }
+                        : field.tone === "accent"
+                        ? { borderColor: "var(--accent)", backgroundColor: "var(--accent-soft)" }
+                        : {}
+                    }
+                  >
+                    <div className="mb-1 text-[10px] text-[var(--ink-2)]">{field.label}</div>
+                    <div className={`break-all font-mono text-[12px] font-semibold leading-[1.3] ${toneText(field.tone)}`}>
+                      {field.value}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
