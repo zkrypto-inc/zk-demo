@@ -3,6 +3,7 @@ import type { UserScreen } from "@/scenarios/types";
 import { AppCtaLayout } from "./layouts/AppCtaLayout";
 import { AppFormLayout } from "./layouts/AppFormLayout";
 import { AppProcessingLayout } from "./layouts/AppProcessingLayout";
+import { AppQrScannerLayout } from "./layouts/AppQrScannerLayout";
 import { AppResultLayout } from "./layouts/AppResultLayout";
 
 type Props = {
@@ -40,6 +41,7 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
         {screen.layout === "cta" && <AppCtaLayout {...layoutProps} />}
         {screen.layout === "form" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "processing" && <AppProcessingLayout {...layoutProps} />}
+        {screen.layout === "scanner" && <AppQrScannerLayout {...layoutProps} />}
         {screen.layout === "result" && <AppResultLayout {...layoutProps} />}
         {screen.layout === "approval" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <AppFormLayout {...layoutProps} />}
