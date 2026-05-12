@@ -23,7 +23,20 @@ export function WebFormLayout({ screen, canAdvance, activeActionLabel, onAdvance
               {section.fields.map((field) => (
                 <div key={`${section.title}-${field.label}`}>
                   <div className="mb-1 text-[11px] text-[var(--ink-2)]">{field.label}</div>
-                  {isEditableField(field) ? (
+                  {field.options && field.options.length > 0 ? (
+                    <select
+                      aria-label={field.label}
+                      className="w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-[12px] leading-[1.5] text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                      onChange={(event) => onFieldChange?.(screen.id, field.label, event.target.value)}
+                      value={field.value}
+                    >
+                      {field.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : isEditableField(field) ? (
                     <input
                       aria-label={field.label}
                       className="w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-2 font-mono text-[12px] leading-[1.5] text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"

@@ -6,6 +6,7 @@ import { WebProcessingLayout } from "./layouts/WebProcessingLayout";
 import { WebResultLayout } from "./layouts/WebResultLayout";
 import { WebDashboardLayout } from "./layouts/WebDashboardLayout";
 import { WebLedgerLayout } from "./layouts/WebLedgerLayout";
+import { WebAuditTableLayout } from "./layouts/WebAuditTableLayout";
 
 type Props = {
   screen: UserScreen;
@@ -51,6 +52,7 @@ export function WebScreen({ screen, actor, activeActionLabel, canAdvance = false
         {screen.layout === "result" && <WebResultLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <WebDashboardLayout {...layoutProps} />}
         {screen.layout === "ledger" && <WebLedgerLayout {...layoutProps} />}
+        {screen.layout === "audit-table" && <WebAuditTableLayout {...layoutProps} />}
         {screen.layout === "cta" && <WebDashboardLayout {...layoutProps} />}
 
         {/* Actor badge */}

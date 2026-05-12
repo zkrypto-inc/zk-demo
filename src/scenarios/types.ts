@@ -42,6 +42,7 @@ export type Field = {
   value: string;
   tone?: Tone;
   picker?: string;
+  options?: string[];
 };
 
 export type Section = {
@@ -63,6 +64,7 @@ export type ScreenLayout =
   | "result"      // 완료 — 성공 아이콘 + 핵심 값 강조
   | "dashboard"   // 정보 개요 — 카드 그리드
   | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션
+  | "audit-table" // 감사 표 — 거래 행 + 체크박스/복호화 결과
   | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
 
 export type WebContext = {
@@ -76,6 +78,27 @@ export type LedgerScreenData = {
   caseId?: string;
   rows: LedgerRow[];
   actionLog?: string[];
+};
+
+export type AuditTableRow = {
+  id: string;
+  type: string;
+  txHash: string;
+  from: string;
+  to: string;
+  amount: string;
+  decrypted?: {
+    from: string;
+    to: string;
+    amount: string;
+    status?: string;
+    extras?: { label: string; value: string }[];
+  };
+};
+
+export type AuditTableData = {
+  mode: "request" | "complete";
+  rows: AuditTableRow[];
 };
 
 export type UserScreen = {
@@ -92,6 +115,7 @@ export type UserScreen = {
   actions?: ScreenAction[];
   footer?: string;
   ledger?: LedgerScreenData;
+  auditTable?: AuditTableData;
 };
 
 // --- Process panel types ---
