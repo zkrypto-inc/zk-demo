@@ -31,7 +31,11 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkporl.io" },
 };
 
-const menuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];
+const defaultMenuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];
+const menuItemsByScenario: Partial<Record<ScenarioId, string[]>> = {
+  "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "알림 이력"],
+  "ZP-4": ["관제", "이상 이벤트", "증명 실패", "지급 차단", "감사 로그"],
+};
 
 export function WebContainer({
   screen,
@@ -45,6 +49,7 @@ export function WebContainer({
 }: Props) {
   const context = screen.webContext ?? navContext[scenarioId];
   const productLabel = getProductLabelByScenarioId(scenarioId);
+  const menuItems = menuItemsByScenario[scenarioId] ?? defaultMenuItems;
 
   return (
     <section className="flex flex-col items-center">

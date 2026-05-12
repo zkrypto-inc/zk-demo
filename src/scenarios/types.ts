@@ -217,6 +217,14 @@ export type ProcessView =
       sequence?: SequenceContext;
     }
   | {
+      kind: "liability-proof";
+      description?: string;
+      formula: string;
+      rows: LiabilityProofRow[];
+      footnote?: string;
+      sequence?: SequenceContext;
+    }
+  | {
       kind: "ledger";
       description?: string;
       banner?: { tone: Tone; title: string; subtitle?: string };
@@ -232,6 +240,13 @@ export type FormulaCard = {
   sublabel?: string;
   tone?: Tone;
   role?: "old" | "delta" | "new" | "proof";
+};
+
+export type LiabilityProofRow = {
+  user: string;
+  oldValue: string;
+  delta: string;
+  newValue: string;
 };
 
 export type LedgerRow = {
