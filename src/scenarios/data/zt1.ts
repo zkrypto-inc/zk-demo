@@ -20,7 +20,7 @@ const seqQr: SequenceContext = {
 
 const seq3: SequenceContext = {
   actors: ["개인 사용자 App", "스테이블코인 플랫폼", "zkTransfer SDK"],
-  activeEdge: { from: "스테이블코인 플랫폼", to: "zkTransfer SDK", label: "SDK 호출·영지식 증명 생성", tone: "accent" },
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkTransfer SDK", label: "SDK 호출", tone: "accent" },
   pastEdges: [
     { from: "개인 사용자 App", to: "스테이블코인 플랫폼", label: "스테이블코인 개인정보보호 송금 요청" },
   ],
