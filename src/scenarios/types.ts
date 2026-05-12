@@ -56,6 +56,7 @@ export type ScreenLayout =
   | "form"        // 입력 폼 — 필드를 input 박스 스타일로 렌더링
   | "approval"    // 승인 대기 — 승인자 카드 + 상태 배지
   | "processing"  // 처리 중 — 스피너 + 상태 메시지
+  | "scanner"     // QR/코드 스캔 — 모바일 카메라 프레임
   | "result"      // 완료 — 성공 아이콘 + 핵심 값 강조
   | "dashboard"   // 정보 개요 — 카드 그리드
   | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션

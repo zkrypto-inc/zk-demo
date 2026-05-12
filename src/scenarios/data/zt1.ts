@@ -12,6 +12,12 @@ const seq2: SequenceContext = {
   pastEdges: [],
 };
 
+const seqQr: SequenceContext = {
+  actors: ["수신자 QR", "개인 사용자 App", "스테이블코인 플랫폼"],
+  activeEdge: { from: "수신자 QR", to: "개인 사용자 App", label: "수신 주소 스캔", tone: "accent" },
+  pastEdges: [],
+};
+
 const seq3: SequenceContext = {
   actors: ["zkTransfer SDK", "Core API"],
   activeEdge: { from: "zkTransfer SDK", to: "Core API", label: "proof 생성 요청", tone: "accent" },
@@ -77,22 +83,60 @@ export const scenarioZT1: Scenario = {
     },
     {
       id: "ZT1-2",
+      layout: "scanner",
+      actor: "개인 사용자 / 모바일 앱",
+      title: "수신자 QR 스캔",
+      subtitle: "수신자의 QR 코드를 화면 중앙에 맞춰주세요",
+      status: "스캔 중",
+      footer: "주소 인식 중...",
+      sections: [
+        {
+          title: "스캔 상태",
+          fields: [
+            { label: "대상", value: "수신자 QR" },
+            { label: "상태", value: "주소 인식 중", tone: "accent" },
+          ],
+        },
+      ],
+      actions: [{ id: "scan-qr", label: "QR 인식", tone: "accent" }],
+    },
+    {
+      id: "ZT1-3",
+      layout: "scanner",
+      actor: "개인 사용자 / 모바일 앱",
+      title: "QR 인식 완료",
+      subtitle: "수신 주소를 송금 요청에 자동 반영합니다",
+      status: "인식 완료",
+      footer: "주소 인식 완료",
+      sections: [
+        {
+          title: "인식 결과",
+          fields: [
+            { label: "수신자 별칭", value: "Alice", tone: "ok" },
+            { label: "수신 주소", value: "0xA1b2...C3d4 (ENA)", tone: "ok" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "ZT1-4",
       layout: "form",
       actor: "개인 사용자 / 모바일 앱",
       title: "송금 요청",
-      subtitle: "수신자와 금액을 확인하고 전송을 요청하세요",
+      subtitle: "QR에서 인식한 수신 주소와 금액을 확인하세요",
       status: "입력 중",
       sections: [
         {
           title: "수신자 정보",
           fields: [
             { label: "수신자 별칭", value: "Alice" },
-            { label: "수신 주소", value: "0xA1b2...C3d4 (ENA)", picker: "주소록" },
+            { label: "수신 주소", value: "0xA1b2...C3d4 (ENA)", picker: "QR 인식" },
           ],
         },
         {
           title: "전송 정보",
           fields: [
+            { label: "입력 방식", value: "QR에서 자동 기입", tone: "ok" },
             { label: "자산", value: "USDC" },
             { label: "전송 금액", value: "100 USDC" },
             { label: "전송 방식", value: "ENA 기반 비공개 전송" },
@@ -104,7 +148,7 @@ export const scenarioZT1: Scenario = {
       actions: [{ id: "send-request", label: "전송 요청", tone: "accent" }],
     },
     {
-      id: "ZT1-3",
+      id: "ZT1-5",
       layout: "processing",
       actor: "시스템 자동 처리",
       title: "ZK Proof 생성 중",
@@ -124,7 +168,7 @@ export const scenarioZT1: Scenario = {
       ],
     },
     {
-      id: "ZT1-4",
+      id: "ZT1-6",
       layout: "result",
       actor: "개인 사용자 / 모바일 앱",
       title: "전송 완료",
@@ -144,7 +188,7 @@ export const scenarioZT1: Scenario = {
       ],
     },
     {
-      id: "ZT1-5",
+      id: "ZT1-7",
       layout: "dashboard",
       actorType: "web",
       actor: "감사자 / 웹 대시보드",
@@ -165,7 +209,7 @@ export const scenarioZT1: Scenario = {
       actions: [{ id: "request-audit", label: "감사 요청", tone: "accent" }],
     },
     {
-      id: "ZT1-6",
+      id: "ZT1-8",
       layout: "result",
       actorType: "web",
       actor: "감사자 / 웹 대시보드",
@@ -210,26 +254,65 @@ export const scenarioZT1: Scenario = {
     {
       id: "ZT1-step-2",
       kind: "user-action",
-      label: "송금 요청",
+      label: "QR 스캔",
       trigger: "user",
-      ctaLabel: "전송 요청",
+      ctaLabel: "QR 인식",
       screenId: "ZT1-2",
-      description: "사용자가 수신자와 금액을 입력하고 전송을 요청합니다",
+      description: "사용자가 수신자의 QR 코드를 스캔해 송금 주소를 인식합니다",
       processView: {
         kind: "sequence",
-        actors: seq2.actors,
-        activeEdge: seq2.activeEdge,
-        pastEdges: seq2.pastEdges,
-        description: "사용자가 주소록에서 수신자를 선택하고 전송 금액을 입력해 기밀 송금을 요청합니다.",
+        actors: seqQr.actors,
+        activeEdge: seqQr.activeEdge,
+        pastEdges: seqQr.pastEdges,
+        description: "수신자의 QR 코드를 카메라 프레임에 맞추고 주소 인식이 완료될 때까지 대기합니다.",
       },
     },
     {
       id: "ZT1-step-3",
       kind: "system-processing",
+      label: "주소 인식 완료",
+      trigger: "auto",
+      duration: 1200,
+      screenId: "ZT1-3",
+      description: "QR에서 인식한 수신 주소를 송금 요청 화면에 자동 기입합니다",
+      processView: {
+        kind: "artifact",
+        description: "QR payload에서 수신자 별칭과 주소를 추출해 송금 요청 폼에 반영합니다. 사용자는 다음 단계에서 금액과 수신 주소를 확인합니다.",
+        items: [
+          { label: "수신자 별칭", value: "Alice", tone: "ok" },
+          { label: "수신 주소", value: "0xA1b2...C3d4 (ENA)", tone: "ok" },
+          { label: "입력 방식", value: "QR 자동 기입", tone: "accent" },
+        ],
+        sequence: {
+          actors: seqQr.actors,
+          activeEdge: { from: "개인 사용자 App", to: "개인 사용자 App", label: "주소 자동 기입", tone: "ok" },
+          pastEdges: [seqQr.activeEdge],
+        },
+      },
+    },
+    {
+      id: "ZT1-step-4",
+      kind: "user-action",
+      label: "송금 요청",
+      trigger: "user",
+      ctaLabel: "전송 요청",
+      screenId: "ZT1-4",
+      description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 전송을 요청합니다",
+      processView: {
+        kind: "sequence",
+        actors: seq2.actors,
+        activeEdge: seq2.activeEdge,
+        pastEdges: [],
+        description: "QR에서 인식된 수신 주소가 송금 요청 폼에 자동 기입됩니다. 사용자는 금액과 잔고를 확인한 뒤 기밀 송금을 요청합니다.",
+      },
+    },
+    {
+      id: "ZT1-step-5",
+      kind: "system-processing",
       label: "ZK Proof 생성",
       trigger: "auto",
       duration: 4000,
-      screenId: "ZT1-3",
+      screenId: "ZT1-5",
       description: "내 비공개 잔고를 확인하고 발신자·금액을 숨긴 영지식 증명을 생성합니다",
       processView: {
         kind: "merkle",
@@ -238,12 +321,12 @@ export const scenarioZT1: Scenario = {
       },
     },
     {
-      id: "ZT1-step-4",
+      id: "ZT1-step-6",
       kind: "result",
       label: "전송 완료",
       trigger: "auto",
       duration: 1500,
-      screenId: "ZT1-4",
+      screenId: "ZT1-6",
       description: "전송이 완료되고 수신자의 새 비공개 잔고가 반영됩니다",
       processView: {
         kind: "merkle",
@@ -252,12 +335,12 @@ export const scenarioZT1: Scenario = {
       },
     },
     {
-      id: "ZT1-step-5",
+      id: "ZT1-step-7",
       kind: "user-action",
       label: "감사 요청",
       trigger: "user",
       ctaLabel: "감사 요청",
-      screenId: "ZT1-5",
+      screenId: "ZT1-7",
       description: "감사자가 txHash를 조회합니다 — 감사 전에는 발신자·금액이 마스킹됩니다",
       processView: {
         kind: "overview",
@@ -271,12 +354,12 @@ export const scenarioZT1: Scenario = {
       },
     },
     {
-      id: "ZT1-step-6",
+      id: "ZT1-step-8",
       kind: "result",
       label: "감사 완료",
       trigger: "auto",
       duration: 1500,
-      screenId: "ZT1-6",
+      screenId: "ZT1-8",
       description: "감사 키로 실제 수신자 주소와 금액이 복호화됩니다",
       processView: {
         kind: "audit",
