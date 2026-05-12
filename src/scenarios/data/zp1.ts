@@ -1,30 +1,30 @@
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
-const seqActors = ["거래소 원장", "zkPoRL 서버", "온체인 / BulletinBoard"] as const;
+const seqActors = ["거래소 원장", "zkPoRL 서버", "온체인 게시판"] as const;
 
 const batchSeq = (phase: "generate" | "verify" | "done"): SequenceContext => {
-  const base = [{ from: "거래소 원장", to: "zkPoRL 서버", label: "원장 이벤트 전달" }];
+  const base = [{ from: "거래소 원장", to: "zkPoRL 서버", label: "원장 변경 이벤트 전달" }];
   if (phase === "generate") {
     return {
       actors: [...seqActors],
-      activeEdge: { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "BatchCircuit Proof 생성 중", tone: "accent" },
+      activeEdge: { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성 중", tone: "accent" },
       pastEdges: base,
     };
   }
   if (phase === "verify") {
     return {
       actors: [...seqActors],
-      activeEdge: { from: "zkPoRL 서버", to: "온체인 / BulletinBoard", label: "Proof 제출 및 검증", tone: "accent" },
-      pastEdges: [...base, { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "BatchCircuit Proof 생성" }],
+      activeEdge: { from: "zkPoRL 서버", to: "온체인 게시판", label: "증명 제출·검증", tone: "accent" },
+      pastEdges: [...base, { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성" }],
     };
   }
   return {
     actors: [...seqActors],
-    activeEdge: { from: "온체인 / BulletinBoard", to: "zkPoRL 서버", label: "검증 완료 반환", tone: "ok" },
+    activeEdge: { from: "온체인 게시판", to: "zkPoRL 서버", label: "검증 완료 반환", tone: "ok" },
     pastEdges: [
       ...base,
-      { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "BatchCircuit Proof 생성" },
-      { from: "zkPoRL 서버", to: "온체인 / BulletinBoard", label: "Proof 제출 및 검증" },
+      { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성" },
+      { from: "zkPoRL 서버", to: "온체인 게시판", label: "증명 제출·검증" },
     ],
   };
 };
@@ -71,7 +71,7 @@ export const scenarioZP1: Scenario = {
         {
           title: "이벤트 유입 현황",
           fields: [
-            { label: "PoL 유입 상태", value: "정상", tone: "ok" },
+            { label: "이벤트 유입 상태", value: "정상", tone: "ok" },
             { label: "자산", value: "BTC" },
             { label: "포함 이벤트 수", value: "1,248" },
             { label: "마지막 수신", value: "2026-05-11 10:05" },
@@ -92,21 +92,21 @@ export const scenarioZP1: Scenario = {
       layout: "processing",
       actor: "리스크 운영자 / 데모 페이지",
       title: "고객 부채 증명 생성",
-      subtitle: "sum(old) + delta == sum(new) — 개별 잔고는 비공개",
+      subtitle: "구간 시작 잔고 + 변동 합계 = 구간 종료 잔고 (개별 잔고는 비공개)",
       status: "생성 중",
       sections: [
         {
           title: "핵심 공식",
           fields: [
             { label: "증명 대상", value: "고객 오프체인 부채 합계 정합성" },
-            { label: "공식", value: "sum(old_values) + delta == sum(new_values)" },
-            { label: "old_values", value: "구간 시작 시점 고객 잔고 합계 (cm_old)" },
-            { label: "delta", value: "입금 + 출금 + 거래 + 정산 합계" },
-            { label: "new_values", value: "구간 종료 시점 고객 잔고 합계 (cm_new)" },
+            { label: "공식", value: "시작 잔고 합 + 변동 = 종료 잔고 합" },
+            { label: "시작 시점 잔고 합 (old_values)", value: "구간 시작 시점 고객 잔고 합계 (cm_old)" },
+            { label: "구간 내 변동 합 (delta)", value: "입금 + 출금 + 거래 + 정산 합계" },
+            { label: "종료 시점 잔고 합 (new_values)", value: "구간 종료 시점 고객 잔고 합계 (cm_new)" },
           ],
         },
         {
-          title: "BatchCircuit 진행",
+          title: "배치 증명 생성 진행",
           fields: [
             { label: "배치 ID", value: "batch_20260511_1005_BTC" },
             { label: "처리 이벤트", value: "1,248" },
@@ -120,22 +120,22 @@ export const scenarioZP1: Scenario = {
       layout: "dashboard",
       actor: "리스크 운영자 / 데모 페이지",
       title: "증명 검증",
-      subtitle: "cm > 0 체크와 cm 정합성 검증을 동시에 수행합니다",
+      subtitle: "잔고 양수 여부와 합계 정합성을 동시에 검증합니다",
       status: "검증 중",
       sections: [
         {
           title: "검증 항목",
           fields: [
-            { label: "잔고 비공개", value: "개별 잔고 미노출 (commitment 처리)", tone: "ok" },
-            { label: "cm > 0 체크", value: "모든 잔고 양수 확인", tone: "ok" },
-            { label: "합계 정합성", value: "sum(old) + delta == sum(new) 일치", tone: "ok" },
+            { label: "잔고 비공개", value: "개별 잔고를 암호 커밋으로 가림", tone: "ok" },
+            { label: "잔고 양수 확인", value: "모든 잔고가 0보다 큼", tone: "ok" },
+            { label: "합계 정합성", value: "시작 잔고 + 변동 = 종료 잔고 일치", tone: "ok" },
             { label: "위변조 방지", value: "온체인 제출 완료", tone: "ok" },
           ],
         },
         {
           title: "검증 결과",
           fields: [
-            { label: "cm > 0 결과", value: "잔고 오류 없음", tone: "ok" },
+            { label: "잔고 양수 결과", value: "잔고 오류 없음", tone: "ok" },
             { label: "정합성 결과", value: "일치 (PASS)", tone: "ok" },
             { label: "txHash", value: "0x3a7f...c8d2" },
           ],
@@ -213,7 +213,7 @@ export const scenarioZP1: Scenario = {
       description: "사용자가 BTC를 매수합니다. 사용자 화면에는 정상 체결 결과만 표시됩니다",
       processView: {
         kind: "overview",
-        description: "사용자가 거래를 완료합니다. 이 레이어에서는 PoL이나 원장 이벤트 세부 정보가 노출되지 않습니다.",
+        description: "사용자가 거래를 완료합니다. 이 레이어에서는 부채 증명(PoL)이나 원장 이벤트 세부 정보가 노출되지 않습니다.",
         cards: [
           { label: "거래 유형", value: "BTC 매수" },
           { label: "수량", value: "0.5 BTC" },
@@ -228,12 +228,12 @@ export const scenarioZP1: Scenario = {
       trigger: "auto",
       duration: 2000,
       screenId: "ZP1-2",
-      description: "거래소 원장이 ledger_change_event를 zkPoRL 서버로 전달합니다",
+      description: "거래소 원장이 원장 변경 이벤트를 zkPoRL 서버로 전달합니다",
       processView: {
         kind: "sequence",
         actors: [...seqActors],
-        activeEdge: { from: "거래소 원장", to: "zkPoRL 서버", label: "ledger_change_event 전달", tone: "accent" },
-        description: "거래 완료 후 원장이 event를 zkPoRL 서버로 전달합니다. 운영자는 이벤트 유입 상태와 마지막 수신 시각을 확인합니다.",
+        activeEdge: { from: "거래소 원장", to: "zkPoRL 서버", label: "원장 변경 이벤트 전달", tone: "accent" },
+        description: "거래 완료 후 원장이 변경 이벤트(ledger_change_event)를 zkPoRL 서버로 전달합니다. 운영자는 이벤트 유입 상태와 마지막 수신 시각을 확인합니다.",
       },
     },
     {
@@ -243,18 +243,39 @@ export const scenarioZP1: Scenario = {
       trigger: "auto",
       duration: 4000,
       screenId: "ZP1-3",
-      description: "zkPoRL 서버가 BatchCircuit으로 고객 부채 ZK Proof를 생성합니다",
+      description: "거래 내역을 모아 부채 합계 정합성을 ZK 증명으로 검증합니다",
       processView: {
-        kind: "keygen",
-        description: "sum(old_values) + delta == sum(new_values) 공식으로 고객 부채 정합성을 증명합니다. 개별 잔고는 commitment(cm)로 숨겨집니다.",
-        progress: 55,
-        showProgress: true,
-        progressLabel: "BatchCircuit Proof 생성 중",
-        nodes: [
-          { label: "old_values (cm_old)", value: "로드 완료", tone: "ok" },
-          { label: "delta 집계", value: "1,248 이벤트", tone: "ok" },
-          { label: "BatchCircuit 실행", value: "진행 중", tone: "accent" },
-          { label: "cm_new 준비", value: "대기", tone: "neutral" },
+        kind: "formula",
+        description: "구간 시작 잔고 합에 변동 합을 더하면 구간 종료 잔고 합과 같아야 합니다. 개별 잔고는 암호 커밋(commitment)으로 가려진 채 합계 정합성만 ZK 증명으로 검증됩니다.",
+        formula: "sum(old_values) + delta == sum(new_values)",
+        cards: [
+          {
+            role: "old",
+            label: "시작 시점 고객 잔고 합 (old_values, cm_old)",
+            value: "12,500 BTC",
+            sublabel: "구간 시작",
+          },
+          {
+            role: "delta",
+            label: "구간 내 거래·입출금·정산 합 (delta)",
+            value: "+10 BTC",
+            sublabel: "1,248 이벤트",
+            tone: "accent",
+          },
+          {
+            role: "new",
+            label: "종료 시점 고객 잔고 합 (new_values, cm_new)",
+            value: "12,510 BTC",
+            sublabel: "구간 종료",
+            tone: "ok",
+          },
+          {
+            role: "proof",
+            label: "ZK Proof 결과 — 합계 정합성",
+            value: "PASS",
+            sublabel: "개별 잔고 비공개",
+            tone: "ok",
+          },
         ],
         sequence: batchSeq("generate"),
       },
@@ -266,12 +287,12 @@ export const scenarioZP1: Scenario = {
       trigger: "auto",
       duration: 2000,
       screenId: "ZP1-4",
-      description: "온체인 / BulletinBoard에 Proof를 제출하고 검증합니다",
+      description: "온체인 게시판에 증명을 제출하고 검증합니다",
       processView: {
         kind: "artifact",
-        description: "생성된 Proof를 온체인에 제출합니다. cm > 0 체크와 합계 정합성 검증을 동시 수행합니다.",
+        description: "생성된 증명을 온체인에 제출합니다. 잔고 양수 확인(cm > 0)과 합계 정합성 검증을 동시에 수행합니다.",
         items: [
-          { label: "cm > 0 체크", value: "잔고 오류 없음", tone: "ok" },
+          { label: "잔고 양수 확인 (cm > 0)", value: "잔고 오류 없음", tone: "ok" },
           { label: "합계 정합성", value: "일치 (PASS)", tone: "ok" },
           { label: "위변조 방지", value: "온체인 기록 완료", tone: "ok" },
           { label: "txHash", value: "0x3a7f...c8d2" },
@@ -291,7 +312,7 @@ export const scenarioZP1: Scenario = {
         kind: "audit",
         description: "검증 결과가 알림 이력에 기록됩니다. 정상·주의·위험 배지로 구분되며, 실패 시 ZP-4 흐름이 트리거됩니다.",
         logs: [
-          "[batch] BTC #18: Proof 생성 완료",
+          "[batch] BTC #18: 증명 생성 완료",
           "[submit] BTC #18: 온체인 제출 완료",
           "[verify] BTC #18: 검증 PASS",
           "[alert] BTC #18: 정상 처리",

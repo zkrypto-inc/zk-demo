@@ -3,7 +3,9 @@ import type { ProcessView, ScenarioStep, SequenceContext, SequenceEdge } from "@
 import { ArtifactProcessView } from "./views/ArtifactProcessView";
 import { ApprovalProcessView } from "./views/ApprovalProcessView";
 import { AuditProcessView } from "./views/AuditProcessView";
+import { FormulaProcessView } from "./views/FormulaProcessView";
 import { KeygenProcessView } from "./views/KeygenProcessView";
+import { LedgerProcessView } from "./views/LedgerProcessView";
 import { MerkleProcessView } from "./views/MerkleProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
 import { SequenceProcessView } from "./views/SequenceProcessView";
@@ -36,7 +38,7 @@ function extractSequence(view?: ProcessView): SequenceContext | undefined {
   }
 
   if (
-    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit" || view.kind === "merkle") &&
+    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit" || view.kind === "merkle" || view.kind === "formula" || view.kind === "ledger") &&
     view.sequence
   ) {
     return view.sequence;
@@ -72,6 +74,8 @@ function renderView(view: ProcessView) {
     case "artifact":  return <ArtifactProcessView view={view} />;
     case "audit":     return <AuditProcessView view={view} />;
     case "merkle":    return <MerkleProcessView view={view} />;
+    case "formula":   return <FormulaProcessView view={view} />;
+    case "ledger":    return <LedgerProcessView view={view} />;
     default:          return null;
   }
 }
