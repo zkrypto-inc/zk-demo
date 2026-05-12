@@ -17,7 +17,7 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
   },
   zktransfer: {
     eyebrow: "zkTransfer",
-    title: "프라이버시 보존 전송",
+    title: "개인정보보호 기반 전송",
     description: "ZK Proof 기반으로 발신자·금액을 숨긴 채 전송하는 서비스입니다. 시나리오를 선택해 시작하세요.",
   },
   zkpasskey: {

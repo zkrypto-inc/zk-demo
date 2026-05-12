@@ -51,9 +51,9 @@ export const scenarioZT1: Scenario = {
       id: "ZT1-1",
       layout: "form",
       actorType: "web",
-      webContext: { menuItem: "설정", pageTitle: "프라이버시 전송 정책", host: "admin.zktransfer.io" },
+      webContext: { menuItem: "설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
       actor: "정책 운영자 / 웹 관리자 콘솔",
-      title: "프라이버시 전송 정책 설정",
+      title: "개인정보보호 기반 송금 정책 설정",
       subtitle: "적용 자산과 서비스 유형, 한도를 지정합니다",
       status: "설정 중",
       sections: [
@@ -184,7 +184,7 @@ export const scenarioZT1: Scenario = {
       trigger: "user",
       ctaLabel: "정책 저장 및 활성화",
       screenId: "ZT1-1",
-      description: "관리자가 프라이버시 전송 정책을 설정합니다",
+      description: "관리자가 개인정보보호 기반 송금 정책을 설정합니다",
       processView: {
         kind: "overview",
         description: "플랫폼 관리자가 적용 자산, 서비스 유형, 월 한도를 지정해 정책을 활성화합니다.",

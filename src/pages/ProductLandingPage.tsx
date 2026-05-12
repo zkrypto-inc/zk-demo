@@ -24,7 +24,7 @@ const products: ProductMeta[] = [
   {
     id: "zktransfer",
     name: "zkTransfer",
-    tagline: "프라이버시 보존 전송",
+    tagline: "개인정보보호 기반 전송",
     description: "ZK Proof 기반으로 발신자·금액을 숨긴 채 스테이블코인·CBDC·바우처를 전송합니다. 감사자는 별도 감사 키로만 내역을 복호화할 수 있습니다.",
     tags: ["ZK Proof", "Privacy", "CBDC", "Voucher"],
     scenarios: ["ZT-1 스테이블코인 프라이버시 전송", "ZT-5 CBDC·바우처 QR 결제"],
