@@ -58,12 +58,20 @@ export type ScreenLayout =
   | "processing"  // 처리 중 — 스피너 + 상태 메시지
   | "result"      // 완료 — 성공 아이콘 + 핵심 값 강조
   | "dashboard"   // 정보 개요 — 카드 그리드
+  | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션
   | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
 
 export type WebContext = {
   menuItem: string;
   pageTitle: string;
   host: string;
+};
+
+export type LedgerScreenData = {
+  banner?: { tone: Tone; title: string; subtitle?: string };
+  caseId?: string;
+  rows: LedgerRow[];
+  actionLog?: string[];
 };
 
 export type UserScreen = {
@@ -74,11 +82,12 @@ export type UserScreen = {
   webContext?: WebContext;
   title: string;
   animateProcessing?: boolean;
-  subtitle: string;
-  status: string;
+  subtitle?: string;
+  status?: string;
   sections: Section[];
   actions?: ScreenAction[];
   footer?: string;
+  ledger?: LedgerScreenData;
 };
 
 // --- Process panel types ---
@@ -157,7 +166,44 @@ export type ProcessView =
       kind: "merkle";
       phase: "generating" | "complete";
       sequence?: SequenceContext;
+    }
+  | {
+      kind: "formula";
+      description?: string;
+      formula: string;
+      cards: FormulaCard[];
+      sequence?: SequenceContext;
+    }
+  | {
+      kind: "ledger";
+      description?: string;
+      banner?: { tone: Tone; title: string; subtitle?: string };
+      caseId?: string;
+      rows: LedgerRow[];
+      actionLog?: string[];
+      sequence?: SequenceContext;
     };
+
+export type FormulaCard = {
+  label: string;
+  value: string;
+  sublabel?: string;
+  tone?: Tone;
+  role?: "old" | "delta" | "new" | "proof";
+};
+
+export type LedgerRow = {
+  call: "CALL" | "DELEGATECALL" | "STATICCALL";
+  indent?: number;
+  from: string;
+  to: string;
+  method: string;
+  amount?: string;
+  gasLimit?: string;
+  duplicate?: boolean;
+  status?: "normal" | "blocked";
+  blockable?: boolean;
+};
 
 // --- Scenario step ---
 

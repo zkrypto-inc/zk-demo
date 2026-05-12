@@ -30,7 +30,9 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
         {screen.layout !== "cta" && (
           <div className="shrink-0 border-b border-[var(--line)] px-5 pt-4 pb-4">
             <div className="text-[20px] font-semibold leading-6 text-[var(--ink)]">{screen.title}</div>
-            <div className="mt-2 text-[14px] leading-[1.55] text-[var(--ink-2)]">{screen.subtitle}</div>
+            {screen.subtitle && (
+              <div className="mt-2 text-[14px] leading-[1.55] text-[var(--ink-2)]">{screen.subtitle}</div>
+            )}
           </div>
         )}
 

@@ -5,6 +5,7 @@ import { WebApprovalLayout } from "./layouts/WebApprovalLayout";
 import { WebProcessingLayout } from "./layouts/WebProcessingLayout";
 import { WebResultLayout } from "./layouts/WebResultLayout";
 import { WebDashboardLayout } from "./layouts/WebDashboardLayout";
+import { WebLedgerLayout } from "./layouts/WebLedgerLayout";
 
 type Props = {
   screen: UserScreen;
@@ -32,11 +33,15 @@ export function WebScreen({ screen, actor, activeActionLabel, canAdvance = false
         <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-3">
           <div>
             <div className="text-[13px] font-semibold text-[var(--ink)]">{screen.title}</div>
-            <div className="text-[12px] text-[var(--ink-2)]">{screen.subtitle}</div>
+            {screen.subtitle && (
+              <div className="text-[12px] text-[var(--ink-2)]">{screen.subtitle}</div>
+            )}
           </div>
-          <div className="inline-flex h-5 items-center rounded-full bg-[var(--surface-2)] px-2.5 text-[11px] font-medium text-[var(--ink-2)]">
-            {screen.status}
-          </div>
+          {screen.status && (
+            <div className="inline-flex h-5 items-center rounded-full bg-[var(--surface-2)] px-2.5 text-[11px] font-medium text-[var(--ink-2)]">
+              {screen.status}
+            </div>
+          )}
         </div>
 
         {/* Layout-specific content */}
@@ -45,6 +50,7 @@ export function WebScreen({ screen, actor, activeActionLabel, canAdvance = false
         {screen.layout === "processing" && <WebProcessingLayout {...layoutProps} />}
         {screen.layout === "result" && <WebResultLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <WebDashboardLayout {...layoutProps} />}
+        {screen.layout === "ledger" && <WebLedgerLayout {...layoutProps} />}
         {screen.layout === "cta" && <WebDashboardLayout {...layoutProps} />}
 
         {/* Actor badge */}
