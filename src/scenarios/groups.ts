@@ -53,20 +53,11 @@ export const actorGroups: ActorGroup[] = [
   {
     id: "risk",
     productId: "zkporl",
-    label: "리스크 운영자",
-    shortLabel: "리스크",
-    description: "거래소 준비금·부채 증명 생성과 검증 결과를 모니터링하는 운영자 흐름입니다.",
+    label: "zkPoRL 시나리오",
+    shortLabel: "PoRL",
+    description: "거래소 준비금·부채 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
     surface: "web",
     scenarioIds: ["ZP-1", "ZP-4"],
-  },
-  {
-    id: "incident",
-    productId: "zkporl",
-    label: "보안관제·사고대응",
-    shortLabel: "사고대응",
-    description: "이상징후 탐지, 증명 실패 케이스를 확인하고 차단 조치를 실행하는 흐름입니다.",
-    surface: "web",
-    scenarioIds: ["ZP-4"],
   },
 ];
 
