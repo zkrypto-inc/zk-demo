@@ -244,11 +244,16 @@ export const scenarioZT1: Scenario = {
       screenId: "ZT1-4",
       description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 스테이블코인 플랫폼에 개인정보보호 송금을 요청합니다",
       processView: {
-        kind: "sequence",
-        actors: seq2.actors,
-        activeEdge: seq2.activeEdge,
-        pastEdges: [],
-        description: "QR에서 인식된 수신 주소가 송금 요청 폼에 자동 기입됩니다. 사용자는 금액과 잔고를 확인한 뒤 기밀 송금을 요청합니다.",
+        kind: "overview",
+        description: "사용자가 입력한 송금 요청 정보와 사용되는 계좌 유형(EOA · ENA)을 안내합니다.",
+        cards: [
+          { label: "송금 금액", value: "100 USDC" },
+          { label: "받는 지갑 주소", value: "0xA1b2...C3d4 (ENA)" },
+          { label: "자산", value: "USDC" },
+          { label: "EOA", value: "일반 사용자 계좌", detail: "공개 계정 — 잔고·거래 내역이 모두 공개됩니다" },
+          { label: "ENA", value: "개인정보 보호 계좌 (암호 계정)", detail: "보호 계정 — 잔고·거래 내역이 암호 커밋으로 가려집니다", tone: "ok" },
+        ],
+        sequence: seq2,
       },
     },
     {

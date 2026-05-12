@@ -96,23 +96,20 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
       ).filter((e) => topSequence.actors.includes(e.from) && topSequence.actors.includes(e.to))
     : undefined;
 
+  const detailContent = renderView(processView);
+
   return (
     <section className="flex min-h-[650px] flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)]">
       <div className="border-b border-[var(--line)] px-5 py-4">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
-              처리 개요
-            </div>
-            <div className="mt-2 text-[24px] font-semibold leading-tight text-[var(--ink)]">{currentStep.label}</div>
-          </div>
+          <div className="text-[24px] font-semibold leading-tight text-[var(--ink)]">{currentStep.label}</div>
           <div className="inline-flex h-6 shrink-0 items-center rounded-full bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
             {currentStep.id}
           </div>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 p-5">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep.id}
@@ -121,17 +118,32 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
           >
-            {topSequence && (
-              <div className="mb-5 h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
-                <SequenceProcessView
-                  actors={topSequence.actors}
-                  edge={topSequence.activeEdge}
-                  pastEdges={topSequencePast}
-                  compact
-                />
+            <div className="px-5 py-5">
+              <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
+                처리 개요
+              </div>
+              {topSequence ? (
+                <div className="h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
+                  <SequenceProcessView
+                    actors={topSequence.actors}
+                    edge={topSequence.activeEdge}
+                    pastEdges={topSequencePast}
+                    compact
+                  />
+                </div>
+              ) : (
+                <div className="text-[13px] text-[var(--ink-2)]">시퀀스가 없습니다.</div>
+              )}
+            </div>
+
+            {detailContent && (
+              <div className="border-t border-[var(--line)] px-5 py-5">
+                <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
+                  화면 상세 설정
+                </div>
+                {detailContent}
               </div>
             )}
-            {renderView(processView)}
           </motion.div>
         </AnimatePresence>
       </div>
