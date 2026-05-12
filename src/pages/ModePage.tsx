@@ -65,12 +65,12 @@ const modeMeta: Record<ScenarioMode, { title: string; eyebrow: string; summary: 
   "policy-payment": {
     title: "정책 운영자",
     eyebrow: "Web Console",
-    summary: "프라이버시 전송 정책과 QR 결제 프로그램을 설정하는 관리자 흐름입니다.",
+    summary: "개인정보보호 기반 송금 정책과 QR 결제 프로그램을 설정하는 관리자 흐름입니다.",
   },
   "zt-user": {
     title: "개인 사용자 전송",
     eyebrow: "Mobile App",
-    summary: "스테이블코인·CBDC·바우처를 프라이버시 보존 방식으로 전송합니다.",
+    summary: "스테이블코인·CBDC·바우처를 개인정보보호 기반으로 전송합니다.",
   },
   auditor: {
     title: "감사자",

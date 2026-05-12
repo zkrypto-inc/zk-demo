@@ -2,7 +2,7 @@ import type { Scenario, SequenceContext } from "@/scenarios/types";
 
 const seqRequest: SequenceContext = {
   actors: ["감사자 Dashboard", "zkTransfer SDK"],
-  activeEdge: { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "txHash 기준 복호화 요청", tone: "accent" },
+  activeEdge: { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "복호화 요청", tone: "accent" },
   pastEdges: [],
 };
 
@@ -10,7 +10,7 @@ const seqDecrypt: SequenceContext = {
   actors: ["감사자 Dashboard", "zkTransfer SDK"],
   activeEdge: { from: "zkTransfer SDK", to: "감사자 Dashboard", label: "복호화 결과 반환", tone: "ok" },
   pastEdges: [
-    { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "txHash 기준 복호화 요청" },
+    { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "복호화 요청" },
   ],
 };
 
@@ -53,7 +53,7 @@ export const scenarioZTA: Scenario = {
           ],
         },
       ],
-      actions: [{ id: "request-audit", label: "감사 요청", tone: "accent" }],
+      actions: [{ id: "request-audit", label: "복호화", tone: "accent" }],
     },
     {
       id: "ZTA-2",
@@ -98,9 +98,9 @@ export const scenarioZTA: Scenario = {
     {
       id: "ZTA-step-1",
       kind: "user-action",
-      label: "감사 요청",
+      label: "복호화",
       trigger: "user",
-      ctaLabel: "감사 요청",
+      ctaLabel: "복호화",
       screenId: "ZTA-1",
       description: "감사자가 txHash·program id를 조회합니다 — 감사 전에는 발신자·금액·가맹점·정책 결과가 마스킹됩니다",
       processView: {
