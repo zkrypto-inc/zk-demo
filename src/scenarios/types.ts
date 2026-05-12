@@ -225,6 +225,15 @@ export type ProcessView =
       sequence?: SequenceContext;
     }
   | {
+      kind: "step-list";
+      description?: string;
+      title: string;
+      progress: number;
+      progressLabel?: string;
+      steps: ProcessStep[];
+      sequence?: SequenceContext;
+    }
+  | {
       kind: "ledger";
       description?: string;
       banner?: { tone: Tone; title: string; subtitle?: string };
@@ -247,6 +256,12 @@ export type LiabilityProofRow = {
   oldValue: string;
   delta: string;
   newValue: string;
+};
+
+export type ProcessStep = {
+  label: string;
+  value: string;
+  state: "done" | "active" | "wait";
 };
 
 export type LedgerRow = {

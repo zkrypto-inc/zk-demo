@@ -33,7 +33,7 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
 
 const defaultMenuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];
 const menuItemsByScenario: Partial<Record<ScenarioId, string[]>> = {
-  "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "알림 이력"],
+  "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "검증 내역"],
   "ZP-4": ["관제", "이상 이벤트", "증명 실패", "지급 차단", "감사 로그"],
 };
 

@@ -10,6 +10,7 @@ import { LiabilityProofProcessView } from "./views/LiabilityProofProcessView";
 import { MerkleProcessView } from "./views/MerkleProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
 import { SequenceProcessView } from "./views/SequenceProcessView";
+import { StepListProcessView } from "./views/StepListProcessView";
 
 function dedupeAndFilter(edges: SequenceEdge[], activeEdge: SequenceEdge): SequenceEdge[] {
   const unique = edges.filter((e, i, arr) =>
@@ -39,7 +40,7 @@ function extractSequence(view?: ProcessView): SequenceContext | undefined {
   }
 
   if (
-    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit" || view.kind === "merkle" || view.kind === "formula" || view.kind === "liability-proof" || view.kind === "ledger") &&
+    (view.kind === "overview" || view.kind === "keygen" || view.kind === "artifact" || view.kind === "audit" || view.kind === "merkle" || view.kind === "formula" || view.kind === "liability-proof" || view.kind === "step-list" || view.kind === "ledger") &&
     view.sequence
   ) {
     return view.sequence;
@@ -77,6 +78,7 @@ function renderView(view: ProcessView) {
     case "merkle":    return <MerkleProcessView view={view} />;
     case "formula":   return <FormulaProcessView view={view} />;
     case "liability-proof": return <LiabilityProofProcessView view={view} />;
+    case "step-list": return <StepListProcessView view={view} />;
     case "ledger":    return <LedgerProcessView view={view} />;
     default:          return null;
   }

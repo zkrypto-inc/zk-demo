@@ -26,7 +26,7 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
     description: "WebAuthn 패스키와 ZK Proof를 결합한 인증 서비스입니다. 시나리오를 준비 중입니다.",
   },
   zkporl: {
-    eyebrow: "zkPoRL",
+    eyebrow: "거래소용",
     title: "거래소 준비금·부채 ZK 증명",
     description: "개별 잔고 비공개 상태에서 전체 준비금·부채 정합성을 ZK Proof로 상시 증명합니다. 역할을 선택해 시나리오를 시작하세요.",
   },
