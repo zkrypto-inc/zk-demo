@@ -61,7 +61,7 @@ export const scenarioZT1: Scenario = {
           title: "정책 기본 정보",
           fields: [
             { label: "적용 자산", value: "USDC, USDT" },
-            { label: "적용 서비스", value: "P2P 송금, 결제, 정산" },
+            { label: "적용 서비스", value: "P2P 송금", options: ["P2P 송금", "결제", "정산"] },
             { label: "서비스 유형", value: "스테이블코인 전송" },
             { label: "월 한도", value: "1억 KRW" },
           ],

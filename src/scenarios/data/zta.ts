@@ -1,4 +1,4 @@
-import type { Scenario, SequenceContext } from "@/scenarios/types";
+import type { AuditTableRow, Scenario, SequenceContext } from "@/scenarios/types";
 
 const seqRequest: SequenceContext = {
   actors: ["감사자 Dashboard", "zkTransfer SDK"],
@@ -14,6 +14,60 @@ const seqDecrypt: SequenceContext = {
   ],
 };
 
+const rowsMasked: AuditTableRow[] = [
+  {
+    id: "tx-privacy",
+    type: "프라이버시 전송",
+    txHash: "0x4e9a...d721",
+    from: "비공개",
+    to: "보호 계정",
+    amount: "0.0 USDC",
+  },
+  {
+    id: "tx-cbdc",
+    type: "CBDC·바우처 결제",
+    txHash: "0x7b1c...e829",
+    from: "비공개",
+    to: "비공개",
+    amount: "0 KRW",
+  },
+];
+
+const rowsDecrypted: AuditTableRow[] = [
+  {
+    id: "tx-privacy",
+    type: "프라이버시 전송",
+    txHash: "0x4e9a...d721",
+    from: "비공개",
+    to: "보호 계정",
+    amount: "0.0 USDC",
+    decrypted: {
+      from: "0x9c8d...4a12",
+      to: "0xA1b2...C3d4",
+      amount: "100 USDC",
+      status: "decrypt_success",
+    },
+  },
+  {
+    id: "tx-cbdc",
+    type: "CBDC·바우처 결제",
+    txHash: "0x7b1c...e829",
+    from: "비공개",
+    to: "비공개",
+    amount: "0 KRW",
+    decrypted: {
+      from: "user_001",
+      to: "m_123",
+      amount: "7,000 KRW",
+      status: "decrypt_success",
+      extras: [
+        { label: "program_id", value: "voucher_001" },
+        { label: "정책 결과", value: "통과 (passed)" },
+      ],
+    },
+  },
+];
+
 export const scenarioZTA: Scenario = {
   id: "ZT-A",
   groupId: "zt-auditor",
@@ -23,75 +77,32 @@ export const scenarioZTA: Scenario = {
   actor: "감사자",
   actorType: "web",
   mode: "auditor",
-  summary: "프라이버시 전송과 CBDC·바우처 결제의 비공개 거래를 감사자가 txHash로 조회하고 감사 키로 복호화하는 통합 감사 흐름입니다.",
+  summary: "프라이버시 전송과 CBDC·바우처 결제의 비공개 거래를 감사자가 표에서 선택해 감사 키로 복호화하는 통합 감사 흐름입니다.",
   screens: [
     {
       id: "ZTA-1",
-      layout: "dashboard",
+      layout: "audit-table",
       actorType: "web",
       webContext: { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
       actor: "감사자 / 웹 대시보드",
-      title: "감사 요청 전 — 비공개 상태",
-      subtitle: "감사 전에는 발신자·금액·가맹점·정책 결과가 마스킹됩니다",
+      title: "복호화 요청",
+      subtitle: "복호화할 거래에 체크하고 '복호화'를 실행하세요",
       status: "감사 전",
-      sections: [
-        {
-          title: "프라이버시 전송 (감사 전)",
-          fields: [
-            { label: "txHash", value: "0x4e9a...d721" },
-            { label: "From", value: "발신 주소 비공개" },
-            { label: "Amount", value: "0.0 USDC (마스킹)", tone: "neutral" },
-          ],
-        },
-        {
-          title: "CBDC·바우처 결제 (감사 전)",
-          fields: [
-            { label: "txHash", value: "0x7b1c...e829" },
-            { label: "program_id", value: "voucher_001" },
-            { label: "merchant_id", value: "비공개", tone: "neutral" },
-            { label: "결제 금액", value: "0 KRW (마스킹)", tone: "neutral" },
-          ],
-        },
-      ],
-      actions: [{ id: "request-audit", label: "복호화", tone: "accent" }],
+      sections: [],
+      auditTable: { mode: "request", rows: rowsMasked },
+      actions: [{ id: "decrypt", label: "복호화", tone: "accent" }],
     },
     {
       id: "ZTA-2",
-      layout: "result",
+      layout: "audit-table",
       actorType: "web",
       webContext: { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
       actor: "감사자 / 웹 대시보드",
-      title: "감사 완료 — 복호화 결과",
-      subtitle: "감사 키로 두 거래의 실제 내역이 복호화됩니다",
+      title: "복호화 완료",
+      subtitle: "감사 키로 두 거래의 실제 내역이 복호화됐습니다",
       status: "감사 완료",
-      sections: [
-        {
-          title: "프라이버시 전송 복호화",
-          fields: [
-            { label: "txHash", value: "0x4e9a...d721" },
-            { label: "실제 수신자", value: "0xA1b2...C3d4", tone: "ok" },
-            { label: "실제 금액", value: "100 USDC", tone: "ok" },
-            { label: "상태", value: "decrypt_success", tone: "ok" },
-          ],
-        },
-        {
-          title: "CBDC·바우처 결제 복호화",
-          fields: [
-            { label: "txHash", value: "0x7b1c...e829" },
-            { label: "program_id", value: "voucher_001" },
-            { label: "merchant_id", value: "m_123", tone: "ok" },
-            { label: "복호화 금액", value: "7,000 KRW", tone: "ok" },
-            { label: "정책 결과", value: "통과 (passed)", tone: "ok" },
-          ],
-        },
-        {
-          title: "감사 메타",
-          fields: [
-            { label: "감사자 ID", value: "auditor_001" },
-            { label: "조회 시각", value: "2026-05-11 10:00" },
-          ],
-        },
-      ],
+      sections: [],
+      auditTable: { mode: "complete", rows: rowsDecrypted },
     },
   ],
   steps: [
@@ -102,10 +113,10 @@ export const scenarioZTA: Scenario = {
       trigger: "user",
       ctaLabel: "복호화",
       screenId: "ZTA-1",
-      description: "감사자가 txHash·program id를 조회합니다 — 감사 전에는 발신자·금액·가맹점·정책 결과가 마스킹됩니다",
+      description: "감사자가 표에서 복호화할 거래를 선택해 감사 키로 복호화 요청을 보냅니다",
       processView: {
         kind: "overview",
-        description: "감사 요청 전에는 발신자·금액·가맹점·정책 결과가 비공개 상태로 표시됩니다. 감사자가 txHash를 검색해 복호화를 요청합니다.",
+        description: "감사 요청 전에는 발신자·금액·가맹점·정책 결과가 비공개 상태로 표시됩니다. 감사자가 복호화 대상 거래를 선택해 요청합니다.",
         cards: [
           { label: "프라이버시 전송", value: "마스킹", tone: "neutral" },
           { label: "CBDC·바우처 결제", value: "마스킹", tone: "neutral" },
@@ -117,7 +128,7 @@ export const scenarioZTA: Scenario = {
     {
       id: "ZTA-step-2",
       kind: "result",
-      label: "감사 완료",
+      label: "복호화 완료",
       trigger: "auto",
       duration: 1500,
       screenId: "ZTA-2",
