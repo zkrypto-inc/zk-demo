@@ -139,7 +139,7 @@ function step(id: string, label: string, currentScreen: UserScreen, processView:
     ctaLabel: currentScreen.actions?.[0]?.label,
     screenId: currentScreen.id,
     processView,
-    description: currentScreen.subtitle,
+    description: currentScreen.subtitle ?? "",
   };
 }
 
@@ -1736,7 +1736,7 @@ function IssuerWorkspace() {
     const approvalCount = isMint ? mintApprovals : burnApprovals;
     processView = {
       kind: "approval",
-      description: currentScreen.subtitle,
+      description: currentScreen.subtitle ?? "",
       approvers: currentScreen.id.includes("register") || currentScreen.id.includes("reserve")
         ? [
             { name: "발행사 관리자", role: "요청 제출", status: "approved", note: issuerName },
@@ -1750,7 +1750,7 @@ function IssuerWorkspace() {
   } else if (currentScreen.layout === "processing") {
     processView = {
       kind: "overview",
-      description: currentScreen.subtitle,
+      description: currentScreen.subtitle ?? "",
       cards: [
         { label: "Wallet Service", value: currentScreen.title, tone: "accent" },
         { label: "승인 정책", value: "2-of-2 완료", tone: "ok" },
@@ -1933,7 +1933,7 @@ function PlatformWorkspace() {
   } else if (currentScreen.layout === "approval") {
     processView = {
       kind: "approval",
-      description: currentScreen.subtitle,
+      description: currentScreen.subtitle ?? "",
       approvers: [
         { name: "플랫폼 운영자", role: "운영 주체 연결", status: issuerConnected && custodyConnected ? "approved" : "waiting", note: "발행사 + 수탁 운영자" },
         { name: "권한 관리자", role: "승인 정책 활성화", status: policyStatus === "2-of-2 활성" ? "approved" : "pending", note: "준법감시인 + 리스크 승인자" },
