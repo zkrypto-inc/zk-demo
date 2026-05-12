@@ -13,10 +13,10 @@ const anomalySeq: SequenceContext = {
 
 export const scenarioZP4: Scenario = {
   id: "ZP-4",
-  groupId: "incident",
+  groupId: "risk",
   planningId: "ZP-4",
-  name: "거래소 이상징후 탐지·차단",
-  shortName: "이상징후·차단",
+  name: "거래소 이상징후 차단",
+  shortName: "이상징후 차단",
   actor: "보안관제 / 사고대응",
   actorType: "web",
   mode: "incident",
