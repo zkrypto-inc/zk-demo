@@ -19,9 +19,11 @@ const seqQr: SequenceContext = {
 };
 
 const seq3: SequenceContext = {
-  actors: ["zkTransfer SDK", "Core API"],
-  activeEdge: { from: "zkTransfer SDK", to: "Core API", label: "proof 생성 요청", tone: "accent" },
-  pastEdges: [],
+  actors: ["개인 사용자 App", "스테이블코인 플랫폼", "zkTransfer SDK"],
+  activeEdge: { from: "스테이블코인 플랫폼", to: "zkTransfer SDK", label: "SDK 호출·영지식 증명 생성", tone: "accent" },
+  pastEdges: [
+    { from: "개인 사용자 App", to: "스테이블코인 플랫폼", label: "스테이블코인 개인정보보호 송금 요청" },
+  ],
 };
 
 const seq4: SequenceContext = {
@@ -297,7 +299,7 @@ export const scenarioZT1: Scenario = {
       trigger: "user",
       ctaLabel: "전송 요청",
       screenId: "ZT1-4",
-      description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 전송을 요청합니다",
+      description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 스테이블코인 플랫폼에 개인정보보호 송금을 요청합니다",
       processView: {
         kind: "sequence",
         actors: seq2.actors,
@@ -313,7 +315,7 @@ export const scenarioZT1: Scenario = {
       trigger: "auto",
       duration: 4000,
       screenId: "ZT1-5",
-      description: "내 비공개 잔고를 확인하고 발신자·금액을 숨긴 영지식 증명을 생성합니다",
+      description: "스테이블코인 플랫폼이 zkTransfer SDK를 호출하고, SDK가 발신자·금액을 숨긴 영지식 증명을 생성합니다",
       processView: {
         kind: "merkle",
         phase: "generating",
