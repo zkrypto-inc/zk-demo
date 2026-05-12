@@ -56,6 +56,8 @@ export const scenarioZT1: Scenario = {
     {
       id: "ZT1-1",
       layout: "form",
+      actorType: "web",
+      webContext: { menuItem: "설정", pageTitle: "프라이버시 전송 정책", host: "admin.zktransfer.io" },
       actor: "정책 운영자 / 웹 관리자 콘솔",
       title: "프라이버시 전송 정책 설정",
       subtitle: "적용 자산과 서비스 유형, 한도를 지정합니다",
@@ -144,6 +146,7 @@ export const scenarioZT1: Scenario = {
     {
       id: "ZT1-5",
       layout: "dashboard",
+      actorType: "web",
       actor: "감사자 / 웹 대시보드",
       title: "감사 요청 전 — 비공개 상태",
       subtitle: "감사 전에는 발신자·금액이 마스킹됩니다",
@@ -164,6 +167,7 @@ export const scenarioZT1: Scenario = {
     {
       id: "ZT1-6",
       layout: "result",
+      actorType: "web",
       actor: "감사자 / 웹 대시보드",
       title: "감사 완료 — 복호화 결과",
       subtitle: "감사 키로 실제 발신자와 금액이 복호화됩니다",

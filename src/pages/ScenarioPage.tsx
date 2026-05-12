@@ -159,7 +159,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
 
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
         <div className="min-w-0">
-          {scenario.actorType === "mobile" ? (
+          {(screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer
               activeActionLabel={player.nextLabel}
               actor={screenActor}

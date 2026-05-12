@@ -29,6 +29,8 @@ export const scenarioZT5: Scenario = {
     {
       id: "ZT5-1",
       layout: "form",
+      actorType: "web",
+      webContext: { menuItem: "설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
       actor: "정책 운영자 / 웹 관리자 콘솔",
       title: "QR 결제 정책 등록",
       subtitle: "참여 기관, 허용 업종, 한도를 설정합니다",
@@ -143,6 +145,8 @@ export const scenarioZT5: Scenario = {
     {
       id: "ZT5-6",
       layout: "result",
+      actorType: "web",
+      webContext: { menuItem: "감사", pageTitle: "CBDC·바우처 결제 감사", host: "audit.zktransfer.io" },
       actor: "감사자 / 웹 대시보드",
       title: "감사 완료 — 복호화 결과",
       subtitle: "감사 키로 결제 내역이 복호화됩니다",
