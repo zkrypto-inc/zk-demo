@@ -8,6 +8,8 @@ export type ActorGroupId =
   | "platform"
   | "policy-payment"
   | "zt-user"
+  | "zt-cbdc-user"
+  | "zt-auditor"
   | "auditor"
   | "risk"
   | "incident";
@@ -29,6 +31,7 @@ export type ScenarioId =
   | "FU-2"
   | "ZT-1"
   | "ZT-5"
+  | "ZT-A"
   | "ZP-1"
   | "ZP-4";
 

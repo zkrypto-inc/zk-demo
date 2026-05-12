@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
-import type { UserScreen } from "@/scenarios/types";
+import type { ScenarioId, UserScreen } from "@/scenarios/types";
+import { getProductLabelByScenarioId } from "@/scenarios/groups";
 import { PhoneStatusBar } from "./PhoneStatusBar";
 import { PhoneScreen } from "./PhoneScreen";
 
 type Props = {
   screen: UserScreen;
   actor: string;
+  scenarioId?: ScenarioId;
   shake?: boolean;
   stepIndicator?: string;
   activeActionLabel?: string;
@@ -17,6 +19,7 @@ type Props = {
 export function PhoneContainer({
   screen,
   actor,
+  scenarioId,
   shake = false,
   stepIndicator,
   activeActionLabel,
@@ -24,6 +27,7 @@ export function PhoneContainer({
   onAdvance,
   onFieldChange,
 }: Props) {
+  const productLabel = scenarioId ? getProductLabelByScenarioId(scenarioId) : "zkWallet";
   return (
     <section className="flex flex-col items-center">
       <div className="mb-5 flex w-full max-w-[352px] items-center justify-between">
@@ -58,7 +62,7 @@ export function PhoneContainer({
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <div className="text-[14px] font-semibold text-[var(--ink)]">zkWallet</div>
+            <div className="text-[14px] font-semibold text-[var(--ink)]">{productLabel}</div>
           </div>
           <PhoneScreen
             screen={screen}

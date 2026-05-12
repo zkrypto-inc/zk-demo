@@ -166,6 +166,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
               canAdvance={player.canAdvanceByUser}
               onAdvance={player.advance}
               onFieldChange={handleFieldChange}
+              scenarioId={scenario.id}
               screen={screen}
               stepIndicator={`step ${player.currentStepIndex + 1} / ${scenario.steps.length}`}
             />
