@@ -60,10 +60,18 @@ export type ScreenLayout =
   | "dashboard"   // 정보 개요 — 카드 그리드
   | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
 
+export type WebContext = {
+  menuItem: string;
+  pageTitle: string;
+  host: string;
+};
+
 export type UserScreen = {
   id: string;
   layout: ScreenLayout;
   actor?: string;
+  actorType?: ActorType;
+  webContext?: WebContext;
   title: string;
   animateProcessing?: boolean;
   subtitle: string;
