@@ -80,6 +80,7 @@ export type LedgerScreenData = {
   actionLog?: string[];
 };
 
+
 export type AuditTableRow = {
   id: string;
   type: string;
