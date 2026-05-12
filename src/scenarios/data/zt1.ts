@@ -1,8 +1,8 @@
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
 const seq1: SequenceContext = {
-  actors: ["플랫폼 관리자 Web", "고객 플랫폼 / SC Lifecycle"],
-  activeEdge: { from: "플랫폼 관리자 Web", to: "고객 플랫폼 / SC Lifecycle", label: "개인정보보호 기반 송금 정책 설정", tone: "accent" },
+  actors: ["플랫폼 관리자", "스테이블코인 플랫폼"],
+  activeEdge: { from: "플랫폼 관리자", to: "스테이블코인 플랫폼", label: "개인정보보호 기반 송금 정책 설정", tone: "accent" },
   pastEdges: [],
 };
 
@@ -36,25 +36,11 @@ const seq4: SequenceContext = {
   ],
 };
 
-const seq5: SequenceContext = {
-  actors: ["감사자 Dashboard", "zkTransfer SDK"],
-  activeEdge: { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "txHash 기준 복호화 요청", tone: "accent" },
-  pastEdges: [],
-};
-
-const seq6: SequenceContext = {
-  actors: ["감사자 Dashboard", "zkTransfer SDK"],
-  activeEdge: { from: "zkTransfer SDK", to: "감사자 Dashboard", label: "복호화 결과 반환", tone: "ok" },
-  pastEdges: [
-    { from: "감사자 Dashboard", to: "zkTransfer SDK", label: "txHash 기준 감사 결과 요청" },
-  ],
-};
-
 export const scenarioZT1: Scenario = {
   id: "ZT-1",
   groupId: "zt-user",
   planningId: "ZT-1",
-  name: "스테이블코인 프라이버시 전송",
+  name: "프라이버시 전송",
   shortName: "프라이버시 전송",
   actor: "개인 사용자",
   actorType: "mobile",
@@ -189,49 +175,6 @@ export const scenarioZT1: Scenario = {
         },
       ],
     },
-    {
-      id: "ZT1-7",
-      layout: "dashboard",
-      actorType: "web",
-      actor: "감사자 / 웹 대시보드",
-      title: "감사 요청 전 — 비공개 상태",
-      subtitle: "감사 전에는 발신자·금액이 마스킹됩니다",
-      status: "감사 전",
-      sections: [
-        {
-          title: "조회 결과 (감사 전)",
-          fields: [
-            { label: "txHash", value: "0x4e9a...d721" },
-            { label: "From", value: "발신 주소 비공개" },
-            { label: "To", value: "컨트랙트 주소 / 보호 계정" },
-            { label: "Amount", value: "0.0 USDC (마스킹)", tone: "neutral" },
-          ],
-        },
-      ],
-      actions: [{ id: "request-audit", label: "감사 요청", tone: "accent" }],
-    },
-    {
-      id: "ZT1-8",
-      layout: "result",
-      actorType: "web",
-      actor: "감사자 / 웹 대시보드",
-      title: "감사 완료 — 복호화 결과",
-      subtitle: "감사 키로 실제 발신자와 금액이 복호화됩니다",
-      status: "감사 완료",
-      sections: [
-        {
-          title: "복호화 결과",
-          fields: [
-            { label: "txHash", value: "0x4e9a...d721" },
-            { label: "실제 수신자", value: "0xA1b2...C3d4", tone: "ok" },
-            { label: "실제 금액", value: "100 USDC", tone: "ok" },
-            { label: "상태", value: "decrypt_success", tone: "ok" },
-            { label: "감사자 ID", value: "auditor_001" },
-            { label: "조회 시각", value: "2026-05-11 10:00" },
-          ],
-        },
-      ],
-    },
   ],
   steps: [
     {
@@ -334,52 +277,6 @@ export const scenarioZT1: Scenario = {
         kind: "merkle",
         phase: "complete",
         sequence: seq4,
-      },
-    },
-    {
-      id: "ZT1-step-7",
-      kind: "user-action",
-      label: "감사 요청",
-      trigger: "user",
-      ctaLabel: "감사 요청",
-      screenId: "ZT1-7",
-      description: "감사자가 txHash를 조회합니다 — 감사 전에는 발신자·금액이 마스킹됩니다",
-      processView: {
-        kind: "overview",
-        description: "감사 요청 전에는 발신자 주소가 비공개이며 금액은 0.0으로 표시됩니다. 감사자가 txHash를 검색해 감사를 요청합니다.",
-        cards: [
-          { label: "From", value: "비공개", tone: "neutral" },
-          { label: "Amount", value: "0.0 USDC (마스킹)", tone: "neutral" },
-          { label: "감사 상태", value: "요청 전", tone: "warn" },
-        ],
-        sequence: seq5,
-      },
-    },
-    {
-      id: "ZT1-step-8",
-      kind: "result",
-      label: "감사 완료",
-      trigger: "auto",
-      duration: 1500,
-      screenId: "ZT1-8",
-      description: "감사 키로 실제 수신자 주소와 금액이 복호화됩니다",
-      processView: {
-        kind: "audit",
-        description: "감사자가 감사 키를 사용해 비공개 전송 내역을 복호화합니다. 실제 수신자와 금액이 복호화 결과로 제공됩니다.",
-        logs: [
-          "[audit] txHash: 0x4e9a...d721 조회",
-          "[audit] 감사 권한 확인: auditor_001",
-          "[audit] 감사 키 유효성 검증 완료",
-          "[decrypt] 수신자: 0xA1b2...C3d4",
-          "[decrypt] 금액: 100 USDC",
-          "[audit] 상태: decrypt_success",
-        ],
-        summary: [
-          { label: "실제 수신자", value: "0xA1b2...C3d4", tone: "ok" },
-          { label: "실제 금액", value: "100 USDC", tone: "ok" },
-          { label: "감사자 ID", value: "auditor_001" },
-        ],
-        sequence: seq6,
       },
     },
   ],

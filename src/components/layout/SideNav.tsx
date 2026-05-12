@@ -1,19 +1,13 @@
 import { actorGroups, getGroupsByProduct, getScenarioDisplayId, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
+import { productLabels } from "@/scenarios/groups";
 import { useDemoStore } from "@/store/demoStore";
 
 type Props = {
   productId?: ProductId;
   currentActorId?: ActorGroupId;
   currentScenarioId?: ScenarioId;
-};
-
-const productLabels: Record<ProductId, string> = {
-  zkwallet: "zkWallet",
-  zktransfer: "zkTransfer",
-  zkpasskey: "zkPasskey",
-  zkporl: "zkPoRL",
 };
 
 export function SideNav({ productId, currentActorId, currentScenarioId }: Props) {

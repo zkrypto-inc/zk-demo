@@ -1,5 +1,12 @@
 import type { ActorGroupId, ProductId, Scenario, ScenarioId, Surface } from "./types";
 
+export const productLabels: Record<ProductId, string> = {
+  zkwallet: "zkWallet",
+  zktransfer: "zkTransfer",
+  zkpasskey: "zkPasskey",
+  zkporl: "zkPoRL",
+};
+
 export type ActorGroup = {
   id: ActorGroupId;
   productId: ProductId;
@@ -39,15 +46,33 @@ export const actorGroups: ActorGroup[] = [
     surface: "web",
     scenarioIds: ["IS-1", "FS-2", "FS-3"],
   },
-  // zktransfer
+  // zktransfer — actor split (개인 사용자 / CBDC 사용자 / 감사자)
   {
     id: "zt-user",
     productId: "zktransfer",
-    label: "zkTransfer 시나리오",
-    shortLabel: "전송",
-    description: "스테이블코인 프라이버시 전송과 CBDC·바우처 QR 결제 두 가지 시나리오를 포함합니다.",
-    surface: "mixed",
-    scenarioIds: ["ZT-1", "ZT-5"],
+    label: "개인 사용자",
+    shortLabel: "개인",
+    description: "개인 사용자가 스테이블코인을 비공개로 전송하는 흐름입니다.",
+    surface: "app",
+    scenarioIds: ["ZT-1"],
+  },
+  {
+    id: "zt-cbdc-user",
+    productId: "zktransfer",
+    label: "CBDC 사용자",
+    shortLabel: "CBDC",
+    description: "CBDC·지역 바우처 사용자가 QR로 정책형 비공개 결제를 수행하는 흐름입니다.",
+    surface: "app",
+    scenarioIds: ["ZT-5"],
+  },
+  {
+    id: "zt-auditor",
+    productId: "zktransfer",
+    label: "감사자",
+    shortLabel: "감사",
+    description: "프라이버시 전송과 CBDC·바우처 결제 모두를 감사 키로 복호화하는 통합 감사 흐름입니다.",
+    surface: "web",
+    scenarioIds: ["ZT-A"],
   },
   // zkporl
   {
@@ -78,6 +103,12 @@ export const scenarioGroupLookup = actorGroups.reduce((lookup, group) => {
 
 export function getScenarioGroup(scenario: Scenario) {
   return actorGroupById[scenario.groupId ?? scenarioGroupLookup[scenario.id] ?? scenario.mode];
+}
+
+export function getProductLabelByScenarioId(scenarioId: ScenarioId): string {
+  const groupId = scenarioGroupLookup[scenarioId];
+  const group = groupId ? actorGroupById[groupId] : undefined;
+  return group ? productLabels[group.productId] : "zkWallet";
 }
 
 export function getScenarioDisplayId(scenario: Scenario) {

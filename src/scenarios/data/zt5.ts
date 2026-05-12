@@ -17,7 +17,7 @@ const proofSeq = (past: boolean): SequenceContext => ({
 
 export const scenarioZT5: Scenario = {
   id: "ZT-5",
-  groupId: "zt-user",
+  groupId: "zt-cbdc-user",
   planningId: "ZT-5",
   name: "CBDC·바우처 프라이버시 결제",
   shortName: "CBDC·바우처 결제",
@@ -142,30 +142,6 @@ export const scenarioZT5: Scenario = {
         },
       ],
     },
-    {
-      id: "ZT5-6",
-      layout: "result",
-      actorType: "web",
-      webContext: { menuItem: "감사", pageTitle: "CBDC·바우처 결제 감사", host: "audit.zktransfer.io" },
-      actor: "감사자 / 웹 대시보드",
-      title: "감사 완료 — 복호화 결과",
-      subtitle: "감사 키로 결제 내역이 복호화됩니다",
-      status: "감사 완료",
-      sections: [
-        {
-          title: "복호화 결과",
-          fields: [
-            { label: "감사 케이스 ID", value: "audit_001" },
-            { label: "txHash", value: "0x7b1c...e829" },
-            { label: "프로그램 ID", value: "voucher_001" },
-            { label: "가맹점 ID", value: "m_123" },
-            { label: "복호화 금액", value: "7,000 KRW", tone: "ok" },
-            { label: "정책 결과", value: "통과 (passed)", tone: "ok" },
-            { label: "상태", value: "decrypt_success", tone: "ok" },
-          ],
-        },
-      ],
-    },
   ],
   steps: [
     {
@@ -262,33 +238,6 @@ export const scenarioZT5: Scenario = {
           { label: "cm_new", value: "반영 완료", tone: "ok" },
         ],
         sequence: proofSeq(true),
-      },
-    },
-    {
-      id: "ZT5-step-6",
-      kind: "result",
-      label: "감사 복호화",
-      trigger: "user",
-      ctaLabel: "감사 확인",
-      screenId: "ZT5-6",
-      description: "감사자가 감사 키로 결제 내역을 복호화합니다",
-      processView: {
-        kind: "audit",
-        description: "감사자가 txHash를 조회하고 감사 키로 복호화합니다. 금액·가맹점·정책 통과 여부가 확인됩니다.",
-        logs: [
-          "[audit] txHash: 0x7b1c...e829 조회",
-          "[audit] program_id: voucher_001",
-          "[audit] merchant_id: m_123",
-          "[audit] 감사 권한 확인: auditor_001",
-          "[decrypt] 금액: 7,000 KRW",
-          "[policy] 결과: passed",
-          "[audit] 상태: decrypt_success",
-        ],
-        summary: [
-          { label: "복호화 금액", value: "7,000 KRW", tone: "ok" },
-          { label: "정책 결과", value: "passed", tone: "ok" },
-          { label: "상태", value: "decrypt_success", tone: "ok" },
-        ],
       },
     },
   ],

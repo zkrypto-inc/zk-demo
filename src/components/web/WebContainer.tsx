@@ -1,4 +1,5 @@
 import type { ScenarioId, UserScreen } from "@/scenarios/types";
+import { getProductLabelByScenarioId } from "@/scenarios/groups";
 import { WebScreen } from "./WebScreen";
 
 type Props = {
@@ -23,8 +24,9 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "FS-4": { menuItem: "준비금", pageTitle: "유동성 관리", host: "issuer.zkwallet.io" },
   "FU-1": { menuItem: "지갑", pageTitle: "지갑 만들기", host: "app.zkwallet.io" },
   "FU-2": { menuItem: "거래", pageTitle: "거래 서명", host: "app.zkwallet.io" },
-  "ZT-1": { menuItem: "감사", pageTitle: "프라이버시 전송 감사", host: "audit.zktransfer.io" },
-  "ZT-5": { menuItem: "결제", pageTitle: "CBDC·바우처 결제", host: "app.zktransfer.io" },
+  "ZT-1": { menuItem: "설정", pageTitle: "프라이버시 전송 정책", host: "admin.zktransfer.io" },
+  "ZT-5": { menuItem: "설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
+  "ZT-A": { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
   "ZP-1": { menuItem: "대시보드", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkporl.io" },
 };
@@ -42,6 +44,7 @@ export function WebContainer({
   onFieldChange,
 }: Props) {
   const context = screen.webContext ?? navContext[scenarioId];
+  const productLabel = getProductLabelByScenarioId(scenarioId);
 
   return (
     <section className="flex flex-col items-center">
@@ -74,7 +77,7 @@ export function WebContainer({
 
         <div className="flex h-[610px]">
           <div className="hidden w-[118px] shrink-0 border-r border-[var(--line)] bg-[var(--surface-2)]/60 px-3 py-4 sm:block">
-            <div className="mb-4 text-[11px] font-bold text-[var(--ink)]">zkWallet</div>
+            <div className="mb-4 text-[11px] font-bold text-[var(--ink)]">{productLabel}</div>
             <div className="space-y-1">
               {menuItems.map((item) => {
                 const active = item === context.menuItem || (context.menuItem === "발행사 설정" && item === "설정");
