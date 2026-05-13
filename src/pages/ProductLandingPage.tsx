@@ -15,10 +15,10 @@ const products: ProductMeta[] = [
   {
     id: "zkwallet",
     name: "zkWallet",
-    tagline: "MPC 기반 분산 키 관리",
+    tagline: "개인사용자가 안전하게 지갑을 만들고, 거래 서명을 확인하는 MPC 지갑 데모",
     description: "개인·법인·발행사를 위한 MPC 지갑 서비스입니다. 키 분산 생성(keygen), 다중 서명, 수탁 입출금, 발행·소각 전 과정을 데모로 확인할 수 있습니다.",
     tags: ["MPC", "Keygen", "Custody", "Issuance"],
-    scenarios: ["CU-1~3 수탁 운영", "IS-1·FS-2~3 발행사 운영", "FU-1~2 개인 지갑"],
+    scenarios: ["CU-1~3 디지털 자산 수탁사", "IS-1·FS-2~3 스테이블코인 발행사", "FU-1~2 개인 지갑"],
     available: true,
   },
   {

@@ -12,7 +12,7 @@ const surfaceLabels = {
 const productMeta: Record<ProductId, { eyebrow: string; title: string; description: string }> = {
   zkwallet: {
     eyebrow: "zkWallet",
-    title: "MPC 기반 분산 키 관리",
+    title: "개인사용자가 안전하게 지갑을 만들고, 거래 서명을 확인하는 MPC 지갑 데모",
     description: "개인·법인·발행사를 위한 MPC 지갑 서비스입니다. 사용자 유형을 선택해 시나리오를 시작하세요.",
   },
   zktransfer: {

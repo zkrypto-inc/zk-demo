@@ -20,7 +20,7 @@ export const scenarioFU2: Scenario = {
   actor: "개인 사용자",
   actorType: "mobile",
   mode: "personal",
-  summary: "개인 사용자가 TX를 요청했을 때 Wallet Service가 signer quorum을 구성하고 raw signature를 반환하는 흐름입니다.",
+  summary: "개인 사용자가 거래 요청했을 때 wallet service는 mpc 기반 분산키를 활용하여 트랜잭션에 대한 서명을 반환합니다.",
   screens: [
     {
       id: "FU2-1",
