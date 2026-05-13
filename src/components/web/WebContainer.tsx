@@ -24,8 +24,8 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "FS-4": { menuItem: "준비금", pageTitle: "유동성 관리", host: "issuer.zkwallet.io" },
   "FU-1": { menuItem: "지갑", pageTitle: "지갑 만들기", host: "app.zkwallet.io" },
   "FU-2": { menuItem: "거래", pageTitle: "거래 서명", host: "app.zkwallet.io" },
-  "ZT-1": { menuItem: "설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
-  "ZT-5": { menuItem: "설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
+  "ZT-1": { menuItem: "정책 설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
+  "ZT-5": { menuItem: "정책 설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
   "ZT-A": { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
   "ZP-1": { menuItem: "대시보드", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkporl.io" },
@@ -33,6 +33,9 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
 
 const defaultMenuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];
 const menuItemsByScenario: Partial<Record<ScenarioId, string[]>> = {
+  "ZT-1": ["대시보드", "정책 설정", "거래 내역"],
+  "ZT-5": ["대시보드", "정책 설정", "결제 내역"],
+  "ZT-A": ["대시보드", "감사", "복호화 이력"],
   "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "검증 내역"],
   "ZP-4": ["관제", "이상 이벤트", "증명 실패", "지급 차단", "감사 로그"],
 };

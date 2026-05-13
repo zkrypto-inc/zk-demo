@@ -4,6 +4,7 @@ type Props = {
   actors: string[];
   edge?: SequenceEdge;
   pastEdges?: SequenceEdge[];
+  extraActiveEdges?: SequenceEdge[];
   compact?: boolean;
 };
 
@@ -17,6 +18,13 @@ function toneColor(tone?: Tone) {
   if (tone === "warn") return "var(--warn)";
   if (tone === "ok") return "var(--ok)";
   return "var(--accent)";
+}
+
+function toneSoftColor(tone?: Tone) {
+  if (tone === "bad") return "var(--bad-soft)";
+  if (tone === "warn") return "var(--warn-soft)";
+  if (tone === "ok") return "var(--ok-soft)";
+  return "var(--accent-soft)";
 }
 
 function nodeCenter(index: number, total: number) {
@@ -112,17 +120,23 @@ function TransferPulse({ path, stroke }: { path: string; stroke: string }) {
   );
 }
 
-export function SequenceProcessView({ actors, edge, pastEdges = [], compact = false }: Props) {
+export function SequenceProcessView({ actors, edge, pastEdges = [], extraActiveEdges = [], compact = false }: Props) {
   const activeActors = new Set<string>();
   pastEdges.forEach((pastEdge) => {
     activeActors.add(pastEdge.from);
     activeActors.add(pastEdge.to);
   });
+  extraActiveEdges.forEach((e) => {
+    activeActors.add(e.from);
+    activeActors.add(e.to);
+  });
   if (edge) {
     activeActors.add(edge.from);
     activeActors.add(edge.to);
   }
-  const allEdges: SequenceEdge[] = edge ? [...pastEdges, edge] : [...pastEdges];
+  const allEdges: SequenceEdge[] = edge
+    ? [...pastEdges, ...extraActiveEdges, edge]
+    : [...pastEdges, ...extraActiveEdges];
 
   return (
     <div className={`flex flex-col ${compact ? "h-full" : "min-h-[460px]"}`}>
@@ -139,6 +153,21 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
             <g key={`${pastEdge.from}-${pastEdge.to}-${index}`} opacity="0.28">
               <path d={geometry.d} fill="none" stroke="var(--ink-2)" strokeWidth="1.4" />
               <polygon fill="var(--ink-2)" points={geometry.arrow} />
+            </g>
+          );
+        })}
+
+        {extraActiveEdges.map((extra, idx) => {
+          if (extra.from === extra.to) return null;
+          const geometry = edgeGeometry(actors, extra, directionalOffset(extra, allEdges, actors));
+          const stroke = toneColor(extra.tone);
+          return (
+            <g key={`extra-${extra.from}-${extra.to}-${idx}`}>
+              <path d={geometry.d} fill="none" stroke={stroke} strokeLinecap="round" strokeWidth="2.2" />
+              <polygon fill={stroke} points={geometry.arrow} />
+              <text fill={stroke} fontSize="12" fontWeight="600" textAnchor="middle" x={geometry.labelX} y={geometry.labelY}>
+                {extra.label}
+              </text>
             </g>
           );
         })}
@@ -164,15 +193,17 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], compact = fa
 
         {actors.map((actor, index) => {
           const center = nodeCenter(index, actors.length);
-          const isCurrent = edge?.from === actor || edge?.to === actor;
+          const extraActive = extraActiveEdges?.find((e) => e.from === actor || e.to === actor);
+          const isCurrent = edge?.from === actor || edge?.to === actor || Boolean(extraActive);
+          const highlightTone = edge && (edge.from === actor || edge.to === actor) ? edge.tone : extraActive?.tone;
           const isPast = !isCurrent && activeActors.has(actor);
           return (
             <g key={actor} opacity={activeActors.size === 0 || isCurrent ? 1 : isPast ? 0.62 : 0.35}>
               <rect
-                fill={isCurrent ? "var(--accent-soft)" : "var(--surface)"}
+                fill={isCurrent ? toneSoftColor(highlightTone) : "var(--surface)"}
                 height={nodeHeight}
                 rx="8"
-                stroke={isCurrent ? toneColor(edge?.tone) : "var(--line)"}
+                stroke={isCurrent ? toneColor(highlightTone) : "var(--line)"}
                 strokeWidth={isCurrent ? 1.6 : 1}
                 width={nodeWidth}
                 x={center.x - nodeWidth / 2}
