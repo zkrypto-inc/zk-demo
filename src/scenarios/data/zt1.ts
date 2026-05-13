@@ -135,8 +135,6 @@ export const scenarioZT1: Scenario = {
             { label: "자산", value: "USDC" },
             { label: "전송 금액", value: "100 USDC" },
             { label: "전송 방식", value: "ENA 기반 비공개 전송" },
-            { label: "공개 계정 잔고", value: "320 USDC" },
-            { label: "보호 계정 잔고", value: "120 USDC" },
           ],
         },
       ],
@@ -248,11 +246,13 @@ export const scenarioZT1: Scenario = {
       description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 스테이블코인 플랫폼에 개인정보보호 송금을 요청합니다",
       processView: {
         kind: "overview",
-        description: "사용자가 자동 기입된 수신 주소와 입력한 송금 금액을 확인하고 기밀 송금을 요청합니다.",
+        description: "사용자가 자동 기입된 수신 주소와 입력한 송금 금액을 확인하고 기밀 송금을 요청합니다. 송금 가능 여부는 보호 계정(ENA) 잔고를 기준으로 검증됩니다.",
         cards: [
           { label: "송금 금액", value: "100 USDC" },
           { label: "받는 지갑 주소", value: "0xA1b2...C3d4 (ENA)" },
           { label: "자산", value: "USDC" },
+          { label: "공개 계정 (EOA) 잔고", value: "320 USDC" },
+          { label: "보호 계정 (ENA) 잔고", value: "120 USDC", tone: "ok" },
         ],
         sequence: seq2,
       },
