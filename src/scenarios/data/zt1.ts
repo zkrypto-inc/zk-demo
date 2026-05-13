@@ -247,6 +247,16 @@ export const scenarioZT1: Scenario = {
       processView: {
         kind: "overview",
         description: "사용자가 자동 기입된 수신 주소와 입력한 송금 금액을 확인하고 기밀 송금을 요청합니다. 송금 가능 여부는 보호 계정(ENA) 잔고를 기준으로 검증됩니다.",
+        compareTable: {
+          title: "EOA · ENA 비교",
+          columns: ["구분", "EOA (일반 사용자 계좌)", "ENA (개인정보 보호 계좌)"],
+          rows: [
+            ["잔고", "공개", "비공개 (암호 커밋)"],
+            ["거래 내역", "공개", "비공개"],
+            ["발신자 노출", "노출", "숨김"],
+            ["사용 사례", "일반 송금", "프라이버시 전송"],
+          ],
+        },
         cards: [
           { label: "송금 금액", value: "100 USDC" },
           { label: "받는 지갑 주소", value: "0xA1b2...C3d4 (ENA)" },

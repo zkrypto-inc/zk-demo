@@ -134,6 +134,12 @@ export type UserScreen = {
 
 // --- Process panel types ---
 
+export type CompareTable = {
+  title?: string;
+  columns: string[];
+  rows: string[][];
+};
+
 export type StatusCard = {
   label: string;
   value: string;
@@ -175,6 +181,7 @@ export type ProcessView =
       kind: "overview";
       description: string;
       cards?: StatusCard[];
+      compareTable?: CompareTable;
       sequence?: SequenceContext;
     }
   | {
