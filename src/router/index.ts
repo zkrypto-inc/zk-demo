@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { actorGroups, scenarioGroupLookup, scenarioOrder } from "@/scenarios";
 import type { ActorGroupId, ProductId, ScenarioId, ScenarioMode } from "@/scenarios/types";
 
@@ -9,13 +9,16 @@ export type DemoRoute =
   | { name: "scenario"; productId: ProductId; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
   | { name: "demo"; scenarioId: ScenarioId; stepIndex: number };
 
-const products: ProductId[] = ["zkwallet", "zktransfer", "zkpasskey", "zkporl"];
+const products: ProductId[] = ["zkwallet", "zktransfer", "zkpasskey", "zkpol"];
 const modes: ScenarioMode[] = ["custody", "issuer", "personal"];
 const scenarioIds = new Set<ScenarioId>(scenarioOrder);
 const modeIds = new Set<ScenarioMode>(modes);
 const productIds = new Set<ProductId>(products);
 const actorIds = new Set<ActorGroupId>(actorGroups.map((group) => group.id));
 const routeEvent = "zkdemo-route-change";
+const productAliases: Record<string, ProductId> = {
+  zkporl: "zkpol",
+};
 
 const modeToProduct: Record<string, ProductId> = {
   custody: "zkwallet",
@@ -26,6 +29,16 @@ const modeToProduct: Record<string, ProductId> = {
 
 function cleanPath(pathname: string) {
   return pathname.replace(/\/+$/, "") || "/";
+}
+
+function normalizeProductAliasPath(pathname: string) {
+  const parts = cleanPath(pathname).split("/").filter(Boolean);
+  if (parts.length === 0) return "/";
+
+  const canonicalProductId = productAliases[parts[0]];
+  if (!canonicalProductId) return cleanPath(pathname);
+
+  return `/${[canonicalProductId, ...parts.slice(1)].join("/")}`;
 }
 
 export function pathForRoute(route: DemoRoute) {
@@ -53,9 +66,9 @@ export function parseRoute(pathname: string): DemoRoute {
     };
   }
 
-  // /:productId/...
-  if (productIds.has(parts[0] as ProductId)) {
-    const productId = parts[0] as ProductId;
+  // /:productId/... (legacy /zkporl/... is accepted as /zkpol/...)
+  const productId = productAliases[parts[0]] ?? (productIds.has(parts[0] as ProductId) ? parts[0] as ProductId : undefined);
+  if (productId) {
     const maybeActorId = parts[1] as ActorGroupId | undefined;
 
     if (maybeActorId && actorIds.has(maybeActorId)) {
@@ -123,6 +136,15 @@ function subscribe(listener: () => void) {
 
 export function useDemoRoute() {
   const pathname = useSyncExternalStore(subscribe, getSnapshot, () => "/");
+
+  useEffect(() => {
+    const canonicalPath = normalizeProductAliasPath(pathname);
+    if (canonicalPath === pathname) return;
+
+    window.history.replaceState({}, "", canonicalPath);
+    window.dispatchEvent(new Event(routeEvent));
+  }, [pathname]);
+
   return parseRoute(pathname);
 }
 

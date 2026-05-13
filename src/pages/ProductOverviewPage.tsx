@@ -25,10 +25,10 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
     title: "패스키 기반 인증",
     description: "WebAuthn 패스키와 ZK Proof를 결합한 인증 서비스입니다. 시나리오를 준비 중입니다.",
   },
-  zkporl: {
-    eyebrow: "zkPoRL",
-    title: "거래소 준비금·부채 ZK 증명",
-    description: "개별 잔고 비공개 상태에서 전체 준비금·부채 정합성을 ZK Proof로 상시 증명합니다. 역할을 선택해 시나리오를 시작하세요.",
+  zkpol: {
+    eyebrow: "zkPoL",
+    title: "거래소 고객 부채 ZK 증명",
+    description: "개별 잔고 비공개 상태에서 전체 고객 부채 정합성을 ZK Proof로 상시 증명합니다. 역할을 선택해 시나리오를 시작하세요.",
   },
 };
 
@@ -97,7 +97,7 @@ export function ProductOverviewPage({ productId }: Props) {
   const stepMap = useDemoStore((state) => state.stepMap);
 
   // 그룹이 하나뿐이면 시나리오 카드를 바로 표시
-  const singleGroup = productId !== "zkporl" && groups.length === 1 ? groups[0] : null;
+  const singleGroup = productId !== "zkpol" && groups.length === 1 ? groups[0] : null;
   const flatScenarios = singleGroup
     ? [...new Set(singleGroup.scenarioIds)].map((id) => scenarios[id]).filter(Boolean)
     : null;

@@ -1,13 +1,13 @@
 import type { LedgerRow, Scenario, SequenceContext } from "@/scenarios/types";
 
-const seqActors = ["거래소 원장", "zkPoRL 서버", "운영 시스템 (Sidecar)"] as const;
+const seqActors = ["거래소 원장", "zkPoL 서버", "운영 시스템 (Sidecar)"] as const;
 
 const anomalySeq: SequenceContext = {
   actors: [...seqActors],
-  activeEdge: { from: "zkPoRL 서버", to: "운영 시스템 (Sidecar)", label: "지급 차단 명령", tone: "bad" },
+  activeEdge: { from: "zkPoL 서버", to: "운영 시스템 (Sidecar)", label: "지급 차단 명령", tone: "bad" },
   pastEdges: [
-    { from: "거래소 원장", to: "zkPoRL 서버", label: "이상 이벤트 유입" },
-    { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "증명 생성 실패", tone: "bad" },
+    { from: "거래소 원장", to: "zkPoL 서버", label: "이상 이벤트 유입" },
+    { from: "zkPoL 서버", to: "zkPoL 서버", label: "증명 생성 실패", tone: "bad" },
   ],
 };
 
@@ -15,14 +15,14 @@ const ledgerRowsBase: LedgerRow[] = [
   {
     call: "CALL",
     from: "exchange_ledger",
-    to: "zkPoRL_router",
+    to: "zkPoL_router",
     method: "submitBatchEvent",
     amount: "0",
   },
   {
     call: "DELEGATECALL",
     indent: 1,
-    from: "zkPoRL_router",
+    from: "zkPoL_router",
     to: "BatchCircuit",
     method: "appendEvent",
     amount: "0",
@@ -169,8 +169,8 @@ export const scenarioZP4: Scenario = {
       processView: {
         kind: "sequence",
         actors: [...seqActors],
-        activeEdge: { from: "거래소 원장", to: "zkPoRL 서버", label: "이상 이벤트 유입", tone: "bad" },
-        description: "원장에서 동일 거래 두 건이 zkPoRL 서버로 유입됩니다. 운영자 대시보드에 중복 후보가 강조됩니다.",
+        activeEdge: { from: "거래소 원장", to: "zkPoL 서버", label: "이상 이벤트 유입", tone: "bad" },
+        description: "원장에서 동일 거래 두 건이 zkPoL 서버로 유입됩니다. 운영자 대시보드에 중복 후보가 강조됩니다.",
       },
     },
     {

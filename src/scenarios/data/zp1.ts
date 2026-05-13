@@ -1,30 +1,30 @@
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
-const seqActors = ["거래소 원장", "zkPoRL 서버", "온체인 게시판"] as const;
+const seqActors = ["거래소 원장", "zkPoL 서버", "온체인 게시판"] as const;
 
 const batchSeq = (phase: "generate" | "verify" | "done"): SequenceContext => {
-  const base = [{ from: "거래소 원장", to: "zkPoRL 서버", label: "원장 변경 이벤트 전달" }];
+  const base = [{ from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" }];
   if (phase === "generate") {
     return {
       actors: [...seqActors],
-      activeEdge: { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성 중", tone: "accent" },
+      activeEdge: { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성 중", tone: "accent" },
       pastEdges: base,
     };
   }
   if (phase === "verify") {
     return {
       actors: [...seqActors],
-      activeEdge: { from: "zkPoRL 서버", to: "온체인 게시판", label: "증명 제출·검증", tone: "accent" },
-      pastEdges: [...base, { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성" }],
+      activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "증명 제출·검증", tone: "accent" },
+      pastEdges: [...base, { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성" }],
     };
   }
   return {
     actors: [...seqActors],
-    activeEdge: { from: "온체인 게시판", to: "zkPoRL 서버", label: "검증 완료 반환", tone: "ok" },
+    activeEdge: { from: "온체인 게시판", to: "zkPoL 서버", label: "검증 완료 반환", tone: "ok" },
     pastEdges: [
       ...base,
-      { from: "zkPoRL 서버", to: "zkPoRL 서버", label: "배치 증명 생성" },
-      { from: "zkPoRL 서버", to: "온체인 게시판", label: "증명 제출·검증" },
+      { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성" },
+      { from: "zkPoL 서버", to: "온체인 게시판", label: "증명 제출·검증" },
     ],
   };
 };
@@ -38,7 +38,7 @@ export const scenarioZP1: Scenario = {
   actor: "리스크 운영자",
   actorType: "web",
   mode: "risk",
-  summary: "거래소 고객 부채(오프체인 잔고 합계)를 개별 잔고 비공개 상태로 ZK Proof로 지속 증명하고, 대시보드로 준비금·부채 정합성을 상시 확인합니다.",
+  summary: "거래소 고객 부채(오프체인 잔고 합계)를 개별 잔고 비공개 상태로 ZK Proof로 지속 증명하고, 대시보드로 부채 정합성을 상시 확인합니다.",
   screens: [
     {
       id: "ZP1-1",
@@ -63,10 +63,10 @@ export const scenarioZP1: Scenario = {
     {
       id: "ZP1-2",
       layout: "dashboard",
-      webContext: { menuItem: "원장 이벤트", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
+      webContext: { menuItem: "원장 이벤트", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
       actor: "리스크 운영자 / 운영자 웹 대시보드",
       title: "원장 이벤트 유입 현황",
-      subtitle: "거래소 원장에서 PoRL 서버로 전달된 이벤트를 확인합니다",
+      subtitle: "거래소 원장에서 PoL 서버로 전달된 이벤트를 확인합니다",
       status: "정상",
       sections: [
         {
@@ -100,7 +100,7 @@ export const scenarioZP1: Scenario = {
     {
       id: "ZP1-3",
       layout: "processing",
-      webContext: { menuItem: "증명 배치", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
+      webContext: { menuItem: "증명 배치", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
       actor: "리스크 운영자 / 데모 페이지",
       title: "고객 부채 증명 생성",
       subtitle: "고객 부채 정합성 증명을 생성하는 중입니다",
@@ -117,7 +117,7 @@ export const scenarioZP1: Scenario = {
     {
       id: "ZP1-4",
       layout: "processing",
-      webContext: { menuItem: "온체인 검증", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
+      webContext: { menuItem: "온체인 검증", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
       actor: "리스크 운영자 / 데모 페이지",
       title: "증명 검증",
       subtitle: "증명 검증 진행 중입니다",
@@ -134,7 +134,7 @@ export const scenarioZP1: Scenario = {
     {
       id: "ZP1-5",
       layout: "dashboard",
-      webContext: { menuItem: "검증 내역", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
+      webContext: { menuItem: "검증 내역", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
       actor: "리스크 운영자 / 공개 대시보드",
       title: "증명 결과 확인",
       subtitle: "온체인에 제출된 배치 검증 내역을 조회합니다",
@@ -209,12 +209,12 @@ export const scenarioZP1: Scenario = {
       trigger: "auto",
       duration: 2000,
       screenId: "ZP1-2",
-      description: "거래소 원장이 원장 변경 이벤트를 zkPoRL 서버로 전달합니다",
+      description: "거래소 원장이 원장 변경 이벤트를 zkPoL 서버로 전달합니다",
       processView: {
         kind: "sequence",
         actors: [...seqActors],
-        activeEdge: { from: "거래소 원장", to: "zkPoRL 서버", label: "원장 변경 이벤트 전달", tone: "accent" },
-        description: "거래 완료 후 원장이 변경 이벤트(ledger_change_event)를 zkPoRL 서버로 전달합니다. 운영자는 이벤트 유입 상태와 마지막 수신 시각을 확인합니다.",
+        activeEdge: { from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달", tone: "accent" },
+        description: "거래 완료 후 원장이 변경 이벤트(ledger_change_event)를 zkPoL 서버로 전달합니다. 운영자는 이벤트 유입 상태와 마지막 수신 시각을 확인합니다.",
       },
     },
     {
