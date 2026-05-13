@@ -206,10 +206,10 @@ function ProofPanel({ phase }: { phase: Phase }) {
         <div className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--ok)]">증명된 명제</div>
         <ul className="mt-2 space-y-1.5">
           {[
-            "발신자 주소를 공개하지 않음",
-            "전송 금액 ≤ 보호 계정 잔고",
-            "cm1은 Merkle Tree에 존재함",
-            "cm_new = 수신자 레코드 (올바른 형식)",
+            "기존 노트 생성",
+            "음수 잔액 방지 검증",
+            "중복 사용 방지 검증",
+            "cm은 머클트리에 속해있음",
           ].map((s) => (
             <li key={s} className="flex items-start gap-1.5 text-[11px] text-[var(--ok)]">
               <span className="mt-0.5 shrink-0">✓</span><span>{s}</span>
