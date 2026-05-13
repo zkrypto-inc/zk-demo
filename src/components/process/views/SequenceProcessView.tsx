@@ -107,6 +107,39 @@ function directionalOffset(target: SequenceEdge, allEdges: SequenceEdge[], actor
   return tForward ? 14 : -14;
 }
 
+function wrapLabel(label: string, maxLineChars = 11): string[] {
+  if (label.length <= maxLineChars) return [label];
+  const parts = label.split(/([ ·/])/);
+  const lines: string[] = [];
+  let current = "";
+  for (const p of parts) {
+    if ((current + p).length > maxLineChars && current.trim().length > 0) {
+      lines.push(current.trim());
+      current = p.replace(/^[ ·/]/, "");
+    } else {
+      current += p;
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines;
+}
+
+function MultilineLabel({ x, y, lines, fill, fontWeight = 600 }: {
+  x: number; y: number; lines: string[]; fill: string; fontWeight?: number;
+}) {
+  const lineHeight = 13;
+  const startY = y - (lines.length - 1) * lineHeight;
+  return (
+    <text fill={fill} fontSize="12" fontWeight={fontWeight} textAnchor="middle" x={x} y={startY}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 function TransferPulse({ path, stroke }: { path: string; stroke: string }) {
   return (
     <g>
@@ -165,9 +198,12 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], extraActiveE
             <g key={`extra-${extra.from}-${extra.to}-${idx}`}>
               <path d={geometry.d} fill="none" stroke={stroke} strokeLinecap="round" strokeWidth="2.2" />
               <polygon fill={stroke} points={geometry.arrow} />
-              <text fill={stroke} fontSize="12" fontWeight="600" textAnchor="middle" x={geometry.labelX} y={geometry.labelY}>
-                {extra.label}
-              </text>
+              <MultilineLabel
+                x={geometry.labelX}
+                y={geometry.labelY}
+                lines={wrapLabel(extra.label)}
+                fill={stroke}
+              />
             </g>
           );
         })}
@@ -182,9 +218,12 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], extraActiveE
                   <path d={geometry.d} fill="none" stroke={stroke} strokeLinecap="round" strokeWidth="2.2" />
                   <TransferPulse path={geometry.d} stroke={stroke} />
                   <polygon fill={stroke} points={geometry.arrow} />
-                  <text fill={stroke} fontSize="12" fontWeight="600" textAnchor="middle" x={geometry.labelX} y={geometry.labelY}>
-                    {edge.label}
-                  </text>
+                  <MultilineLabel
+                    x={geometry.labelX}
+                    y={geometry.labelY}
+                    lines={wrapLabel(edge.label)}
+                    fill={stroke}
+                  />
                 </>
               );
             })()}
