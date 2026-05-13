@@ -27,8 +27,8 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZT-1": { menuItem: "정책 설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
   "ZT-5": { menuItem: "정책 설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
   "ZT-A": { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
-  "ZP-1": { menuItem: "대시보드", pageTitle: "PoR/L 대사", host: "ops.zkporl.io" },
-  "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkporl.io" },
+  "ZP-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
+  "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkpol.io" },
 };
 
 const defaultMenuItems = ["대시보드", "수탁 관리", "발행 관리", "준비금", "감사", "설정"];

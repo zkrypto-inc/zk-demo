@@ -1,5 +1,5 @@
 export type Tone = "neutral" | "accent" | "ok" | "bad" | "warn";
-export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkporl";
+export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkpol";
 export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident";
 export type ActorGroupId =
   | "personal"
@@ -55,6 +55,7 @@ export type DataTableColumn = {
 export type DataTable = {
   columns: DataTableColumn[];
   rows: Record<string, string>[];
+  wrap?: boolean;
 };
 
 export type Section = {

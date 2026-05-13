@@ -40,12 +40,12 @@ const products: ProductMeta[] = [
     available: false,
   },
   {
-    id: "zkporl",
-    name: "zkPoRL",
-    tagline: "거래소 준비금·부채 ZK 증명",
-    description: "개별 잔고를 공개하지 않고 거래소 전체 준비금과 고객 부채의 정합성을 ZK Proof로 상시 증명합니다. 이상징후 탐지 및 지급 차단 흐름도 포함합니다.",
-    tags: ["PoR", "PoL", "BatchCircuit", "Audit"],
-    scenarios: ["ZP-1 상시 PoR/L 대사", "ZP-4 이상징후 탐지·차단"],
+    id: "zkpol",
+    name: "zkPoL",
+    tagline: "거래소 고객 부채 ZK 증명",
+    description: "개별 잔고를 공개하지 않고 거래소 전체 고객 부채의 정합성을 ZK Proof로 상시 증명합니다. 이상징후 탐지 및 지급 차단 흐름도 포함합니다.",
+    tags: ["PoL", "BatchCircuit", "Audit"],
+    scenarios: ["ZP-1 상시 PoL 대사", "ZP-4 이상징후 탐지·차단"],
     available: true,
   },
 ];

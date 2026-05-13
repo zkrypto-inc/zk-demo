@@ -13,7 +13,7 @@ export function LiabilityProofProcessView({ view }: Props) {
 
       <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-4 text-center">
         <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--accent)]">
-          Liability invariant
+          부채 커밋먼트 생성식
         </div>
         <div className="font-mono text-[14px] font-semibold leading-[1.4] text-[var(--accent)]">
           {view.formula}
@@ -23,9 +23,9 @@ export function LiabilityProofProcessView({ view }: Props) {
       <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">
         <div className="grid grid-cols-4 border-b border-[var(--line)] bg-[var(--surface-2)] text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--muted)]">
           <div className="px-3 py-2">user</div>
-          <div className="px-3 py-2">old_values</div>
-          <div className="px-3 py-2">delta</div>
-          <div className="px-3 py-2">new_values</div>
+          <div className="px-3 py-2">old_values (이전 값)</div>
+          <div className="px-3 py-2">delta (변동값)</div>
+          <div className="px-3 py-2">new_values (새 값)</div>
         </div>
 
         {view.rows.map((row) => (

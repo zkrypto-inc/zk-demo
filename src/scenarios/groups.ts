@@ -4,7 +4,7 @@ export const productLabels: Record<ProductId, string> = {
   zkwallet: "zkWallet",
   zktransfer: "zkTransfer",
   zkpasskey: "zkPasskey",
-  zkporl: "zkPoRL",
+  zkpol: "zkPoL",
 };
 
 export type ActorGroup = {
@@ -74,13 +74,13 @@ export const actorGroups: ActorGroup[] = [
     surface: "web",
     scenarioIds: ["ZT-A"],
   },
-  // zkporl
+  // zkpol
   {
     id: "risk",
-    productId: "zkporl",
+    productId: "zkpol",
     label: "거래소용",
     shortLabel: "거래소",
-    description: "거래소 준비금·부채 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
+    description: "거래소 고객 부채 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
     surface: "web",
     scenarioIds: ["ZP-1", "ZP-4"],
   },
