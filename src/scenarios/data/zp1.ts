@@ -227,7 +227,7 @@ export const scenarioZP1: Scenario = {
       description: "거래 내역을 바탕으로 고객 부채 증명을 생성합니다",
       processView: {
         kind: "liability-proof",
-        description: "우측 처리 개요에서는 배치 전후 liability witness가 어떻게 연결되는지 유저 행 단위로 보여줍니다. 사용자 화면에는 증명 생성 진행 상태만 노출합니다.",
+        description: "우측 처리 개요에서는 고객별 이전 커밋먼트에 거래 변동값이 반영되어 새 커밋먼트가 생성되고, 이 값들로 부채 증명 proof가 구성되는 과정을 보여줍니다.",
         formula: "sum(old_values) + delta = sum(new_values)",
         rows: [
           { user: "user1", oldValue: "cm1", delta: "5", newValue: "new_cm1" },
@@ -253,7 +253,7 @@ export const scenarioZP1: Scenario = {
         progressLabel: "증명 검증 진행 중",
         progress: 100,
         steps: [
-          { label: "잔고 정합성 확인", value: "liability_old + delta = liability_new", state: "done" },
+          { label: "잔고 정합성 확인", value: "sum(old_values) + delta = sum(new_values)", state: "done" },
           { label: "각 cm > 0인지 확인", value: "커밋먼트 양수 조건 검증", state: "active" },
         ],
         sequence: batchSeq("verify"),
