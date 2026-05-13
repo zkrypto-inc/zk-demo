@@ -4,7 +4,7 @@ export const productLabels: Record<ProductId, string> = {
   zkwallet: "zkWallet",
   zktransfer: "zkTransfer",
   zkpasskey: "zkPasskey",
-  zkporl: "거래소용",
+  zkporl: "zkPoRL",
 };
 
 export type ActorGroup = {
