@@ -55,6 +55,7 @@ export type DataTableColumn = {
 export type DataTable = {
   columns: DataTableColumn[];
   rows: Record<string, string>[];
+  wrap?: boolean;
 };
 
 export type Section = {
