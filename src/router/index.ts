@@ -74,7 +74,6 @@ export function parseRoute(pathname: string): DemoRoute {
     if (maybeActorId && actorIds.has(maybeActorId)) {
       const actorId = maybeActorId;
       const maybeScenarioId = parts[2] as ScenarioId | undefined;
-
       if (maybeScenarioId && scenarioIds.has(maybeScenarioId)) {
         const rawStep = Number.parseInt(parts[3] ?? "0", 10);
         return {

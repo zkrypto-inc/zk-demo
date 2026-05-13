@@ -119,6 +119,7 @@ export const scenarioFU2: Scenario = {
           ],
         },
       ],
+      actions: [{ id: "recap", label: "결과 요약 보기", tone: "accent" }],
     },
   ],
   steps: [
