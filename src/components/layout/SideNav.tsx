@@ -1,4 +1,4 @@
-import { actorGroups, getGroupsByProduct, getScenarioDisplayId, scenarios } from "@/scenarios";
+import { getGroupsByProduct, getScenarioDisplayId, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { productLabels } from "@/scenarios/groups";
@@ -14,7 +14,7 @@ export function SideNav({ productId, currentActorId, currentScenarioId }: Props)
   const completedScenarios = useDemoStore((state) => state.completedScenarios);
   const stepMap = useDemoStore((state) => state.stepMap);
 
-  const groups = productId ? getGroupsByProduct(productId) : actorGroups;
+  const groups = productId ? getGroupsByProduct(productId) : [];
 
   return (
     <aside className="hidden w-[272px] shrink-0 border-r border-[var(--line)] bg-[var(--surface)] lg:block">

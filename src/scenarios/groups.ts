@@ -31,7 +31,7 @@ export const actorGroups: ActorGroup[] = [
   {
     id: "custody",
     productId: "zkwallet",
-    label: "수탁 운영",
+    label: "디지털 자산 수탁사",
     shortLabel: "수탁",
     description: "수탁 등록, 입금, 출금 요청을 웹 콘솔에서 처리하는 운영자 흐름입니다.",
     surface: "web",
@@ -40,7 +40,7 @@ export const actorGroups: ActorGroup[] = [
   {
     id: "issuer",
     productId: "zkwallet",
-    label: "발행사 운영",
+    label: "스테이블코인 발행사",
     shortLabel: "발행사",
     description: "발행사 등록, 발행, 소각, 준비금 요청을 생성하고 승인 상태를 확인합니다.",
     surface: "web",
