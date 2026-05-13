@@ -6,15 +6,24 @@ const seq1: SequenceContext = {
   pastEdges: [],
 };
 
-const seq2: SequenceContext = {
-  actors: ["개인 사용자 App", "스테이블코인 플랫폼"],
-  activeEdge: { from: "개인 사용자 App", to: "스테이블코인 플랫폼", label: "기밀 송금 요청", tone: "accent" },
+// Shared actor layout for ZT-1 steps 2-4 (QR 스캔 / 주소 인식 / 송금 요청)
+const sendActors = ["수신자 QR", "개인 사용자 App", "스테이블코인 플랫폼"] as const;
+
+const seqQr: SequenceContext = {
+  actors: [...sendActors],
+  activeEdge: { from: "개인 사용자 App", to: "수신자 QR", label: "QR 스캔", tone: "accent" },
   pastEdges: [],
 };
 
-const seqQr: SequenceContext = {
-  actors: ["수신자 QR", "개인 사용자 App", "스테이블코인 플랫폼"],
-  activeEdge: { from: "수신자 QR", to: "개인 사용자 App", label: "수신 주소 스캔", tone: "accent" },
+const seqAddressReady: SequenceContext = {
+  actors: [...sendActors],
+  activeEdge: { from: "개인 사용자 App", to: "개인 사용자 App", label: "주소 인식 완료", tone: "ok" },
+  pastEdges: [seqQr.activeEdge],
+};
+
+const seq2: SequenceContext = {
+  actors: [...sendActors],
+  activeEdge: { from: "개인 사용자 App", to: "스테이블코인 플랫폼", label: "기밀 송금 요청", tone: "accent" },
   pastEdges: [],
 };
 
@@ -27,13 +36,12 @@ const seq3: SequenceContext = {
 };
 
 const seq4: SequenceContext = {
-  actors: ["개인 사용자 App", "플랫폼", "Blockchain"],
-  activeEdge: { from: "Blockchain", to: "플랫폼", label: "txHash 반환", tone: "ok" },
-  pastEdges: [
-    { from: "플랫폼", to: "개인 사용자 App", label: "최종 서명 요청" },
-    { from: "개인 사용자 App", to: "플랫폼", label: "서명된 tx 전달" },
-    { from: "플랫폼", to: "Blockchain", label: "tx 제출" },
+  actors: [...seq3.actors],
+  activeEdge: { from: "zkTransfer SDK", to: "스테이블코인 플랫폼", label: "txHash 반환", tone: "ok" },
+  extraActiveEdges: [
+    { from: "스테이블코인 플랫폼", to: "개인 사용자 App", label: "txHash 반환", tone: "ok" },
   ],
+  pastEdges: [],
 };
 
 export const scenarioZT1: Scenario = {
@@ -51,7 +59,7 @@ export const scenarioZT1: Scenario = {
       id: "ZT1-1",
       layout: "form",
       actorType: "web",
-      webContext: { menuItem: "설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
+      webContext: { menuItem: "정책 설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
       actor: "정책 운영자 / 웹 관리자 콘솔",
       title: "개인정보보호 기반 송금 정책 설정",
       subtitle: "적용 자산과 서비스 유형, 한도를 지정합니다",
@@ -62,7 +70,6 @@ export const scenarioZT1: Scenario = {
           fields: [
             { label: "적용 자산", value: "USDC, USDT" },
             { label: "적용 서비스", value: "P2P 송금", options: ["P2P 송금", "결제", "정산"] },
-            { label: "서비스 유형", value: "스테이블코인 전송" },
             { label: "월 한도", value: "1억 KRW" },
           ],
         },
@@ -222,17 +229,13 @@ export const scenarioZT1: Scenario = {
       description: "QR에서 인식한 수신 주소를 송금 요청 화면에 자동 기입합니다",
       processView: {
         kind: "artifact",
-        description: "QR payload에서 수신자 별칭과 주소를 추출해 송금 요청 폼에 반영합니다. 사용자는 다음 단계에서 금액과 수신 주소를 확인합니다.",
+        description: "QR에서 수신자 별칭과 주소를 추출해 송금 요청 폼에 반영합니다. 사용자는 다음 단계에서 금액과 수신 주소를 확인합니다.",
         items: [
           { label: "수신자 별칭", value: "Alice", tone: "ok" },
           { label: "수신 주소", value: "0xA1b2...C3d4 (ENA)", tone: "ok" },
           { label: "입력 방식", value: "QR 자동 기입", tone: "accent" },
         ],
-        sequence: {
-          actors: seqQr.actors,
-          activeEdge: { from: "개인 사용자 App", to: "개인 사용자 App", label: "주소 자동 기입", tone: "ok" },
-          pastEdges: [seqQr.activeEdge],
-        },
+        sequence: seqAddressReady,
       },
     },
     {
@@ -245,13 +248,11 @@ export const scenarioZT1: Scenario = {
       description: "사용자가 자동 기입된 수신 주소와 금액을 확인하고 스테이블코인 플랫폼에 개인정보보호 송금을 요청합니다",
       processView: {
         kind: "overview",
-        description: "사용자가 입력한 송금 요청 정보와 사용되는 계좌 유형(EOA · ENA)을 안내합니다.",
+        description: "사용자가 자동 기입된 수신 주소와 입력한 송금 금액을 확인하고 기밀 송금을 요청합니다.",
         cards: [
           { label: "송금 금액", value: "100 USDC" },
           { label: "받는 지갑 주소", value: "0xA1b2...C3d4 (ENA)" },
           { label: "자산", value: "USDC" },
-          { label: "EOA", value: "일반 사용자 계좌", detail: "공개 계정 — 잔고·거래 내역이 모두 공개됩니다" },
-          { label: "ENA", value: "개인정보 보호 계좌 (암호 계정)", detail: "보호 계정 — 잔고·거래 내역이 암호 커밋으로 가려집니다", tone: "ok" },
         ],
         sequence: seq2,
       },

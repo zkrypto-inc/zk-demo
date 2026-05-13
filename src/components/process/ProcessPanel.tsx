@@ -132,6 +132,7 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
                     actors={topSequence.actors}
                     edge={topSequence.activeEdge}
                     pastEdges={topSequencePast}
+                    extraActiveEdges={topSequence.extraActiveEdges}
                     compact
                   />
                 </div>

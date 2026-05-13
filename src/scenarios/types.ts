@@ -160,6 +160,7 @@ export type SequenceContext = {
   actors: string[];
   activeEdge: SequenceEdge;
   pastEdges?: SequenceEdge[];
+  extraActiveEdges?: SequenceEdge[];
 };
 
 export type ProcessView =
