@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { PhoneContainer } from "@/components/phone/PhoneContainer";
+import { WebScreen } from "@/components/web/WebScreen";
 import { ProcessPanel } from "@/components/process/ProcessPanel";
 import { StepTracker } from "@/components/process/StepTracker";
 import { WebContainer } from "@/components/web/WebContainer";
@@ -77,6 +78,20 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     demoStore.setFormValue(scenario.id, screenId, label, value);
   };
 
+  const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
+  const advanceOrRecap = recapAction
+    ? () =>
+        navigateToRoute({
+          name: "scenario",
+          productId: "zkwallet",
+          actorId: "personal",
+          scenarioId: "FU-3",
+          stepIndex: 0,
+        })
+    : player.advance;
+  const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
+  const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
+
   return (
     <section className="space-y-5">
       <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] pb-4 xl:flex-row xl:items-end">
@@ -129,6 +144,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
         </div>
       </div>
 
+      {screen.layout !== "recap" && (
       <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
         <div className="min-w-0 flex-1">
           <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
@@ -156,15 +172,28 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           </button>
         )}
       </div>
+      )}
 
+      {screen.layout === "recap" ? (
+        <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)]">
+          <WebScreen
+            activeActionLabel={activeActionLabel}
+            actor={screenActor}
+            canAdvance={canAdvanceWithRecap}
+            onAdvance={advanceOrRecap}
+            onFieldChange={handleFieldChange}
+            screen={screen}
+          />
+        </div>
+      ) : (
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
         <div className="min-w-0">
           {(screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer
-              activeActionLabel={player.nextLabel}
+              activeActionLabel={activeActionLabel}
               actor={screenActor}
-              canAdvance={player.canAdvanceByUser}
-              onAdvance={player.advance}
+              canAdvance={canAdvanceWithRecap}
+              onAdvance={advanceOrRecap}
               onFieldChange={handleFieldChange}
               scenarioId={scenario.id}
               screen={screen}
@@ -172,10 +201,10 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
             />
           ) : (
             <WebContainer
-              activeActionLabel={player.nextLabel}
+              activeActionLabel={activeActionLabel}
               actor={screenActor}
-              canAdvance={player.canAdvanceByUser}
-              onAdvance={player.advance}
+              canAdvance={canAdvanceWithRecap}
+              onAdvance={advanceOrRecap}
               onFieldChange={handleFieldChange}
               scenarioId={scenario.id}
               screen={screen}
@@ -219,6 +248,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           )}
         </aside>
       </div>
+      )}
     </section>
   );
 }

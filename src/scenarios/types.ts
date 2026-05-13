@@ -29,6 +29,7 @@ export type ScenarioId =
   | "FS-4"
   | "FU-1"
   | "FU-2"
+  | "FU-3"
   | "ZT-1"
   | "ZT-5"
   | "ZT-A"
@@ -78,6 +79,7 @@ export type ScreenLayout =
   | "dashboard"   // 정보 개요 — 카드 그리드
   | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션
   | "audit-table" // 감사 표 — 거래 행 + 체크박스/복호화 결과
+  | "recap"       // 정리 페이지 — 좌우 결과 패널 2장
   | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
 
 export type WebContext = {
@@ -115,6 +117,35 @@ export type AuditTableData = {
   rows: AuditTableRow[];
 };
 
+export type RecapRow = {
+  label: string;
+  value: string;
+  mono?: boolean;
+  ok?: boolean;
+};
+
+export type RecapPanel = {
+  title: string;
+  subtitle?: string;
+  groupTitle: string;
+  rows: RecapRow[];
+  cta?: {
+    label: string;
+    target:
+      | { type: "scenario"; scenarioId: ScenarioId; stepIndex?: number }
+      | { type: "actor"; actorId: ActorGroupId };
+    tone?: Tone;
+  };
+};
+
+export type RecapData = {
+  eyebrow?: string;
+  heading: string;
+  description?: string;
+  badges?: string[];
+  panels: RecapPanel[];
+};
+
 export type UserScreen = {
   id: string;
   layout: ScreenLayout;
@@ -130,6 +161,7 @@ export type UserScreen = {
   footer?: string;
   ledger?: LedgerScreenData;
   auditTable?: AuditTableData;
+  recap?: RecapData;
 };
 
 // --- Process panel types ---

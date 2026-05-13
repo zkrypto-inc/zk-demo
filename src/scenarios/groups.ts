@@ -26,7 +26,7 @@ export const actorGroups: ActorGroup[] = [
     shortLabel: "개인",
     description: "개인 사용자가 지갑을 만들고 거래 요청과 서명 상태를 확인하는 앱 중심 흐름입니다.",
     surface: "app",
-    scenarioIds: ["FU-1", "FU-2"],
+    scenarioIds: ["FU-1", "FU-2", "FU-3"],
   },
   {
     id: "custody",
