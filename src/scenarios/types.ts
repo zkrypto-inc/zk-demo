@@ -11,6 +11,7 @@ export type ActorGroupId =
   | "zt-cbdc-user"
   | "zt-auditor"
   | "auditor"
+  | "passkey-recovery"
   | "risk"
   | "incident";
 export type Surface = "web" | "app" | "mixed";
@@ -30,6 +31,7 @@ export type ScenarioId =
   | "FU-1"
   | "FU-2"
   | "FU-3"
+  | "ZK-1"
   | "ZT-1"
   | "ZT-5"
   | "ZT-A"

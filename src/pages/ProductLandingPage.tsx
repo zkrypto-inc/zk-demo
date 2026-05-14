@@ -33,11 +33,11 @@ const products: ProductMeta[] = [
   {
     id: "zkpasskey",
     name: "zkPasskey",
-    tagline: "패스키 기반 인증",
-    description: "WebAuthn 패스키와 ZK Proof를 결합해 비밀번호 없이 안전하게 거래를 인증합니다.",
-    tags: ["WebAuthn", "Passkey", "ZK Auth"],
-    scenarios: [],
-    available: false,
+    tagline: "Web2 신원 기반 계정 복구",
+    description: "Google, Apple 같은 기존 로그인 신원을 복구 수단으로 연결하고, ZK Proof로 개별 계정 정보를 공개하지 않은 채 계정 제어권을 복구합니다.",
+    tags: ["Web2 Identity", "Account Recovery", "ZK Proof"],
+    scenarios: ["ZK-1~3 Web2 신원 기반 계정 복구"],
+    available: true,
   },
   {
     id: "zkpol",
