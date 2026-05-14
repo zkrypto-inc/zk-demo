@@ -22,8 +22,8 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
   },
   zkpasskey: {
     eyebrow: "zkPasskey",
-    title: "패스키 기반 인증",
-    description: "WebAuthn 패스키와 ZK Proof를 결합한 인증 서비스입니다. 시나리오를 준비 중입니다.",
+    title: "Web2 신원 기반 계정 복구",
+    description: "기존 로그인 신원을 복구 수단으로 연결하고, 개별 계정 정보를 공개하지 않은 채 계정 공개키를 새 키로 갱신하는 서비스입니다.",
   },
   zkpol: {
     eyebrow: "zkPoL",

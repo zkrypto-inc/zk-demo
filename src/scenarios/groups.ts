@@ -74,6 +74,16 @@ export const actorGroups: ActorGroup[] = [
     surface: "web",
     scenarioIds: ["ZT-A"],
   },
+  // zkpasskey
+  {
+    id: "passkey-recovery",
+    productId: "zkpasskey",
+    label: "Web2 신원 기반 계정 복구",
+    shortLabel: "계정 복구",
+    description: "Google, Apple 등 기존 로그인 신원을 복구 수단으로 묶고, 개별 계정 정보를 공개하지 않은 채 계정 공개키를 갱신하는 흐름입니다.",
+    surface: "mixed",
+    scenarioIds: ["ZK-1"],
+  },
   // zkpol
   {
     id: "risk",
