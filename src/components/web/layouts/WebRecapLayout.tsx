@@ -1,6 +1,9 @@
 import type { RecapPanel, RecapRow, UserScreen } from "@/scenarios/types";
 import { navigateToRoute } from "@/router";
-import { actorGroups, scenarioGroupLookup } from "@/scenarios";
+import { actorGroups, scenarioGroupLookup, scenarios } from "@/scenarios";
+import { PhoneStatusBar } from "@/components/phone/PhoneStatusBar";
+import { PhoneScreen } from "@/components/phone/PhoneScreen";
+import { getProductLabelByScenarioId } from "@/scenarios/groups";
 
 type Props = {
   screen: UserScreen;
@@ -38,8 +41,40 @@ function handleCtaClick(target: NonNullable<RecapPanel["cta"]>["target"]) {
   navigateToRoute({ name: "actor", productId, actorId: target.actorId });
 }
 
+function PhoneFramePreview({ scenarioId, screenId }: { scenarioId: string; screenId: string }) {
+  const scenario = scenarios[scenarioId as keyof typeof scenarios];
+  if (!scenario) return null;
+  const previewScreen = scenario.screens.find((s) => s.id === screenId);
+  if (!previewScreen) return null;
+  const productLabel = getProductLabelByScenarioId(scenario.id);
+  const noop = () => {};
+
+  return (
+    <div className="mx-auto mb-4 w-[280px]" style={{ transform: "scale(0.85)", transformOrigin: "top center" }}>
+      <div className="relative h-[600px] w-[280px] rounded-[48px] bg-[var(--bezel)] p-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08),0_20px_56px_rgba(0,0,0,0.18)]">
+        <div className="relative flex h-full flex-col overflow-hidden rounded-[42px] bg-[var(--surface)]">
+          <div className="absolute left-1/2 top-[8px] z-20 h-[22px] w-[78px] -translate-x-1/2 rounded-[16px] bg-black" />
+          <PhoneStatusBar />
+          <div className="relative flex h-10 shrink-0 items-center justify-center border-b border-[var(--line)] px-5">
+            <div className="text-[13px] font-semibold text-[var(--ink)]">{productLabel}</div>
+          </div>
+          <PhoneScreen
+            screen={previewScreen}
+            activeActionLabel={undefined}
+            canAdvance={false}
+            onAdvance={noop}
+            onFieldChange={noop}
+          />
+          <div className="shrink-0 py-[6px]">
+            <div className="mx-auto h-[4px] w-[128px] rounded-full bg-[rgba(82,82,91,0.4)]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Panel({ panel }: { panel: RecapPanel }) {
-  const isOkCta = panel.cta?.tone === "ok" || panel.cta?.tone === "accent";
   return (
     <section className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
       <div className="mb-4">
@@ -48,6 +83,13 @@ function Panel({ panel }: { panel: RecapPanel }) {
           <p className="mt-1 text-[13px] leading-[1.6] text-[var(--ink-2)]">{panel.subtitle}</p>
         )}
       </div>
+
+      {panel.previewScreen && (
+        <PhoneFramePreview
+          scenarioId={panel.previewScreen.scenarioId}
+          screenId={panel.previewScreen.screenId}
+        />
+      )}
 
       <div className="rounded-xl border border-[var(--ok)] bg-[var(--ok-soft)] p-4">
         <div className="mb-3 text-[12px] font-semibold uppercase tracking-[0.05em] text-[var(--ok)]">
@@ -103,10 +145,7 @@ export function WebRecapLayout({ screen }: Props) {
       {recap.badges && recap.badges.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3">
           {recap.badges.map((badge, i) => (
-            <span
-              key={badge}
-              className="flex items-center gap-2"
-            >
+            <span key={badge} className="flex items-center gap-2">
               <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-[12px] font-semibold text-[var(--accent)]">
                 {badge}
               </span>
