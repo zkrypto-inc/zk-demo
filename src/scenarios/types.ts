@@ -129,6 +129,7 @@ export type RecapPanel = {
   title: string;
   subtitle?: string;
   groupTitle: string;
+  previewScreen?: { scenarioId: ScenarioId; screenId: string };
   rows: RecapRow[];
   cta?: {
     label: string;

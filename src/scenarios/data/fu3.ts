@@ -26,6 +26,7 @@ export const scenarioFU3: Scenario = {
           {
             title: "FU-1 결과 요약",
             groupTitle: "지갑 생성 결과",
+            previewScreen: { scenarioId: "FU-1", screenId: "FU1-5" },
             rows: [
               { label: "Wallet ID", value: "wallet_07KZB3C92", mono: true },
               { label: "지갑 주소", value: "0x7a2c...2c10", mono: true },
@@ -41,6 +42,7 @@ export const scenarioFU3: Scenario = {
           {
             title: "FU-2 결과 요약",
             groupTitle: "서명 요청 결과",
+            previewScreen: { scenarioId: "FU-2", screenId: "FU2-6" },
             rows: [
               { label: "거래 요청 ID", value: "tx_FU2_2048", mono: true },
               { label: "서명 요청 상태", value: "완료", ok: true },
