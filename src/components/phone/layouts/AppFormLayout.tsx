@@ -51,6 +51,30 @@ export function AppFormLayout({ screen, canAdvance, activeActionLabel, onAdvance
               <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--ink-2)]">
                 {section.title}
               </div>
+              {section.variant === "cards" ? (
+                <div className="grid gap-2">
+                  {section.fields.map((field) => (
+                    <div
+                      key={`${section.title}-${field.label}`}
+                      className="rounded-[14px] border border-[var(--line)] bg-[var(--surface)] px-4 py-3"
+                      style={
+                        field.tone === "ok"
+                          ? { borderColor: "var(--ok)", backgroundColor: "var(--ok-soft)" }
+                          : field.tone === "accent"
+                          ? { borderColor: "var(--accent)", backgroundColor: "var(--accent-soft)" }
+                          : {}
+                      }
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[14px] font-semibold text-[var(--ink)]">{field.label}</span>
+                        <span className={`font-mono text-[12px] font-semibold ${toneText(field.tone)}`}>
+                          {field.value}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
               <div className="overflow-hidden rounded-[14px] border border-[var(--line)] bg-[var(--surface)]">
                 {section.fields.map((field, i) => (
                   field.picker ? (
@@ -91,6 +115,7 @@ export function AppFormLayout({ screen, canAdvance, activeActionLabel, onAdvance
                   )
                 ))}
               </div>
+              )}
             </div>
           ))}
         </div>

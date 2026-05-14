@@ -33,10 +33,10 @@ const products: ProductMeta[] = [
   {
     id: "zkpasskey",
     name: "zkPasskey",
-    tagline: "Web2 신원 기반 계정 복구",
-    description: "Google, Apple 같은 기존 로그인 신원을 복구 수단으로 연결하고, ZK Proof로 개별 계정 정보를 공개하지 않은 채 계정 제어권을 복구합니다.",
-    tags: ["Web2 Identity", "Account Recovery", "ZK Proof"],
-    scenarios: ["ZK-1~3 Web2 신원 기반 계정 복구"],
+    tagline: "Web2 신원 기반 지갑 개설·복구",
+    description: "개인 사용자가 카카오, Google 같은 기존 로그인 신원을 연결하고, ZK Proof로 계정을 생성하거나 복구합니다.",
+    tags: ["Web2 Identity", "Account Creation", "Account Recovery", "ZK Proof"],
+    scenarios: ["ZK-1 지갑 개설", "ZK-2 지갑 복구"],
     available: true,
   },
   {

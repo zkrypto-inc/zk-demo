@@ -28,7 +28,8 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZT-1": { menuItem: "정책 설정", pageTitle: "개인정보보호 기반 송금 정책 설정", host: "admin.zktransfer.io" },
   "ZT-5": { menuItem: "정책 설정", pageTitle: "QR 결제 정책", host: "admin.zktransfer.io" },
   "ZT-A": { menuItem: "감사", pageTitle: "zkTransfer 감사", host: "audit.zktransfer.io" },
-  "ZK-1": { menuItem: "설정", pageTitle: "계정 복구 정책", host: "admin.zkpasskey.io" },
+  "ZK-1": { menuItem: "지갑 개설", pageTitle: "ZKPasskey 개인 사용자용", host: "app.zkpasskey.io" },
+  "ZK-2": { menuItem: "지갑 복구", pageTitle: "ZKPasskey 개인 사용자용", host: "app.zkpasskey.io" },
   "ZP-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkpol.io" },
 };
@@ -38,7 +39,8 @@ const menuItemsByScenario: Partial<Record<ScenarioId, string[]>> = {
   "ZT-1": ["대시보드", "정책 설정", "거래 내역"],
   "ZT-5": ["대시보드", "정책 설정", "결제 내역"],
   "ZT-A": ["대시보드", "감사", "복호화 이력"],
-  "ZK-1": ["설정", "신원 연결", "Anchor 등록", "계정 복구", "온체인 검증"],
+  "ZK-1": ["지갑 개설", "신원 연결", "증명 생성", "계정 활성화"],
+  "ZK-2": ["지갑 복구", "신원 확인", "증명 생성", "복구 완료"],
   "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "검증 내역"],
   "ZP-4": ["관제", "이상 이벤트", "증명 실패", "지급 차단", "감사 로그"],
 };
