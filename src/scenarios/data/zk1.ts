@@ -336,7 +336,7 @@ export const scenarioZK2: Scenario = {
           title: "복구 계정 정보",
           fields: [
             { label: "Public key", value: "0xpk42b9...77d1", tone: "ok" },
-            { label: "바뀐 지갑 주소", value: "0x73fa...e920", tone: "ok" },
+            { label: "지갑 주소", value: "0x73fa...e920", tone: "ok" },
             { label: "복구 기준", value: "2 / 3" },
           ],
         },
@@ -416,10 +416,10 @@ export const scenarioZK2: Scenario = {
       description: "생성된 증명이 블록체인에서 검증되면 계정이 다시 등록됩니다.",
       processView: {
         kind: "artifact",
-        description: "ZKPasskey 앱이 블록체인에 영지식 증명을 제출하고, 검증 후 새 Public key와 바뀐 지갑 주소를 등록합니다.",
+        description: "ZKPasskey 앱이 블록체인에 영지식 증명을 제출하고, 검증 후 새 Public key와 지갑 주소를 등록합니다.",
         items: [
           { label: "Public key", value: "0xpk42b9...77d1", tone: "ok" },
-          { label: "바뀐 지갑 주소", value: "0x73fa...e920", tone: "ok" },
+          { label: "지갑 주소", value: "0x73fa...e920", tone: "ok" },
           { label: "복구 기준", value: "2 / 3", tone: "accent" },
         ],
         diagram: "account-abstraction",
