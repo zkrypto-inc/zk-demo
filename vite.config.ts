@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 const isGitHubPages = process.env.GITHUB_PAGES === "true";
 
 export default defineConfig({
-  base: isGitHubPages ? "/zk-demo-v2/" : "/",
+  base: isGitHubPages ? "/zk-demo/" : "/",
   plugins: [react(), tailwindcss()],
   server: {
     host: "0.0.0.0",
