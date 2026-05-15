@@ -168,7 +168,6 @@ export type UserScreen = {
     cycle?: number[];
     label?: string;
   };
-  resultDiagram?: "account-abstraction";
   sections: Section[];
   actions?: ScreenAction[];
   footer?: string;
@@ -248,6 +247,7 @@ export type ProcessView =
       kind: "artifact";
       description: string;
       items: StatusCard[];
+      diagram?: "account-abstraction";
       sequence?: SequenceContext;
     }
   | {

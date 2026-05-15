@@ -22,12 +22,8 @@ const providerVerifySeq: SequenceContext = {
 };
 
 const creationProofSeq: SequenceContext = {
-  actors: ["ZKPasskey 앱", "카카오 app", "Google app", "Proof Engine"],
+  actors: ["ZKPasskey 앱", "Proof Engine"],
   activeEdge: { from: "ZKPasskey 앱", to: "Proof Engine", label: "영지식 증명 생성", tone: "accent" },
-  pastEdges: [
-    { from: "ZKPasskey 앱", to: "카카오 app", label: "신원 확인 반복", tone: "accent" },
-    { from: "ZKPasskey 앱", to: "Google app", label: "신원 확인 반복", tone: "accent" },
-  ],
 };
 
 const recoveryProofSeq: SequenceContext = {
@@ -139,7 +135,6 @@ export const scenarioZK1: Scenario = {
       title: "계정 생성 완료",
       subtitle: "계정이 활성화 되었습니다.",
       status: "계정 활성화 완료",
-      resultDiagram: "account-abstraction",
       sections: [
         {
           title: "계정 정보",
@@ -230,6 +225,7 @@ export const scenarioZK1: Scenario = {
           { label: "지갑 주소", value: "0x91b3...42f8", tone: "ok" },
           { label: "복구 기준", value: "2 / 3", tone: "accent" },
         ],
+        diagram: "account-abstraction",
         sequence: anchorSeq,
       },
     },
@@ -335,7 +331,6 @@ export const scenarioZK2: Scenario = {
       title: "증명 생성 완료",
       subtitle: "증명 검증이 끝나 복구가 완료되었습니다.",
       status: "복구 완료",
-      resultDiagram: "account-abstraction",
       sections: [
         {
           title: "복구 계정 정보",
@@ -427,6 +422,7 @@ export const scenarioZK2: Scenario = {
           { label: "바뀐 지갑 주소", value: "0x73fa...e920", tone: "ok" },
           { label: "복구 기준", value: "2 / 3", tone: "accent" },
         ],
+        diagram: "account-abstraction",
         sequence: recoveryRegisterSeq,
       },
     },

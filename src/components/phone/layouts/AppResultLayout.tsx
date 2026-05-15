@@ -9,36 +9,6 @@ type Props = {
   onAdvance?: () => void;
 };
 
-function AccountAbstractionDiagram() {
-  return (
-    <div className="rounded-[16px] border border-[var(--line)] bg-[var(--surface)] p-4">
-      <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--ink-2)]">
-        Account Abstraction
-      </div>
-      <div className="flex items-center gap-2">
-        {["Passkey", "Smart Account", "Blockchain"].map((label, index) => (
-          <div className="flex min-w-0 flex-1 items-center gap-2" key={label}>
-            <div
-              className={`flex min-h-[54px] flex-1 items-center justify-center rounded-[12px] border px-2 text-center text-[11px] font-semibold leading-[1.25] ${
-                index === 1
-                  ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                  : "border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)]"
-              }`}
-            >
-              {label}
-            </div>
-            {index < 2 && (
-              <svg className="h-4 w-4 shrink-0 text-[var(--ink-2)]" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h9M9 5l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvance }: Props) {
   const allFields = screen.sections.flatMap((s) => s.fields);
   const highlightFields = allFields.filter((f) => f.tone === "accent" || f.tone === "ok");
@@ -114,7 +84,7 @@ export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvan
         )}
 
         {otherFields.length > 0 && (
-          <div className="rounded-[16px] border border-[var(--line)] bg-[var(--surface)] p-4 space-y-3">
+          <div className="mt-3 rounded-[16px] border border-[var(--line)] bg-[var(--surface)] p-4 space-y-3">
             {otherFields.map((field) => (
               <div key={field.label} className="flex items-start justify-between gap-3">
                 <span className="text-[13px] text-[var(--ink-2)]">{field.label}</span>
@@ -126,11 +96,6 @@ export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvan
           </div>
         )}
 
-        {screen.resultDiagram === "account-abstraction" && (
-          <div className="mt-3">
-            <AccountAbstractionDiagram />
-          </div>
-        )}
       </div>
 
       <div className="shrink-0 space-y-2 pb-5 pt-1">
