@@ -19,6 +19,7 @@ const routeEvent = "zkdemo-route-change";
 const productAliases: Record<string, ProductId> = {
   zkporl: "zkpol",
 };
+const appBase = cleanPath(import.meta.env.BASE_URL ?? "/");
 
 const modeToProduct: Record<string, ProductId> = {
   custody: "zkwallet",
@@ -29,6 +30,22 @@ const modeToProduct: Record<string, ProductId> = {
 
 function cleanPath(pathname: string) {
   return pathname.replace(/\/+$/, "") || "/";
+}
+
+function stripBase(pathname: string) {
+  const cleaned = cleanPath(pathname);
+  if (appBase === "/") return cleaned;
+  if (cleaned === appBase) return "/";
+  if (cleaned.startsWith(`${appBase}/`)) {
+    return cleanPath(cleaned.slice(appBase.length));
+  }
+  return cleaned;
+}
+
+function withBase(pathname: string) {
+  const cleaned = cleanPath(pathname);
+  if (appBase === "/") return cleaned;
+  return cleaned === "/" ? `${appBase}/` : `${appBase}${cleaned}`;
 }
 
 function normalizeProductAliasPath(pathname: string) {
@@ -121,7 +138,7 @@ export function parseRoute(pathname: string): DemoRoute {
 }
 
 function getSnapshot() {
-  return cleanPath(window.location.pathname);
+  return stripBase(window.location.pathname);
 }
 
 function subscribe(listener: () => void) {
@@ -140,7 +157,7 @@ export function useDemoRoute() {
     const canonicalPath = normalizeProductAliasPath(pathname);
     if (canonicalPath === pathname) return;
 
-    window.history.replaceState({}, "", canonicalPath);
+    window.history.replaceState({}, "", withBase(canonicalPath));
     window.dispatchEvent(new Event(routeEvent));
   }, [pathname]);
 
@@ -149,10 +166,10 @@ export function useDemoRoute() {
 
 export function navigateToRoute(route: DemoRoute, replace = false) {
   const nextPath = pathForRoute(route);
-  if (cleanPath(window.location.pathname) === nextPath) return;
+  if (stripBase(window.location.pathname) === nextPath) return;
 
   const method = replace ? "replaceState" : "pushState";
-  window.history[method]({}, "", nextPath);
+  window.history[method]({}, "", withBase(nextPath));
   window.dispatchEvent(new Event(routeEvent));
 }
 
