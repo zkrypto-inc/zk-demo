@@ -9,7 +9,7 @@ import { scenarioFS4 } from "./data/fs4";
 import { scenarioFU1 } from "./data/fu1";
 import { scenarioFU2 } from "./data/fu2";
 import { scenarioFU3 } from "./data/fu3";
-import { scenarioZK1 } from "./data/zk1";
+import { scenarioZK1, scenarioZK2 } from "./data/zk1";
 import { scenarioZT1 } from "./data/zt1";
 import { scenarioZT5 } from "./data/zt5";
 import { scenarioZTA } from "./data/zta";
@@ -25,7 +25,7 @@ export const scenarioOrder: ScenarioId[] = [
   "CU-1", "CU-2", "CU-3",
   "IS-1", "FS-2", "FS-3",
   "FU-1", "FU-2", "FU-3",
-  "ZK-1",
+  "ZK-1", "ZK-2",
   "ZT-1", "ZT-5", "ZT-A",
   "ZP-1", "ZP-4",
 ];
@@ -43,6 +43,7 @@ export const scenarios: Record<ScenarioId, Scenario> = {
   "FU-2": scenarioFU2,
   "FU-3": scenarioFU3,
   "ZK-1": scenarioZK1,
+  "ZK-2": scenarioZK2,
   "ZT-1": scenarioZT1,
   "ZT-5": scenarioZT5,
   "ZT-A": scenarioZTA,

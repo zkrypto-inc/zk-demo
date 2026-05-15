@@ -11,7 +11,7 @@ export type ActorGroupId =
   | "zt-cbdc-user"
   | "zt-auditor"
   | "auditor"
-  | "passkey-recovery"
+  | "passkey-user"
   | "risk"
   | "incident";
 export type Surface = "web" | "app" | "mixed";
@@ -32,6 +32,7 @@ export type ScenarioId =
   | "FU-2"
   | "FU-3"
   | "ZK-1"
+  | "ZK-2"
   | "ZT-1"
   | "ZT-5"
   | "ZT-A"
@@ -65,6 +66,7 @@ export type Section = {
   title: string;
   fields: Field[];
   table?: DataTable;
+  variant?: "rows" | "cards";
 };
 
 export type ScreenAction = {
@@ -160,6 +162,13 @@ export type UserScreen = {
   animateProcessing?: boolean;
   subtitle?: string;
   status?: string;
+  progressBoxes?: {
+    total: number;
+    completed: number;
+    cycle?: number[];
+    label?: string;
+  };
+  resultDiagram?: "account-abstraction";
   sections: Section[];
   actions?: ScreenAction[];
   footer?: string;

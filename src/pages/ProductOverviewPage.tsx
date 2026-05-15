@@ -22,8 +22,8 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
   },
   zkpasskey: {
     eyebrow: "zkPasskey",
-    title: "Web2 신원 기반 계정 복구",
-    description: "기존 로그인 신원을 복구 수단으로 연결하고, 개별 계정 정보를 공개하지 않은 채 계정 공개키를 새 키로 갱신하는 서비스입니다.",
+    title: "Web2 신원 기반 지갑 개설·복구",
+    description: "개인 사용자가 앱에서 지갑을 개설하고, 등록된 Web2 신원으로 지갑을 복구하는 서비스입니다.",
   },
   zkpol: {
     eyebrow: "zkPoL",
