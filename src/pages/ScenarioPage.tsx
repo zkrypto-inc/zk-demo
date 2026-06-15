@@ -4,6 +4,7 @@ import { WebScreen } from "@/components/web/WebScreen";
 import { ProcessPanel } from "@/components/process/ProcessPanel";
 import { StepTracker } from "@/components/process/StepTracker";
 import { WebContainer } from "@/components/web/WebContainer";
+import { useAdapterScenarioRun } from "@/hooks/useAdapterScenarioRun";
 import { useScenarioPlayer } from "@/hooks/useScenarioPlayer";
 import { navigateToRoute } from "@/router";
 import {
@@ -30,6 +31,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   const resolvedActorId = actorId ?? scenarioGroupLookup[scenarioId] ?? scenario.mode;
   const group = actorGroupById[resolvedActorId] ?? getScenarioGroup(scenario);
   const resolvedProductId = productId ?? group?.productId ?? "zkwallet";
+  const adapter = useAdapterScenarioRun(scenario);
 
   const player = useScenarioPlayer({
     steps: scenario.steps,
@@ -117,6 +119,18 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
         </div>
         <div className="flex items-center gap-2">
+          {adapter.supported && (
+            <button
+              type="button"
+              onClick={adapter.rerun}
+              disabled={adapter.status === "loading"}
+              title={adapter.error ?? adapter.runId ?? "Adapter"}
+              className={`inline-flex h-7 max-w-[170px] items-center gap-2 rounded border px-3 text-[11px] font-medium transition ${adapterStatusClass(adapter.status)}`}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-current" />
+              <span className="truncate">{adapterStatusLabel(adapter.status)}</span>
+            </button>
+          )}
           <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
             step {player.currentStepIndex + 1} / {scenario.steps.length}
           </div>
@@ -251,4 +265,30 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       )}
     </section>
   );
+}
+
+function adapterStatusLabel(status: ReturnType<typeof useAdapterScenarioRun>["status"]) {
+  switch (status) {
+    case "loading":
+      return "adapter 연결 중";
+    case "success":
+      return "adapter OK";
+    case "error":
+      return "adapter 오류";
+    default:
+      return "adapter 대기";
+  }
+}
+
+function adapterStatusClass(status: ReturnType<typeof useAdapterScenarioRun>["status"]) {
+  switch (status) {
+    case "loading":
+      return "border-[var(--warn-soft)] bg-[var(--warn-soft)] text-[var(--warn)]";
+    case "success":
+      return "border-[var(--ok-soft)] bg-[var(--ok-soft)] text-[var(--ok)]";
+    case "error":
+      return "border-[var(--bad-soft)] bg-[var(--bad-soft)] text-[var(--bad)] hover:opacity-80";
+    default:
+      return "border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]";
+  }
 }

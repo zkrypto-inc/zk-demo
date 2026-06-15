@@ -93,6 +93,18 @@ export function withLiveScreenValues(
         value: screenValues[field.label] ?? resolveLiveValue(state, scenarioId, field.label, field.value),
       })),
     })),
+    recap: screen.recap
+      ? {
+          ...screen.recap,
+          panels: screen.recap.panels.map((panel) => ({
+            ...panel,
+            rows: panel.rows.map((row) => ({
+              ...row,
+              value: resolveLiveValue(state, scenarioId, row.label, row.value),
+            })),
+          })),
+        }
+      : screen.recap,
   };
 }
 
