@@ -15,6 +15,7 @@ import { scenarioZT5 } from "./data/zt5";
 import { scenarioZTA } from "./data/zta";
 import { scenarioZP1 } from "./data/zp1";
 import { scenarioZP4 } from "./data/zp4";
+import { scenarioZPS1, scenarioZPS4 } from "./data/zps";
 import type { Scenario, ScenarioId } from "./types";
 
 export type { Scenario, ScenarioId };
@@ -28,6 +29,7 @@ export const scenarioOrder: ScenarioId[] = [
   "ZK-1", "ZK-2",
   "ZT-1", "ZT-5", "ZT-A",
   "ZP-1", "ZP-4",
+  "ZPS-1", "ZPS-4",
 ];
 
 export const scenarios: Record<ScenarioId, Scenario> = {
@@ -49,4 +51,6 @@ export const scenarios: Record<ScenarioId, Scenario> = {
   "ZT-A": scenarioZTA,
   "ZP-1": scenarioZP1,
   "ZP-4": scenarioZP4,
+  "ZPS-1": scenarioZPS1,
+  "ZPS-4": scenarioZPS4,
 };

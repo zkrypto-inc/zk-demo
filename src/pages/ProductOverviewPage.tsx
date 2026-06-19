@@ -27,8 +27,8 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; descripti
   },
   zkpol: {
     eyebrow: "zkPoL",
-    title: "거래소 고객 부채 ZK 증명",
-    description: "개별 잔고 비공개 상태에서 전체 고객 부채 정합성을 ZK Proof로 상시 증명합니다. 역할을 선택해 시나리오를 시작하세요.",
+    title: "고객 잔액 정합성 ZK 증명",
+    description: "거래소 고객 부채와 스테이블코인 발행 잔액을 개별 잔고 비공개 상태에서 ZK Proof로 상시 증명합니다. 섹션을 선택해 시나리오를 시작하세요.",
   },
 };
 

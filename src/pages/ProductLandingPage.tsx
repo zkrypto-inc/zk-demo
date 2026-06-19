@@ -43,9 +43,9 @@ const products: ProductMeta[] = [
     id: "zkpol",
     name: "zkPoL",
     tagline: "거래소 고객 부채 ZK 증명",
-    description: "개별 잔고를 공개하지 않고 거래소 전체 고객 부채의 정합성을 ZK Proof로 상시 증명합니다. 이상징후 탐지 및 지급 차단 흐름도 포함합니다.",
+    description: "개별 잔고를 공개하지 않고 거래소 또는 스테이블코인 플랫폼의 고객 잔액 정합성을 ZK Proof로 상시 증명합니다. 이상징후 탐지 및 차단 흐름도 포함합니다.",
     tags: ["PoL", "BatchCircuit", "Audit"],
-    scenarios: ["ZP-1 상시 PoL 대사", "ZP-4 이상징후 탐지·차단"],
+    scenarios: ["거래소용 ZP-1·ZP-4", "스테이블코인용 ZPS-1·ZPS-4"],
     available: true,
   },
 ];

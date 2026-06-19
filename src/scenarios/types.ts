@@ -13,6 +13,7 @@ export type ActorGroupId =
   | "auditor"
   | "passkey-user"
   | "risk"
+  | "stablecoin-risk"
   | "incident";
 export type Surface = "web" | "app" | "mixed";
 export type ActorType = "mobile" | "web";
@@ -37,7 +38,9 @@ export type ScenarioId =
   | "ZT-5"
   | "ZT-A"
   | "ZP-1"
-  | "ZP-4";
+  | "ZP-4"
+  | "ZPS-1"
+  | "ZPS-4";
 
 // --- User screen types ---
 
