@@ -17,6 +17,7 @@ import {
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { demoStore, useDemoStore } from "@/store/demoStore";
 import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
+import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
 
 type Props = {
   actorId?: ActorGroupId;
@@ -93,6 +94,26 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     : player.advance;
   const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
   const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
+
+  // zkPoL 라이브 시나리오(ZP-1/ZP-4)는 스크립트 화면 대신 실데이터 대시보드를 렌더한다.
+  if (ZKPOL_LIVE_SCENARIOS.has(scenario.id)) {
+    return (
+      <section className="space-y-5">
+        <div className="border-b border-[var(--line)] pb-4">
+          <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--ink-2)]">
+            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">Demo Home</button>
+            <span>/</span>
+            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">{resolvedProductId}</button>
+            <span>/</span>
+            <span className="font-semibold text-[var(--ink)]">{displayId} · {scenario.shortName}</span>
+          </div>
+          <h1 className="mt-2 text-[26px] font-semibold leading-tight text-[var(--ink)]">{scenario.name}</h1>
+          <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
+        </div>
+        <ZkpolLiveDashboard scenarioId={scenario.id} />
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-5">
