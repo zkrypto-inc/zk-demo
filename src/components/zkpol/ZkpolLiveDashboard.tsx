@@ -10,7 +10,7 @@ import {
   type PolIncidentListItem,
   type SystemStatus,
 } from "@/api/polClient";
-import { getPipelineCounts, injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
+import { currentDemoToken, displayToken, getPipelineCounts, injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
 import { usePolling } from "@/hooks/usePolling";
 
 type Props = { scenarioId: string };
@@ -115,6 +115,10 @@ function Zp1Reconciliation() {
   const logs = usePolling(getVerificationLogs, 5000);
   const counts = usePolling(getPipelineCounts, 2000);
   const c = counts.data;
+  const sessionToken = currentDemoToken();
+  // 시스템 상태는 전역 overview가 아니라 '현재 세션 코인'의 건전성으로 본다(이전 차단 세션 무관).
+  const sessionCoin = (coins.data ?? []).find((coin) => coin.tokenId === sessionToken);
+  const sessionStatus = sessionCoin?.healthStatus ?? "unknown";
 
   return (
     <div className="space-y-4">
@@ -141,7 +145,7 @@ function Zp1Reconciliation() {
         </div>
       </Card>
 
-      <Card title="시스템 상태" right={overview.data ? <StatusBadge status={overview.data.systemStatus} /> : null}>
+      <Card title="시스템 상태" right={<StatusBadge status={sessionStatus} />}>
         <div className="grid grid-cols-2 gap-4 text-[13px] text-[var(--ink)]">
           <div>
             <div className="text-[var(--ink-2)]">최근 반영 시각</div>
@@ -149,7 +153,7 @@ function Zp1Reconciliation() {
           </div>
           <div>
             <div className="text-[var(--ink-2)]">최근 반영 코인</div>
-            <div className="mt-1 font-mono">{overview.data?.lastReflectedToken ?? "—"}</div>
+            <div className="mt-1 font-mono">{overview.data?.lastReflectedToken ? displayToken(overview.data.lastReflectedToken) : "—"}</div>
           </div>
         </div>
       </Card>
@@ -166,16 +170,16 @@ function Zp1Reconciliation() {
             </tr>
           </thead>
           <tbody>
-            {(coins.data ?? []).map((c) => (
+            {(coins.data ?? []).filter((c) => c.tokenId === sessionToken).map((c) => (
               <tr key={c.tokenId} className="border-b border-[var(--line)]/50">
-                <td className="py-2 font-mono">{c.tokenId}</td>
+                <td className="py-2 font-mono">{displayToken(c.tokenId)}</td>
                 <td className="py-2 text-right font-mono">{fmtAmount(c.reserveAmount)}</td>
                 <td className="py-2 text-right font-mono">{fmtAmount(c.liabilityAmount)}</td>
                 <td className="py-2 text-right font-mono">{fmtRatio(c.coverageRatio)}</td>
                 <td className="py-2 text-right"><StatusBadge status={c.healthStatus} /></td>
               </tr>
             ))}
-            {(coins.data ?? []).length === 0 && (
+            {(coins.data ?? []).filter((c) => c.tokenId === sessionToken).length === 0 && (
               <tr><td colSpan={5} className="py-6 text-center text-[var(--ink-2)]">데이터 없음 — "거래소 운영 시작"을 눌러 원장 이벤트를 생성하세요.</td></tr>
             )}
           </tbody>
@@ -184,10 +188,10 @@ function Zp1Reconciliation() {
 
       <Card title="증명 검증 로그 (배치별)">
         <div className="max-h-[280px] space-y-2 overflow-auto">
-          {(logs.data ?? []).map((l) => (
+          {(logs.data ?? []).filter((l) => l.tokenId === sessionToken).map((l) => (
             <div key={`${l.tokenId}-${l.batchSeq}`} className="flex items-center justify-between rounded border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2 text-[12px]">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-[var(--ink)]">{l.tokenId} #{l.batchSeq}</span>
+                <span className="font-mono text-[var(--ink)]">{displayToken(l.tokenId)} #{l.batchSeq}</span>
                 <span className="text-[var(--ink-2)]">{l.changeSummary ?? `${fmtAmount(l.rowCount)} rows`}</span>
               </div>
               <div className="flex items-center gap-3 text-[var(--ink-2)]">
@@ -196,7 +200,7 @@ function Zp1Reconciliation() {
               </div>
             </div>
           ))}
-          {(logs.data ?? []).length === 0 && <div className="py-6 text-center text-[12px] text-[var(--ink-2)]">검증 로그 없음</div>}
+          {(logs.data ?? []).filter((l) => l.tokenId === sessionToken).length === 0 && <div className="py-6 text-center text-[12px] text-[var(--ink-2)]">검증 로그 없음</div>}
         </div>
       </Card>
     </div>
@@ -213,14 +217,19 @@ function Zp4Incidents() {
     !!selected,
   );
 
-  const s = summary.data;
+  // 현재 데모 세션 토큰의 사고만 표시(이전 세션의 차단 잔재는 숨김). 요약도 이 목록에서 계산.
+  const sessionToken = currentDemoToken();
+  const sessionList = (list.data ?? []).filter((it) => it.tokenId === sessionToken);
+  const incidentCount = sessionList.length;
+  const highRiskCount = sessionList.filter((it) => it.severity === "high" || it.severity === "critical").length;
+  const unresolvedCount = sessionList.filter((it) => it.status === "open").length;
   return (
     <div className="space-y-4">
       <ErrorHint error={summary.error ?? list.error} />
       <div className="grid grid-cols-3 gap-4">
-        <Card title="사고 건수"><div className="text-[28px] font-semibold text-[var(--ink)]">{s?.incidentCount ?? 0}</div></Card>
-        <Card title="고위험"><div className="text-[28px] font-semibold text-red-600">{s?.highRiskCount ?? 0}</div></Card>
-        <Card title="미해결"><div className="text-[28px] font-semibold text-amber-600">{s?.unresolvedCount ?? 0}</div></Card>
+        <Card title="사고 건수"><div className="text-[28px] font-semibold text-[var(--ink)]">{incidentCount}</div></Card>
+        <Card title="고위험"><div className="text-[28px] font-semibold text-red-600">{highRiskCount}</div></Card>
+        <Card title="미해결"><div className="text-[28px] font-semibold text-amber-600">{unresolvedCount}</div></Card>
       </div>
 
       <Card title="사고 목록">
@@ -235,7 +244,7 @@ function Zp4Incidents() {
             </tr>
           </thead>
           <tbody>
-            {(list.data ?? []).map((it, idx) => {
+            {sessionList.map((it, idx) => {
               const hasBatch = it.batchSeq != null;
               return (
               <tr
@@ -243,7 +252,7 @@ function Zp4Incidents() {
                 onClick={hasBatch ? () => setSelected(it) : undefined}
                 className={`border-b border-[var(--line)]/50 ${hasBatch ? "cursor-pointer hover:bg-[var(--surface-2)]" : ""} ${selected?.batchSeq === it.batchSeq && selected?.tokenId === it.tokenId ? "bg-[var(--surface-2)]" : ""}`}
               >
-                <td className="py-2 font-mono">{it.tokenId}{hasBatch ? ` #${it.batchSeq}` : " · 증명 전 차단"}</td>
+                <td className="py-2 font-mono">{displayToken(it.tokenId)}{hasBatch ? ` #${it.batchSeq}` : " · 증명 전 차단"}</td>
                 <td className="py-2"><StatusBadge status={it.severity === "high" || it.severity === "critical" ? "incident" : "watch"} /></td>
                 <td className="py-2 max-w-[280px] truncate text-[var(--ink-2)]">{it.errorMessage ?? "—"}</td>
                 <td className="py-2 text-right font-mono">{fmtAmount(it.impactedAccounts)}</td>
@@ -251,7 +260,7 @@ function Zp4Incidents() {
               </tr>
               );
             })}
-            {(list.data ?? []).length === 0 && (
+            {sessionList.length === 0 && (
               <tr><td colSpan={5} className="py-6 text-center text-[var(--ink-2)]">사고 없음 — "이상징후 주입"으로 비정상 원장 이벤트를 발생시키세요.</td></tr>
             )}
           </tbody>
@@ -259,7 +268,7 @@ function Zp4Incidents() {
       </Card>
 
       {selected && (
-        <Card title={`사고 상세 — ${selected.tokenId} #${selected.batchSeq} · 관련 원장 이벤트`}>
+        <Card title={`사고 상세 — ${displayToken(selected.tokenId)} #${selected.batchSeq} · 관련 원장 이벤트`}>
           <div className="max-h-[260px] space-y-2 overflow-auto">
             {(events.data ?? []).map((e) => (
               <div key={e.eventId} className="flex items-center justify-between rounded border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2 text-[12px]">
