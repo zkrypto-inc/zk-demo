@@ -10,7 +10,7 @@ import {
   type PolIncidentListItem,
   type SystemStatus,
 } from "@/api/polClient";
-import { injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
+import { getPipelineCounts, injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
 import { usePolling } from "@/hooks/usePolling";
 
 type Props = { scenarioId: string };
@@ -105,10 +105,34 @@ function Zp1Reconciliation() {
   const overview = usePolling(getPublicOverview, 5000);
   const coins = usePolling(getPublicCoins, 5000);
   const logs = usePolling(getVerificationLogs, 5000);
+  const counts = usePolling(getPipelineCounts, 2000);
+  const c = counts.data;
 
   return (
     <div className="space-y-4">
       <ErrorHint error={overview.error ?? coins.error ?? logs.error} />
+
+      <Card title="실시간 원장 처리량" right={<span className="text-[11px] text-[var(--ink-2)]">2초 갱신</span>}>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="min-w-0">
+            <div className="truncate text-[12px] text-[var(--ink-2)]">누적 처리 거래</div>
+            <div className="mt-1 font-mono text-[24px] font-semibold tabular-nums text-[var(--accent)]">{(c?.latest_event_id ?? 0).toLocaleString()}</div>
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-[12px] text-[var(--ink-2)]">미반영 대기</div>
+            <div className="mt-1 font-mono text-[24px] tabular-nums text-[var(--ink)]">{(c?.ledger_change_event_count ?? 0).toLocaleString()}</div>
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-[12px] text-[var(--ink-2)]">증명 대기</div>
+            <div className="mt-1 font-mono text-[24px] tabular-nums text-amber-600">{(c?.prove_pending_event_count ?? 0).toLocaleString()}</div>
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-[12px] text-[var(--ink-2)]">제출 대기</div>
+            <div className="mt-1 font-mono text-[24px] tabular-nums text-amber-600">{(c?.submit_pending_event_count ?? 0).toLocaleString()}</div>
+          </div>
+        </div>
+      </Card>
+
       <Card title="시스템 상태" right={overview.data ? <StatusBadge status={overview.data.systemStatus} /> : null}>
         <div className="grid grid-cols-2 gap-4 text-[13px] text-[var(--ink)]">
           <div>
