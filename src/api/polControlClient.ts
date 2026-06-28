@@ -5,9 +5,6 @@
 const GEN_BASE = (import.meta.env.VITE_ZKPOL_GEN_BASE_URL?.trim() || "/pol/gen").replace(/\/+$/, "");
 
 export const DEMO_TOKEN_ID = (import.meta.env.VITE_ZKPOL_DEMO_TOKEN?.trim() || "BTC");
-// 이상징후는 별도 토큰에 주입한다. 같은 토큰에 넣으면 invariant 차단이 정상 스트림(ZP-1)까지
-// 막아버리므로, ZP-4 데모는 전용 토큰을 써서 ZP-1 흐름과 분리한다.
-export const ANOMALY_TOKEN_ID = (import.meta.env.VITE_ZKPOL_ANOMALY_TOKEN?.trim() || "ETH");
 const DEMO_USER_COUNT = 1000;
 const DEMO_INITIAL_BALANCE = 100_000;
 
@@ -77,9 +74,11 @@ export const stopStream = (tokenId = DEMO_TOKEN_ID) =>
     throw e;
   });
 
-// 이상징후 주입 (비정상 이벤트 버스트 — ZP-4 트리거). 전용 토큰을 먼저 준비한 뒤 주입해
-// ZP-1(정상 BTC) 흐름과 분리한다.
-export async function injectAnomaly(tokenId = ANOMALY_TOKEN_ID, count = 100) {
+// 이상징후 주입 (비정상 BTC 원장 이벤트 — ZP-4 트리거). 거래 중인 BTC에 그대로 주입해
+// "정상 거래 중 이상 거래 유입 → 감지 → 지급 차단" 내러티브를 보인다.
+// 주의: invariant 위반이 BTC 파이프라인을 차단하므로(=지급 차단), 재시연하려면 데모 초기화 필요.
+export async function injectAnomaly(tokenId = DEMO_TOKEN_ID, count = 100) {
+  // BTC가 아직 준비 안 됐으면 준비(거래 시작 안 누르고 ZP-4부터 본 경우 대비)
   await deployContract(tokenId).catch(ignoreConflict);
   await bootstrapToken(tokenId).catch(ignoreConflict);
   await startBatchScheduler(tokenId).catch(ignoreConflict);
