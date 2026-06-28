@@ -55,9 +55,10 @@ function Card({ title, children, right }: { title: string; children: React.React
   );
 }
 
-function ControlBar() {
+function ControlBar({ scenarioId }: { scenarioId: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const isIncident = scenarioId === "ZP-4";
 
   const act = async (label: string, fn: () => Promise<unknown>) => {
     setBusy(label);
@@ -76,15 +77,22 @@ function ControlBar() {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3">
       <span className="text-[12px] font-medium text-[var(--ink-2)]">데모 제어:</span>
-      <button type="button" disabled={!!busy} onClick={() => act("거래소 운영 시작", () => startDemoPipeline())} className={`${btn} bg-[var(--accent)] text-white hover:opacity-90`}>
-        거래소 운영 시작
-      </button>
-      <button type="button" disabled={!!busy} onClick={() => act("이상징후 주입", () => injectAnomaly())} className={`${btn} border border-red-300 bg-red-50 text-red-600 hover:bg-red-100`}>
-        이상징후 주입
-      </button>
-      <button type="button" disabled={!!busy} onClick={() => act("운영 정지", () => stopStream())} className={`${btn} border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-2)] hover:text-[var(--ink)]`}>
-        운영 정지
-      </button>
+      {isIncident ? (
+        // ZP-4: 이상징후 주입 — 결과(사고)가 이 화면에 바로 보인다.
+        <button type="button" disabled={!!busy} onClick={() => act("이상징후 주입", () => injectAnomaly())} className={`${btn} border border-red-300 bg-red-50 text-red-600 hover:bg-red-100`}>
+          이상징후 주입
+        </button>
+      ) : (
+        // ZP-1: 정상 운영 제어
+        <>
+          <button type="button" disabled={!!busy} onClick={() => act("거래소 운영 시작", () => startDemoPipeline())} className={`${btn} bg-[var(--accent)] text-white hover:opacity-90`}>
+            거래소 운영 시작
+          </button>
+          <button type="button" disabled={!!busy} onClick={() => act("운영 정지", () => stopStream())} className={`${btn} border border-[var(--line)] bg-[var(--surface)] text-[var(--ink-2)] hover:text-[var(--ink)]`}>
+            운영 정지
+          </button>
+        </>
+      )}
       {busy && <span className="text-[12px] text-[var(--ink-2)]">{busy}…</span>}
       {msg && !busy && <span className="text-[12px] text-[var(--ink-2)]">{msg}</span>}
     </div>
@@ -277,7 +285,7 @@ function Zp4Incidents() {
 export function ZkpolLiveDashboard({ scenarioId }: Props) {
   return (
     <div className="space-y-4">
-      <ControlBar />
+      <ControlBar scenarioId={scenarioId} />
       {scenarioId === "ZP-4" ? <Zp4Incidents /> : <Zp1Reconciliation />}
     </div>
   );
