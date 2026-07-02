@@ -152,6 +152,20 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
               <span className="truncate">{adapterStatusLabel(adapter.status)}</span>
             </button>
           )}
+          {adapter.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                player.restart();
+                void adapter.reset();
+              }}
+              disabled={adapter.status === "loading"}
+              title="이 시나리오의 실행 상태를 비우고 처음부터 (새 지갑·새 서명)"
+              className="inline-flex h-7 items-center rounded border border-[var(--line)] bg-[var(--surface)] px-3 text-[11px] font-medium text-[var(--ink-2)] transition hover:border-[var(--ink-2)] hover:text-[var(--ink)] disabled:opacity-50"
+            >
+              리셋
+            </button>
+          )}
           <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
             step {player.currentStepIndex + 1} / {scenario.steps.length}
           </div>

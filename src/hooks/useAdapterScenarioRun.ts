@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { AdapterClientError, isAdapterCase, runAdapterCase } from "@/api/adapterClient";
+import { AdapterClientError, isAdapterCase, resetAdapterCase, runAdapterCase } from "@/api/adapterClient";
 import type { Scenario } from "@/scenarios/types";
 import { demoStore, useDemoStore } from "@/store/demoStore";
 import {
@@ -48,12 +48,30 @@ export function useAdapterScenarioRun(scenario: Scenario) {
     void run();
   }, [adapterRun?.status, run, supported]);
 
+  // 시나리오 리셋: 어댑터 케이스 상태(실행·서명·지갑)를 비우고 처음부터 다시 실행.
+  const reset = useCallback(async () => {
+    if (!isAdapterCase(scenario.id)) return;
+    const snapshot = demoStore.getState();
+    if (snapshot.adapterRuns[scenario.id]?.status === "loading") return;
+
+    demoStore.setAdapterRun(scenario.id, { status: "loading", error: undefined });
+    try {
+      await resetAdapterCase(scenario.id);
+      demoStore.setScenarioValues(scenario.id, {});
+      demoStore.setAdapterRun(scenario.id, { status: "idle", runId: undefined, error: undefined });
+      await run();
+    } catch (error) {
+      demoStore.setAdapterRun(scenario.id, { status: "error", error: getErrorMessage(error) });
+    }
+  }, [scenario, run]);
+
   return {
     supported,
     status: adapterRun?.status ?? "idle",
     runId: adapterRun?.runId,
     error: adapterRun?.error,
     rerun: run,
+    reset,
   };
 }
 

@@ -57,6 +57,20 @@ export function getAdapterBaseUrl() {
   return stripTrailingSlash(configured || "/wallet/adapter");
 }
 
+// 시나리오별 리셋: 어댑터의 해당 케이스 실행 이력·서명·지갑을 비운다(다음 실행은 새 keygen부터).
+export async function resetAdapterCase(caseId: AdapterCaseId) {
+  const res = await fetch(`${getAdapterBaseUrl()}/cases/${encodeURIComponent(caseId)}/reset`, { method: "POST" });
+  const payload = await parseJsonSafely(res);
+  if (!res.ok || payload?.ok === false) {
+    throw new AdapterClientError(payload?.message || `Adapter case reset failed: ${caseId}`, {
+      status: res.status,
+      errorCode: payload?.errorCode,
+      details: payload,
+    });
+  }
+  return payload;
+}
+
 export async function runAdapterCase(caseId: AdapterCaseId, inputs: Record<string, unknown> = {}) {
   const res = await fetch(`${getAdapterBaseUrl()}/cases/${encodeURIComponent(caseId)}/run`, {
     method: "POST",
