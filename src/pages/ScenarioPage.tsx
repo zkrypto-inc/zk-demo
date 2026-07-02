@@ -98,18 +98,18 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   // zkPoL 라이브 시나리오(ZP-1/ZP-4)는 스크립트 화면 대신 실데이터 대시보드를 렌더한다.
   if (ZKPOL_LIVE_SCENARIOS.has(scenario.id)) {
     return (
-      <section className="space-y-5">
-        <div className="border-b border-[var(--line)] pb-4">
-          <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--ink-2)]">
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">Demo Home</button>
+      <section className="mx-auto max-w-[1100px] space-y-12 pt-2">
+        <header>
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--muted)]">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">Demo</button>
             <span>/</span>
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">{resolvedProductId}</button>
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">{resolvedProductId}</button>
             <span>/</span>
-            <span className="font-semibold text-[var(--ink)]">{displayId} · {scenario.shortName}</span>
+            <span className="text-[var(--ink-2)]">{displayId}</span>
           </div>
-          <h1 className="mt-2 text-[26px] font-semibold leading-tight text-[var(--ink)]">{scenario.name}</h1>
-          <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
-        </div>
+          <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">{scenario.name}</h1>
+          <p className="mt-2.5 max-w-[600px] text-[13.5px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</p>
+        </header>
         <ZkpolLiveDashboard scenarioId={scenario.id} />
       </section>
     );
@@ -117,27 +117,27 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] pb-4 xl:flex-row xl:items-end">
+      <div className="flex flex-col justify-between gap-4 border-b border-[var(--ink)]/15 pb-5 xl:flex-row xl:items-end">
         <div>
-          <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--ink-2)]">
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">
-              Demo Home
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--muted)]">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">
+              Demo
             </button>
             <span>/</span>
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">
               {resolvedProductId}
             </button>
             <span>/</span>
             {group && (
-              <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "actor", productId: resolvedProductId, actorId: group.id })} type="button">
+              <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "actor", productId: resolvedProductId, actorId: group.id })} type="button">
                 {group.label}
               </button>
             )}
             <span>/</span>
-            <span className="font-semibold text-[var(--ink)]">{displayId} · {scenario.shortName}</span>
+            <span className="text-[var(--ink-2)]">{displayId}</span>
           </div>
-          <h1 className="mt-2 text-[26px] font-semibold leading-tight text-[var(--ink)]">{scenario.name}</h1>
-          <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
+          <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">{scenario.name}</h1>
+          <p className="mt-2.5 max-w-[640px] text-[13.5px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</p>
         </div>
         <div className="flex items-center gap-2">
           {adapter.supported && (
@@ -180,10 +180,10 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       </div>
 
       {screen.layout !== "recap" && (
-      <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+      <div className="flex items-start justify-between gap-4 border-l-2 border-[var(--ink)] bg-[var(--surface-2)] px-5 py-4">
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
-          <div className="mt-2 text-[22px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+          <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">현재 단계</div>
+          <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
         </div>
         {player.canStopAuto && (
           <button

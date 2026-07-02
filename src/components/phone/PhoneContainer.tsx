@@ -32,13 +32,13 @@ export function PhoneContainer({
     <section className="flex flex-col items-center">
       <div className="mb-5 flex w-full max-w-[352px] items-center justify-between">
         <div>
-          <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">사용자 화면</div>
-          <div className="mt-1 text-[15px] font-semibold text-[var(--ink)]">{actor}</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">사용자 화면</div>
+          <div className="mt-1.5 text-[15px] font-semibold text-[var(--ink)]">{actor}</div>
           {stepIndicator && (
             <div className="mt-1 font-mono text-[11px] text-[var(--muted)]">{stepIndicator}</div>
           )}
         </div>
-        <div className="inline-flex h-6 items-center rounded-full bg-[var(--surface-2)] px-3 text-[11px] font-medium text-[var(--ink-2)]">
+        <div className="inline-flex h-6 items-center border border-[var(--line)] px-2.5 font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--ink-2)]">
           {screen.status}
         </div>
       </div>

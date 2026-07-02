@@ -30,6 +30,15 @@ export function AppShell({ children, route }: Props) {
     currentScenarioId = route.scenarioId;
   }
 
+  // 랜딩은 사이드바 없는 풀 에디토리얼 페이지로.
+  if (route.name === "landing") {
+    return (
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
+        <main className="px-6 md:px-10">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)]">
       <div className="flex min-h-screen">
