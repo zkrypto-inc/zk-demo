@@ -14,6 +14,11 @@ const DIST = path.resolve(__dirname, "..", "dist");
 const PORT = Number(process.env.WEB_PORT || 80);
 const HOST = process.env.WEB_HOST || "0.0.0.0";
 const INDEX = path.join(DIST, "index.html");
+// zkpol 네이티브 대시보드 dist를 /pol/dash 에 마운트 (iframe 임베드용).
+// 위치는 POL_DASH_DIST로 지정. 디렉터리가 없으면 해당 경로는 데모 SPA 폴백으로 넘어간다.
+const DASH_PREFIX = "/pol/dash";
+const DASH_DIST = process.env.POL_DASH_DIST || path.resolve(__dirname, "..", "pol-dash");
+const DASH_INDEX = path.join(DASH_DIST, "index.html");
 
 // 프록시 라우트: prefix로 매칭. strip=true면 prefix를 떼고 대상 루트로 보낸다.
 const PROXIES = [
@@ -73,6 +78,21 @@ const server = http.createServer((req, res) => {
   // 백엔드 프록시 (정적 서빙보다 먼저)
   const route = PROXIES.find((r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`));
   if (route) return proxy(req, res, route);
+
+  // zkpol 네이티브 대시보드 (/pol/dash) — 빌드가 base=/pol/dash 라 prefix를 떼고 서빙
+  if (pathname === DASH_PREFIX || pathname.startsWith(`${DASH_PREFIX}/`)) {
+    const dashPath = pathname.slice(DASH_PREFIX.length) || "/";
+    const dashRel = path.normalize(dashPath === "/" ? "/index.html" : dashPath).replace(/^(\.\.[/\\])+/, "");
+    const dashFile = path.join(DASH_DIST, dashRel);
+    if (!dashFile.startsWith(DASH_DIST)) return send(res, 403, "forbidden");
+    return fs.stat(dashFile, (err, stat) => {
+      if (!err && stat.isFile()) return serveFile(res, dashFile);
+      fs.stat(DASH_INDEX, (indexErr) => {
+        if (indexErr) return send(res, 404, "pol dashboard not deployed");
+        serveFile(res, DASH_INDEX); // 대시보드 SPA 폴백 (/public, /operator 등)
+      });
+    });
+  }
 
   // 정적 서빙(루트 base). 파일 없으면 SPA 폴백.
   const rel = path.normalize(pathname === "/" ? "/index.html" : pathname).replace(/^(\.\.[/\\])+/, "");

@@ -33,6 +33,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (p) => p.replace(/^\/pol\/gen/, ""),
         },
+        // zkPoL 네이티브 대시보드 정적 서빙 (dev에선 web-server.cjs가 :8086에서 담당)
+        "/pol/dash": {
+          target: env.VITE_ZKPOL_DASH_PROXY_TARGET || "http://127.0.0.1:8086",
+          changeOrigin: true,
+        },
       },
     },
     resolve: {
