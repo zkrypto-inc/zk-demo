@@ -8,26 +8,26 @@
 
 :root {
   color-scheme: light;
-  /* 미니멀 에디토리얼: 차가운 zinc+indigo → 따뜻한 페이퍼/잉크 + 절제된 코발트 스팟 */
-  --bg: #fbfaf6;
+  /* 미니멀 에디토리얼: 중립 그레이(zinc) + 절제된 코발트 스팟 — 깔끔·쿨 톤 */
+  --bg: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f3f1ea;
-  --surface-3: #ece9df;
-  --ink: #1a1916;
-  --ink-2: #6b6760;
-  --muted: #9d988c;
-  --line: #e6e1d5;
-  --line-2: #efece3;
+  --surface-2: #f4f4f5;
+  --surface-3: #e9e9ec;
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --muted: #a1a1aa;
+  --line: #e6e6e9;
+  --line-2: #f1f1f3;
   --accent: #1d3be0;
   --accent-hover: #1630b6;
-  --accent-soft: #edf0fe;
-  --ok: #1f7a4d;
-  --ok-soft: #e4f1e9;
+  --accent-soft: #eef1fe;
+  --ok: #157f4b;
+  --ok-soft: #e6f4ec;
   --bad: #c4362f;
-  --bad-soft: #f7e7e5;
-  --warn: #b07619;
-  --warn-soft: #f5ecd8;
-  --bezel: #1a1916;
+  --bad-soft: #fbe9e7;
+  --warn: #b45309;
+  --warn-soft: #f6ecd9;
+  --bezel: #18181b;
 }
 
 html,

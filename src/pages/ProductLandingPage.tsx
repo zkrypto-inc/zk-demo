@@ -24,7 +24,9 @@ export function ProductLandingPage() {
           <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">영지식 증명 제품 데모</h1>
         </div>
         <p className="max-w-[340px] text-[13px] leading-[1.6] text-[var(--ink-2)] sm:text-right">
-          영지식 증명 제품 4종을 시나리오로 시연합니다. 항목을 선택해 시작하세요.
+          영지식 증명 제품 4종을 시나리오로 시연합니다.
+          <br />
+          항목을 선택해 시작하세요.
         </p>
       </header>
 
