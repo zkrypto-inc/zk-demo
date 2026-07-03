@@ -89,9 +89,11 @@ type Props = {
   currentStepIndex?: number;
   processView: ProcessView;
   steps?: ScenarioStep[];
+  // 현재 화면에 노출되는 기술 값(Tx Hash·Raw Signature 등)의 [라벨, 해설] 목록
+  screenFieldHints?: [string, string][];
 };
 
-export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [] }: Props) {
+export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [], screenFieldHints = [] }: Props) {
   const topSequence = resolveTopSequence(processView, steps, currentStepIndex);
   const topSequencePast = topSequence
     ? dedupeAndFilter(
@@ -147,6 +149,19 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
                   화면 상세 설정
                 </div>
                 {detailContent}
+                {screenFieldHints.length > 0 && (
+                  <div className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] p-4">
+                    <div className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">값 설명</div>
+                    <dl className="space-y-2">
+                      {screenFieldHints.map(([label, hint]) => (
+                        <div key={label} className="text-[12px] leading-[1.55]">
+                          <dt className="font-mono text-[11px] font-medium text-[var(--ink)]">{label}</dt>
+                          <dd className="mt-0.5 text-[var(--ink-2)]">{hint}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

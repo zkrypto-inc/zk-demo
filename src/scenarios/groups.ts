@@ -92,7 +92,7 @@ export const actorGroups: ActorGroup[] = [
     shortLabel: "거래소",
     description: "거래소 고객 부채 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
     surface: "web",
-    scenarioIds: ["ZP-1", "ZP-4"],
+    scenarioIds: ["ZP-1", "ZP-4", "ZP-D"],
   },
 ];
 

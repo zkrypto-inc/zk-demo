@@ -62,4 +62,4 @@ export function ZkpolLiveDashboard({ scenarioId }: Props) {
   );
 }
 
-export const ZKPOL_LIVE_SCENARIOS = new Set(["ZP-1", "ZP-4"]);
+export const ZKPOL_LIVE_SCENARIOS = new Set(["ZP-D"]);

@@ -37,7 +37,8 @@ export type ScenarioId =
   | "ZT-5"
   | "ZT-A"
   | "ZP-1"
-  | "ZP-4";
+  | "ZP-4"
+  | "ZP-D";
 
 // --- User screen types ---
 
@@ -343,6 +344,8 @@ export type ScenarioStep = {
   screenId: string;
   processView: ProcessView;
   description: string;
+  // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
+  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console";
 };
 
 // --- Scenario ---

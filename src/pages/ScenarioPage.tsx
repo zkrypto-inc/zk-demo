@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PhoneContainer } from "@/components/phone/PhoneContainer";
 import { WebScreen } from "@/components/web/WebScreen";
 import { ProcessPanel } from "@/components/process/ProcessPanel";
@@ -17,7 +17,10 @@ import {
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { demoStore, useDemoStore } from "@/store/demoStore";
 import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
+import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
+import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
+import { injectAnomaly, startDemoPipeline } from "@/api/polControlClient";
 
 type Props = {
   actorId?: ActorGroupId;
@@ -66,6 +69,23 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   const displayId = getScenarioDisplayId(scenario);
   const screenActor = screen.actor ?? scenario.actor;
 
+  // 현재 화면에 노출되는 기술 값(Tx Hash·Raw Signature·Wallet ID 등)의 해설 —
+  // "현재 단계" 카드에 붙여 파트너가 값의 의미를 화면에서 바로 읽게 한다.
+  const screenFieldHints = useMemo(() => {
+    const seen = new Set<string>();
+    const hints: [string, string][] = [];
+    for (const section of screen.sections ?? []) {
+      for (const field of section.fields ?? []) {
+        const hint = getFieldHint(field.label);
+        if (hint && !seen.has(field.label)) {
+          seen.add(field.label);
+          hints.push([field.label, hint]);
+        }
+      }
+    }
+    return hints;
+  }, [screen]);
+
   useEffect(() => {
     demoStore.setStep(scenario.id, player.currentStepIndex);
     if (player.currentStepIndex === scenario.steps.length - 1) {
@@ -81,6 +101,28 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     demoStore.setFormValue(scenario.id, screenId, label, value);
   };
 
+  // zkPoL 트리거 스텝: 폰 제출이 실제 백엔드를 기동(ZP-1: 새 세션 파이프라인)하거나
+  // 주입(ZP-4: 비정상 버스트)한 뒤 다음 스텝으로 넘어간다.
+  const [zkpolTriggerBusy, setZkpolTriggerBusy] = useState(false);
+  const [zkpolTriggerError, setZkpolTriggerError] = useState<string | null>(null);
+  const zkpolTrigger =
+    currentStep.id === "ZP1-step-1" ? startDemoPipeline :
+    currentStep.id === "ZP4-step-1" ? () => injectAnomaly() :
+    null;
+  const runZkpolTriggerAndAdvance = async () => {
+    if (!zkpolTrigger || zkpolTriggerBusy) return;
+    setZkpolTriggerBusy(true);
+    setZkpolTriggerError(null);
+    try {
+      await zkpolTrigger();
+      player.advance();
+    } catch (error) {
+      setZkpolTriggerError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setZkpolTriggerBusy(false);
+    }
+  };
+
   const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
   const advanceOrRecap = recapAction
     ? () =>
@@ -91,7 +133,9 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           scenarioId: "FU-3",
           stepIndex: 0,
         })
-    : player.advance;
+    : zkpolTrigger
+      ? runZkpolTriggerAndAdvance
+      : player.advance;
   const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
   const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
 
@@ -198,6 +242,8 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">현재 단계</div>
           <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+          {zkpolTriggerBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
+          {zkpolTriggerError && <div className="mt-2 text-[12px] text-[var(--bad)]">실행 실패: {zkpolTriggerError}</div>}
         </div>
         {player.canStopAuto && (
           <button
@@ -237,11 +283,17 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       ) : (
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
         <div className="min-w-0">
-          {(screen.actorType ?? scenario.actorType) === "mobile" ? (
+          {currentStep.liveView ? (
+            <ZkpolCompactConsole
+              focus={currentStep.liveView}
+              onAdvance={player.hasNext ? player.advance : undefined}
+              advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
+            />
+          ) : (screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer
               activeActionLabel={activeActionLabel}
               actor={screenActor}
-              canAdvance={canAdvanceWithRecap}
+              canAdvance={canAdvanceWithRecap && !zkpolTriggerBusy}
               onAdvance={advanceOrRecap}
               onFieldChange={handleFieldChange}
               scenarioId={scenario.id}
@@ -267,6 +319,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           currentStepIndex={player.currentStepIndex}
           processView={processView}
           steps={scenario.steps}
+          screenFieldHints={screenFieldHints}
         />
 
         <aside className="space-y-4">

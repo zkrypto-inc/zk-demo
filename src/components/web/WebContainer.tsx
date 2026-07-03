@@ -31,6 +31,7 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZK-1": { menuItem: "지갑 개설", pageTitle: "ZKPasskey 개인 사용자용", host: "app.zkpasskey.io" },
   "ZK-2": { menuItem: "지갑 복구", pageTitle: "ZKPasskey 개인 사용자용", host: "app.zkpasskey.io" },
   "ZP-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
+  "ZP-D": { menuItem: "대시보드", pageTitle: "PoL 운영", host: "ops.zkpol.io" },
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkpol.io" },
 };
 

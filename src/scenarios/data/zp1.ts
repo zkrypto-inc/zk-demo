@@ -1,33 +1,10 @@
-import type { Scenario, SequenceContext } from "@/scenarios/types";
+import type { Scenario } from "@/scenarios/types";
 
-const seqActors = ["거래소 원장", "zkPoL 서버", "온체인 게시판"] as const;
-
-const batchSeq = (phase: "generate" | "verify" | "done"): SequenceContext => {
-  const base = [{ from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" }];
-  if (phase === "generate") {
-    return {
-      actors: [...seqActors],
-      activeEdge: { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성 중", tone: "accent" },
-      pastEdges: base,
-    };
-  }
-  if (phase === "verify") {
-    return {
-      actors: [...seqActors],
-      activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "증명 제출·검증", tone: "accent" },
-      pastEdges: [...base, { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성" }],
-    };
-  }
-  return {
-    actors: [...seqActors],
-    activeEdge: { from: "온체인 게시판", to: "zkPoL 서버", label: "검증 완료 반환", tone: "ok" },
-    pastEdges: [
-      ...base,
-      { from: "zkPoL 서버", to: "zkPoL 서버", label: "배치 증명 생성" },
-      { from: "zkPoL 서버", to: "온체인 게시판", label: "증명 제출·검증" },
-    ],
-  };
-};
+// ZP-1 v2.2 — 단계별 시연 + 스텝마다 라이브.
+// 스텝 1(폰)에서 사용자가 거래를 제출하면 실제 파이프라인(새 세션)이 기동되고,
+// 이후 스텝은 컴팩트 콘솔(liveView)로 유입→증명→현황을 실데이터로 관찰한다.
+// 시퀀스는 스텝당 최대 3액터(1줄 배치) — 4액터는 컴팩트 뷰에서 2줄로 잘린다.
+const pipeActors = ["거래소 원장", "zkPoL 서버", "온체인 게시판"] as const;
 
 export const scenarioZP1: Scenario = {
   id: "ZP-1",
@@ -35,247 +12,119 @@ export const scenarioZP1: Scenario = {
   planningId: "ZP-1",
   name: "거래소 상시 대사",
   shortName: "상시 대사",
-  actor: "리스크 운영자",
+  actor: "개인 사용자 · 리스크 운영자",
   actorType: "web",
   mode: "risk",
-  summary: "거래소 고객 부채(오프체인 잔고 합계)를 개별 잔고 비공개 상태로 ZK Proof로 지속 증명하고, 대시보드로 부채 정합성을 상시 확인합니다.",
+  summary:
+    "사용자의 거래가 거래소 원장에 유입되면, zkPoL이 고객 부채(잔고 합계)를 개별 잔고 비공개 상태로 배치 증명하고 온체인에서 검증합니다.",
   screens: [
     {
       id: "ZP1-1",
-      layout: "result",
+      layout: "form",
       actorType: "mobile",
       actor: "개인 사용자 / 거래소 앱",
-      title: "거래 체결 완료",
-      subtitle: "특정 자산의 체결 내역을 확인합니다",
-      status: "체결 완료",
+      title: "BTC 이체",
+      subtitle: "보낼 수량과 주소를 확인하세요",
+      status: "입력",
       sections: [
         {
-          title: "체결 내역",
+          title: "거래 정보",
           fields: [
-            { label: "거래 유형", value: "BTC 매수" },
             { label: "자산", value: "BTC" },
-            { label: "수량", value: "0.5 BTC" },
+            { label: "수량", value: "0.05 BTC" },
+            { label: "받는 주소", value: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
           ],
         },
       ],
-      actions: [{ id: "confirm-trade", label: "확인", tone: "accent" }],
+      actions: [{ id: "zp1-submit", label: "거래 제출", tone: "accent" }],
     },
-    {
-      id: "ZP1-2",
-      layout: "dashboard",
-      webContext: { menuItem: "원장 이벤트", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
-      actor: "리스크 운영자 / 운영자 웹 대시보드",
-      title: "원장 이벤트 유입 현황",
-      subtitle: "거래소 원장에서 PoL 서버로 전달된 이벤트를 확인합니다",
-      status: "정상",
-      sections: [
-        {
-          title: "이벤트 유입 현황",
-          fields: [
-            { label: "이벤트 유입 상태", value: "정상", tone: "ok" },
-            { label: "자산", value: "BTC" },
-            { label: "포함 이벤트 수", value: "1,248" },
-            { label: "마지막 수신", value: "2026-05-11 10:05" },
-          ],
-        },
-        {
-          title: "이벤트 목록 (최근 3건)",
-          fields: [],
-          table: {
-            columns: [
-              { key: "eventId", label: "event_id" },
-              { key: "asset", label: "자산 이름" },
-              { key: "delta", label: "delta" },
-              { key: "eventType", label: "이벤트 종류" },
-            ],
-            rows: [
-              { eventId: "evt_001", asset: "BTC", delta: "+0.5", eventType: "체결" },
-              { eventId: "evt_002", asset: "USDC", delta: "-150", eventType: "출금" },
-              { eventId: "evt_003", asset: "ETH", delta: "+1.2", eventType: "입금" },
-            ],
-          },
-        },
-      ],
-    },
-    {
-      id: "ZP1-3",
-      layout: "processing",
-      webContext: { menuItem: "증명 배치", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
-      actor: "리스크 운영자 / 데모 페이지",
-      title: "고객 부채 증명 생성",
-      subtitle: "고객 부채 정합성 증명을 생성하는 중입니다",
-      status: "생성 중",
-      sections: [
-        {
-          title: "증명 생성 진행",
-          fields: [
-            { label: "생성 상태", value: "증명 생성 중...", tone: "accent" },
-          ],
-        },
-      ],
-    },
-    {
-      id: "ZP1-4",
-      layout: "processing",
-      webContext: { menuItem: "온체인 검증", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
-      actor: "리스크 운영자 / 데모 페이지",
-      title: "증명 검증",
-      subtitle: "증명 검증 진행 중입니다",
-      status: "검증 중",
-      sections: [
-        {
-          title: "검증 진행",
-          fields: [
-            { label: "검증 상태", value: "증명 검증 진행 중...", tone: "accent" },
-          ],
-        },
-      ],
-    },
-    {
-      id: "ZP1-5",
-      layout: "dashboard",
-      webContext: { menuItem: "검증 내역", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
-      actor: "리스크 운영자 / 공개 대시보드",
-      title: "증명 결과 확인",
-      subtitle: "온체인에 제출된 배치 검증 내역을 조회합니다",
-      status: "조회 전용",
-      sections: [
-        {
-          title: "검증 내역",
-          fields: [],
-          table: {
-            columns: [
-              { key: "batchId", label: "배치 id", width: "minmax(180px, 1.6fr)" },
-              { key: "coin", label: "코인", width: "minmax(72px, 0.7fr)" },
-              { key: "status", label: "상태", width: "minmax(96px, 0.9fr)" },
-              { key: "txHash", label: "온체인 제출 Hash", width: "minmax(150px, 1.3fr)" },
-              { key: "blockTime", label: "블록 생성 시간", width: "minmax(150px, 1.3fr)" },
-            ],
-            rows: [
-              {
-                batchId: "batch_20260511_1005_BTC",
-                coin: "BTC",
-                status: "검증 완료",
-                txHash: "0x3a7f...c8d2",
-                blockTime: "2026-05-11 10:05",
-              },
-              {
-                batchId: "batch_20260511_1010_ETH",
-                coin: "ETH",
-                status: "검증 완료",
-                txHash: "0x9c14...4e21",
-                blockTime: "2026-05-11 10:10",
-              },
-              {
-                batchId: "batch_20260511_1015_USDC",
-                coin: "USDC",
-                status: "검증 완료",
-                txHash: "0x61bd...7a09",
-                blockTime: "2026-05-11 10:15",
-              },
-            ],
-          },
-        },
-      ],
-    },
+    // 아래 화면들은 liveView 스텝이라 실제로는 컴팩트 콘솔이 렌더된다 (placeholder).
+    { id: "ZP1-2", layout: "dashboard", actor: "리스크 운영자", title: "원장 이벤트 유입", sections: [] },
+    { id: "ZP1-3", layout: "dashboard", actor: "리스크 운영자", title: "부채증명 생성·검증", sections: [] },
+    { id: "ZP1-4", layout: "dashboard", actor: "리스크 운영자", title: "운영 현황", sections: [] },
   ],
   steps: [
     {
       id: "ZP1-step-1",
       kind: "user-action",
-      label: "거래 체결",
+      label: "거래 제출",
       trigger: "user",
-      ctaLabel: "확인",
+      ctaLabel: "거래 제출",
       screenId: "ZP1-1",
-      description: "사용자가 특정 자산에 대한 거래 체결 내역을 확인합니다",
+      description: "사용자가 거래를 제출합니다. 이 거래가 거래소 원장 이벤트의 근원이 됩니다 — 제출과 동시에 원장 스트림(초당 50건)이 시작됩니다.",
       processView: {
         kind: "overview",
-        description: "개인 사용자 앱에서 거래 체결 내역을 확인합니다. 이 레이어에서는 부채 증명(PoL)이나 원장 이벤트 세부 정보가 노출되지 않습니다.",
+        description: "개인 사용자의 거래 1건이 거래소 원장에 기록됩니다. 데모에서는 제출 시 새 세션이 발급되고 수많은 다른 사용자의 거래가 함께 흐르기 시작합니다(1,000계정 시뮬레이션).",
         cards: [
-          { label: "거래 유형", value: "BTC 매수" },
           { label: "자산", value: "BTC" },
-          { label: "수량", value: "0.5 BTC" },
+          { label: "원장 스트림", value: "50건/초", detail: "제출 시 시작" },
+          { label: "시뮬레이션 계정", value: "1,000명" },
         ],
         sequence: {
-          actors: ["개인 사용자 App", "거래소"],
-          activeEdge: { from: "개인 사용자 App", to: "거래소", label: "거래 체결 내역 확인", tone: "accent" },
+          actors: ["개인 사용자", "거래소 원장"],
+          activeEdge: { from: "개인 사용자", to: "거래소 원장", label: "거래 제출", tone: "accent" },
         },
       },
     },
     {
       id: "ZP1-step-2",
       kind: "system-processing",
-      label: "원장 이벤트 전달",
-      trigger: "auto",
-      duration: 2000,
+      label: "원장 이벤트 유입",
+      trigger: "user",
       screenId: "ZP1-2",
-      description: "거래소 원장이 원장 변경 이벤트를 zkPoL 서버로 전달합니다",
+      liveView: "ingest",
+      description: "거래소 원장의 변경 이벤트가 zkPoL 서버로 실시간 유입됩니다. 미반영 대기가 쌓이면 배치로 묶여 증명됩니다.",
       processView: {
         kind: "sequence",
-        actors: [...seqActors],
+        actors: [...pipeActors],
         activeEdge: { from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달", tone: "accent" },
-        description: "거래 완료 후 원장이 변경 이벤트(ledger_change_event)를 zkPoL 서버로 전달합니다. 운영자는 이벤트 유입 상태와 마지막 수신 시각을 확인합니다.",
+        description: "좌측 카운터가 실제 파이프라인 수치입니다 — 누적 처리 거래가 계속 오릅니다.",
       },
     },
     {
       id: "ZP1-step-3",
       kind: "system-processing",
-      label: "부채 증명 생성",
-      trigger: "auto",
-      duration: 4000,
+      label: "부채증명 생성·검증",
+      trigger: "user",
       screenId: "ZP1-3",
-      description: "거래 내역을 바탕으로 고객 부채 증명을 생성합니다",
+      liveView: "verify",
+      description: "미반영 이벤트가 배치로 묶여 고객 부채 증명이 생성되고, 온체인 게시판에서 검증됩니다. 개별 고객 잔고는 공개되지 않습니다.",
       processView: {
         kind: "liability-proof",
-        description: "우측 처리 개요에서는 고객별 이전 커밋먼트에 거래 변동값이 반영되어 새 커밋먼트가 생성되고, 이 값들로 부채 증명 proof가 구성되는 과정을 보여줍니다.",
+        description: "고객별 이전 커밋먼트에 거래 변동값이 반영되어 새 커밋먼트가 생성되고, 이 값들로 부채 증명이 구성됩니다.",
         formula: "sum(old_values) + delta = sum(new_values)",
         rows: [
-          { user: "user1", oldValue: "cm1", delta: "5", newValue: "new_cm1" },
-          { user: "user2", oldValue: "cm2", delta: "10", newValue: "new_cm2" },
-          { user: "user3", oldValue: "cm3", delta: "13", newValue: "new_cm3" },
+          { user: "user1", oldValue: "cm1", delta: "+0.05", newValue: "cm1'" },
+          { user: "user2", oldValue: "cm2", delta: "-150", newValue: "cm2'" },
+          { user: "…", oldValue: "…", delta: "…", newValue: "…" },
         ],
-        footnote: "cm 값은 실제 고객 잔고가 아닌 커밋먼트 예시입니다. 회로는 배치 전후 총 liability가 delta만큼 정확히 변동했음을 증명합니다.",
-        sequence: batchSeq("generate"),
+        footnote: "커밋먼트(cm)는 잔고를 숨긴 암호학적 약속값입니다.",
+        sequence: {
+          actors: [...pipeActors],
+          activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증", tone: "accent" },
+          pastEdges: [{ from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" }],
+        },
       },
     },
     {
       id: "ZP1-step-4",
-      kind: "system-processing",
-      label: "증명 검증",
-      trigger: "auto",
-      duration: 2000,
-      screenId: "ZP1-4",
-      description: "온체인 게시판에 증명을 제출하고 검증합니다",
-      processView: {
-        kind: "step-list",
-        description: "생성된 증명을 온체인에 제출하고, liability 정합성과 커밋먼트 양수 조건을 순서대로 검증합니다.",
-        title: "증명 검증 단계",
-        progressLabel: "증명 검증 진행 중",
-        progress: 100,
-        steps: [
-          { label: "잔고 정합성 확인", value: "sum(old_values) + delta = sum(new_values)", state: "done" },
-          { label: "각 cm > 0인지 확인", value: "커밋먼트 양수 조건 검증", state: "active" },
-        ],
-        sequence: batchSeq("verify"),
-      },
-    },
-    {
-      id: "ZP1-step-5",
       kind: "result",
-      label: "증명 결과 확인",
-      trigger: "auto",
-      duration: 1500,
-      screenId: "ZP1-5",
-      description: "운영자가 온체인에 제출된 배치 검증 내역을 확인합니다",
+      label: "운영 현황",
+      trigger: "user",
+      screenId: "ZP1-4",
+      liveView: "console",
+      description: "운영 관점의 전체 현황입니다. 좌측 콘솔에서 정합성·검증 이력·사고를 한눈에 보고, 상시 확인은 '운영 대시보드' 메뉴에서 언제든 가능합니다.",
       processView: {
         kind: "overview",
-        description: "알림 확인과 대시보드 업데이트를 하나의 조회 단계로 통합합니다. 화면에서는 배치 ID, 코인, 상태, 온체인 제출 Hash, 블록 생성 시간을 표 형태로 확인합니다.",
-        cards: [
-          { label: "조회 모드", value: "PUBLIC", tone: "accent" },
-          { label: "최근 검증", value: "3 batches", tone: "ok" },
-          { label: "공개 상태", value: "read-only", tone: "ok" },
-        ],
-        sequence: batchSeq("done"),
+        description: "지금까지의 결과는 '운영 대시보드' 항목에서도 그대로 확인됩니다 — 같은 세션을 공유하기 때문입니다. 이어서 이상징후 차단(ZP-4)을 시연하면 이 정상 상태가 어떻게 바뀌는지 볼 수 있습니다.",
+        sequence: {
+          actors: [...pipeActors],
+          activeEdge: { from: "온체인 게시판", to: "zkPoL 서버", label: "검증 완료", tone: "ok" },
+          pastEdges: [
+            { from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" },
+            { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증" },
+          ],
+        },
       },
     },
   ],
