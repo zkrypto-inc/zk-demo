@@ -20,7 +20,7 @@ import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
 import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
 import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
-import { injectAnomaly, startDemoPipeline } from "@/api/polControlClient";
+import { injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
 
 type Props = {
   actorId?: ActorGroupId;
@@ -92,6 +92,19 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       demoStore.markCompleted(scenario.id);
     }
   }, [player.currentStepIndex, scenario.id, scenario.steps.length]);
+
+  // ZP-1/ZP-4 시나리오를 벗어나면(다른 시나리오 이동·페이지 이탈) 원장 스트림을 정지한다.
+  // 백그라운드에서 계속 이벤트가 생성되는 것을 막는다. 운영 대시보드(ZP-D)는 상시라 예외.
+  useEffect(() => {
+    const isZkpolStepScenario = scenario.id === "ZP-1" || scenario.id === "ZP-4";
+    if (!isZkpolStepScenario) return;
+    const handleUnload = () => { void stopStream(); };
+    window.addEventListener("pagehide", handleUnload);
+    return () => {
+      window.removeEventListener("pagehide", handleUnload);
+      void stopStream();
+    };
+  }, [scenario.id]);
 
   const handleStepSelect = (nextStepIndex: number) => {
     player.goTo(nextStepIndex);
