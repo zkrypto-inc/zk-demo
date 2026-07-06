@@ -6,6 +6,7 @@ import { AppFormLayout } from "./layouts/AppFormLayout";
 import { AppProcessingLayout } from "./layouts/AppProcessingLayout";
 import { AppQrScannerLayout } from "./layouts/AppQrScannerLayout";
 import { AppResultLayout } from "./layouts/AppResultLayout";
+import { AppVoteLayout } from "./layouts/AppVoteLayout";
 
 type Props = {
   screen: UserScreen;
@@ -87,6 +88,7 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
         {screen.layout === "processing" && <AppProcessingLayout {...layoutProps} />}
         {screen.layout === "scanner" && <AppQrScannerLayout {...layoutProps} />}
         {screen.layout === "result" && <AppResultLayout {...layoutProps} />}
+        {screen.layout === "vote" && <AppVoteLayout {...layoutProps} />}
         {screen.layout === "approval" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <AppFormLayout {...layoutProps} />}
       </motion.div>

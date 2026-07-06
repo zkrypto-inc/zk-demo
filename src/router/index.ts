@@ -9,7 +9,7 @@ export type DemoRoute =
   | { name: "scenario"; productId: ProductId; actorId: ActorGroupId; scenarioId: ScenarioId; stepIndex: number }
   | { name: "demo"; scenarioId: ScenarioId; stepIndex: number };
 
-const products: ProductId[] = ["zkwallet", "zktransfer", "zkpasskey", "zkpol"];
+const products: ProductId[] = ["zkwallet", "zktransfer", "zkpasskey", "zkpol", "zkvoting"];
 const modes: ScenarioMode[] = ["custody", "issuer", "personal"];
 const scenarioIds = new Set<ScenarioId>(scenarioOrder);
 const modeIds = new Set<ScenarioMode>(modes);

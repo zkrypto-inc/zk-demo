@@ -87,6 +87,16 @@ const modeMeta: Record<ScenarioMode, { title: string; eyebrow: string; summary: 
     eyebrow: "Web Console",
     summary: "이상징후 탐지, 증명 실패 케이스를 확인하고 차단 조치를 실행합니다.",
   },
+  voter: {
+    title: "유권자",
+    eyebrow: "Mobile Web",
+    summary: "유권자가 스마트폰 웹에서 본인확인 후 비밀투표하고 영지식증명을 생성합니다.",
+  },
+  operator: {
+    title: "투표 운영자",
+    eyebrow: "Web Console",
+    summary: "운영자가 투표를 개설·명부 등록하고 개표·개표 무결성 검증을 수행합니다.",
+  },
 };
 
 function makeEventId(index: number) {

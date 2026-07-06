@@ -1,6 +1,6 @@
 export type Tone = "neutral" | "accent" | "ok" | "bad" | "warn";
-export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkpol";
-export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident";
+export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkpol" | "zkvoting";
+export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident" | "voter" | "operator";
 export type ActorGroupId =
   | "personal"
   | "custody"
@@ -13,7 +13,9 @@ export type ActorGroupId =
   | "auditor"
   | "passkey-user"
   | "risk"
-  | "incident";
+  | "incident"
+  | "zv-voter"
+  | "zv-operator";
 export type Surface = "web" | "app" | "mixed";
 export type ActorType = "mobile" | "web";
 export type StepKind = "user-action" | "system-processing" | "result";
@@ -38,7 +40,9 @@ export type ScenarioId =
   | "ZT-A"
   | "ZP-1"
   | "ZP-4"
-  | "ZP-D";
+  | "ZP-D"
+  | "ZV-1"
+  | "ZO-1";
 
 // --- User screen types ---
 
@@ -86,7 +90,9 @@ export type ScreenLayout =
   | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션
   | "audit-table" // 감사 표 — 거래 행 + 체크박스/복호화 결과
   | "recap"       // 정리 페이지 — 좌우 결과 패널 2장
-  | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
+  | "cta"         // 단일 CTA — 앱 진입 화면 (모바일)
+  | "vote"        // 투표 선택 — 후보 라디오 카드 목록 (zkVoting)
+  | "tally";      // 개표 — 후보별 득표 막대 + 검증 카드 (zkVoting)
 
 export type WebContext = {
   menuItem: string;
@@ -175,6 +181,39 @@ export type UserScreen = {
   ledger?: LedgerScreenData;
   auditTable?: AuditTableData;
   recap?: RecapData;
+  vote?: VoteData;
+  tally?: TallyData;
+};
+
+// --- zkVoting screen data ---
+
+export type VoteOption = {
+  mark: string;        // 기호 번호 표기 (예: "기호 1")
+  name: string;        // 후보명
+  note?: string;       // 부가 설명 (예: "현 사무국장")
+  selected?: boolean;  // 선택된 후보 강조
+};
+
+export type VoteData = {
+  question: string;    // 안건 (예: "이사장 선출")
+  hint?: string;       // 보조 안내 (예: "후보 1인을 선택하세요 · 비밀투표")
+  options: VoteOption[];
+};
+
+export type TallyRow = {
+  mark: string;        // 기호 번호 표기
+  votes: string;       // 득표 표기 (예: "612표")
+  pct: number;         // 막대 채움 비율 (0~100)
+};
+
+export type TallyData = {
+  caption?: string;             // 집계 요약 (예: "총 투표 1,105 (예시)")
+  rows: TallyRow[];
+  verification?: {              // 개표 무결성 검증 카드 (선택)
+    title: string;
+    lines: string[];
+  };
+  badges?: { label: string; tone?: Tone }[];
 };
 
 // --- Process panel types ---
