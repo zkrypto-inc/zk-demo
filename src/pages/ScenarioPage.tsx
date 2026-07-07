@@ -104,7 +104,12 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     void ensureExchangeRunning();
     const handlePageHide = () => stopStreamOnUnload();
     window.addEventListener("pagehide", handlePageHide);
-    return () => window.removeEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      // zkPoL을 완전히 벗어나면(랜딩·다른 제품으로 이동) 스트림을 정지한다.
+      // zkPoL 내부 이동(ZP-1↔ZP-4↔ZP-D)은 경로가 여전히 /zkpol 이므로 유지된다.
+      if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload();
+    };
   }, [scenario.id]);
 
   const handleStepSelect = (nextStepIndex: number) => {
