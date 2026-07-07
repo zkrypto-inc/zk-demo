@@ -94,7 +94,9 @@ export const stopBatchScheduler = (tokenId = currentDemoToken()) =>
   post(`/api/zkpol/tokens/${encodeURIComponent(tokenId)}/schedulers/batch/stop`);
 
 // 정상 원장 이벤트 스트림 시작 (상시 운영 시뮬 — ZP-1)
-export const startStream = (tokenId = currentDemoToken(), eventsPerSecond = 50) =>
+// eps는 배치(고정 크기 936)가 자주 차서 검증 로그가 눈에 띄게 쌓이도록 높게 잡는다.
+// (배치 크기는 프루버 회로 제약이라 못 줄임 → 유입 속도로 배치 빈도를 확보)
+export const startStream = (tokenId = currentDemoToken(), eventsPerSecond = 300) =>
   post("/api/generator/stream/start", {
     token_id: tokenId,
     user_count: DEMO_USER_COUNT,
@@ -159,4 +161,89 @@ export async function startDemoPipeline() {
   await bootstrapToken(tokenId).catch(ignoreConflict);
   await startBatchScheduler(tokenId).catch(ignoreConflict);
   await startStream(tokenId).catch(ignoreConflict);
+}
+
+// --- 통합 운영 모델 (v2.3) ---
+// 거래소 운영(세션)은 하나로 공유한다. 시작/정지/재시작은 운영 대시보드에서만 하고,
+// zkPoL 진입 시 세션이 없으면 자동 시작, ZP-1/ZP-4는 그 세션에 정상/비정상 거래를 얹는다.
+
+// 브라우저 언로드(탭 닫기·새로고침) 중 세션 스트림 정지 요청.
+// 일반 fetch는 언로드 중 취소될 수 있어 keepalive로 전송을 보장한다(다중 사용자 좀비 스트림 방지).
+export function stopStreamOnUnload(tokenId = currentDemoToken()): void {
+  try {
+    void fetch(`${GEN_BASE}/api/generator/stream/stop`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token_id: tokenId }),
+      keepalive: true,
+    });
+  } catch {
+    /* 언로드 중 실패는 무시 */
+  }
+}
+
+// 현재 세션의 원장 스트림이 도는지(=거래소 운영 중) 조회.
+export async function isExchangeRunning(tokenId = currentDemoToken()): Promise<boolean> {
+  try {
+    const res = await fetch(`${GEN_BASE}/api/generator/stream?token_id=${encodeURIComponent(tokenId)}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return false;
+    const payload = (await res.json()) as { active?: boolean };
+    return payload.active === true;
+  } catch {
+    return false;
+  }
+}
+
+// zkPoL 진입 시 호출: 거래소가 이미 운영 중이면 그대로 두고, 아니면 새 세션으로 운영 시작.
+// (동시 호출 방지를 위해 진행 중 Promise를 공유한다)
+let ensurePromise: Promise<void> | null = null;
+export function ensureExchangeRunning(): Promise<void> {
+  if (ensurePromise) return ensurePromise;
+  ensurePromise = (async () => {
+    if (await isExchangeRunning()) return;
+    await startDemoPipeline();
+  })().finally(() => {
+    ensurePromise = null;
+  });
+  return ensurePromise;
+}
+
+// 사용자가 제출한 거래는 '제출 시점 이후 처음 생성되는 배치'에 담긴다.
+// 그 기준(제출 직전 최대 batchSeq)을 세션과 함께 기록해, 콘솔이 내 거래 배치를 특정한다.
+const MY_BATCH_KEY = "zkpol-my-batch-baseline";
+export function setMyBatchBaseline(baselineSeq: number, tokenId = currentDemoToken()) {
+  try {
+    localStorage.setItem(MY_BATCH_KEY, JSON.stringify({ token: tokenId, baseline: baselineSeq }));
+  } catch {
+    /* localStorage 불가 시 무시 */
+  }
+}
+export function getMyBatchBaseline(): number | null {
+  try {
+    const raw = localStorage.getItem(MY_BATCH_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as { token: string; baseline: number };
+    return v.token === currentDemoToken() ? v.baseline : null;
+  } catch {
+    return null;
+  }
+}
+
+// ZP-1: 운영 중 거래소에 '정상 거래'가 흐르게 한다(세션 유지). 세션이 없으면 먼저 시작.
+// ⚠ 정상 거래는 스트림(초당 수백 건)이 이미 계속 생성 중이므로, burst로 1건을 더 넣지 않는다.
+// 스트림이 도는 중 같은 계정에 burst를 주입하면 old_value가 stale해져 invariant 위반(=경합)이 난다.
+// 사용자의 '제출'은 baseline 시점 이후 스트림이 만드는 첫 배치를 '내 거래'로 표시하는 것으로 대신한다.
+export async function submitNormalTransaction(): Promise<string> {
+  await ensureExchangeRunning();
+  return currentDemoToken();
+}
+
+// ZP-4: 운영 중 거래소에 '비정상 거래 1건'을 주입한다(세션 유지). 세션이 없으면 먼저 시작.
+export async function submitAnomalyTransaction(): Promise<string> {
+  await ensureExchangeRunning();
+  const tokenId = currentDemoToken();
+  await injectAnomaly(tokenId);
+  return tokenId;
 }

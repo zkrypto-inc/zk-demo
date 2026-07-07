@@ -99,6 +99,22 @@ async function getJson<T>(path: string): Promise<T> {
 export const getPublicOverview = () => getJson<PolOverview>("/api/dashboard/public/overview");
 export const getPublicCoins = () => getJson<PolCoinHealth[]>("/api/dashboard/public/coins");
 export const getVerificationLogs = () => getJson<PolVerificationLog[]>("/api/dashboard/public/verification-logs");
+
+// 세션(tokenId)의 배치별 처리 로그 — public verification-logs가 세션당 1개만 주는 것과 달리
+// 한 세션의 모든 배치를 페이지로 반환한다(운영 대시보드 로그 테이블과 동일 소스).
+export type PolOperatorLog = {
+  tokenId: string;
+  batchSeq: number;
+  stage: string;
+  status: string;
+  txHash: string | null;
+  finishedAt: string | null;
+  blockCreatedAt: string | null;
+};
+export const getOperatorLogs = (tokenId: string, limit = 40) =>
+  getJson<{ items: PolOperatorLog[]; totalCount: number }>(
+    `/api/dashboard/operator/logs?tokenId=${encodeURIComponent(tokenId)}&limit=${limit}&offset=0`,
+  );
 export const getReserveSeries = (tokenId = "ALL", period = "1h") =>
   getJson<PolReserveSeriesPoint[]>(
     `/api/dashboard/operator/reserve-series?tokenId=${encodeURIComponent(tokenId)}&period=${encodeURIComponent(period)}`,
