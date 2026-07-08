@@ -377,6 +377,17 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
               </div>
             </div>
           )}
+          {scenario.note && scenario.note.length > 0 && (
+            <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
+              <div className="space-y-3">
+                {scenario.note.map((item) => (
+                  <div key={item.label} className="text-[12px] leading-[1.7] text-[var(--ink-2)]">
+                    <span className="font-semibold text-[var(--ink)]">{item.label}</span> — {item.text}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
       )}

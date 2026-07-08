@@ -222,6 +222,7 @@ export type CompareTable = {
   title?: string;
   columns: string[];
   rows: string[][];
+  pillColumn?: number; // 해당 컬럼(index)의 셀을 알약(pill) 배지로 렌더 (zkVoting 구분)
 };
 
 export type StatusCard = {
@@ -267,6 +268,7 @@ export type ProcessView =
       cards?: StatusCard[];
       compareTable?: CompareTable;
       sequence?: SequenceContext;
+      diagram?: "merkle-roll"; // 선거인 명부 머클트리 (zkVoting)
     }
   | {
       kind: "approval";
@@ -383,6 +385,8 @@ export type ScenarioStep = {
   screenId: string;
   processView: ProcessView;
   description: string;
+  // 진행 단계에 표시할 처리 주체 (예: "스마트폰 web", "서버", "운영자 web · 서버").
+  lane?: string;
   // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
   // incident = 위반 감지 + 지급 차단 종합(배치 로그 + 사고 + 차단 카운터).
   liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident";
@@ -404,4 +408,6 @@ export type Scenario = {
   summary: string;
   screens: UserScreen[];
   steps: ScenarioStep[];
+  // 시나리오 하단 안내 노트 (zkVoting: 데모 데이터 안내·처리 분담·비밀투표·출처 등).
+  note?: { label: string; text: string }[];
 };

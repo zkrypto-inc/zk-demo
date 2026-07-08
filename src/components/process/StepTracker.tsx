@@ -6,6 +6,19 @@ type Props = {
   onStepSelect?: (stepIndex: number) => void;
 };
 
+// 진행 단계에 표시할 처리 주체 — step.lane 우선, 없으면 overview 표의 구분(pill) 컬럼에서 도출.
+function laneOf(step: ScenarioStep): string | undefined {
+  if (step.lane) return step.lane;
+  const pv = step.processView;
+  if (pv.kind === "overview" && pv.compareTable && pv.compareTable.pillColumn !== undefined) {
+    const col = pv.compareTable.pillColumn;
+    const values = pv.compareTable.rows.map((r) => r[col]).filter(Boolean);
+    const unique = [...new Set(values)];
+    if (unique.length > 0) return unique.join(" · ");
+  }
+  return undefined;
+}
+
 export function StepTracker({ steps, currentStepIndex, onStepSelect }: Props) {
   return (
     <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
@@ -17,6 +30,7 @@ export function StepTracker({ steps, currentStepIndex, onStepSelect }: Props) {
         {steps.map((step, i) => {
           const isPast = i < currentStepIndex;
           const isCurrent = i === currentStepIndex;
+          const lane = laneOf(step);
           return (
             <button
               key={step.id}
@@ -46,14 +60,21 @@ export function StepTracker({ steps, currentStepIndex, onStepSelect }: Props) {
                 />
               </div>
               <div
-                className="pb-[5px] text-[12px] leading-[1.4] transition-all"
-                style={{
-                  color: isCurrent ? "var(--ink)" : isPast ? "var(--ink-2)" : "var(--muted)",
-                  fontWeight: isCurrent ? 600 : 400,
-                  opacity: isPast ? 0.55 : isCurrent ? 1 : 0.6,
-                }}
+                className="pb-[5px] leading-[1.4] transition-all"
+                style={{ opacity: isPast ? 0.55 : isCurrent ? 1 : 0.6 }}
               >
-                {step.label}
+                <div
+                  className="text-[12px]"
+                  style={{
+                    color: isCurrent ? "var(--ink)" : isPast ? "var(--ink-2)" : "var(--muted)",
+                    fontWeight: isCurrent ? 600 : 400,
+                  }}
+                >
+                  {step.label}
+                </div>
+                {lane && (
+                  <div className="mt-0.5 text-[11px] text-[var(--muted)]">{lane}</div>
+                )}
               </div>
             </button>
           );
