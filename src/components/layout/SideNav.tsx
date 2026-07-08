@@ -1,8 +1,43 @@
+import { useEffect, useState } from "react";
 import { getGroupsByProduct, getScenarioDisplayId, scenarios } from "@/scenarios";
 import { navigateToRoute } from "@/router";
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { productLabels } from "@/scenarios/groups";
+import { isExchangeRunning } from "@/api/polControlClient";
 import { useDemoStore } from "@/store/demoStore";
+
+// zkPoL 전용: 현재 거래소가 운영 중인지(원장 스트림 실행) 5초마다 확인해 표시.
+function ExchangeStatusChip() {
+  const [running, setRunning] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const check = () => {
+      isExchangeRunning()
+        .then((r) => alive && setRunning(r))
+        .catch(() => alive && setRunning(null));
+    };
+    check();
+    const timer = window.setInterval(check, 5000);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const on = running === true;
+  return (
+    <div
+      className={`mb-4 flex items-center gap-2 rounded-md border px-3 py-2 ${
+        on ? "border-[var(--ok)]/40 bg-[var(--ok-soft)]" : "border-[var(--line)] bg-[var(--surface-2)]"
+      }`}
+    >
+      <span className={`h-2 w-2 shrink-0 rounded-full ${on ? "bg-[var(--ok)] motion-safe:animate-pulse" : "bg-[var(--muted)]"}`} />
+      <span className="font-mono text-[11px] font-medium text-[var(--ink-2)]">
+        거래소 {running === null ? "상태 확인 중" : on ? "운영 중" : "운영 정지"}
+      </span>
+    </div>
+  );
+}
 
 type Props = {
   productId?: ProductId;
@@ -40,6 +75,8 @@ export function SideNav({ productId, currentActorId, currentScenarioId }: Props)
             <span className="text-[11px] text-[var(--muted)]">/ 시나리오 목록</span>
           </button>
         )}
+
+        {productId === "zkpol" && <ExchangeStatusChip />}
 
         <div className="space-y-4">
           {groups.map((group) => {

@@ -384,7 +384,8 @@ export type ScenarioStep = {
   processView: ProcessView;
   description: string;
   // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
-  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console";
+  // incident = 위반 감지 + 지급 차단 종합(배치 로그 + 사고 + 차단 카운터).
+  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident";
 };
 
 // --- Scenario ---

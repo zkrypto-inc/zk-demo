@@ -20,7 +20,8 @@ import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
 import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
 import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
-import { injectAnomaly, startDemoPipeline, stopStream } from "@/api/polControlClient";
+import { ensureExchangeRunning, setMyBatchBaseline, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
+import { getOperatorLogs } from "@/api/polClient";
 
 type Props = {
   actorId?: ActorGroupId;
@@ -93,16 +94,21 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     }
   }, [player.currentStepIndex, scenario.id, scenario.steps.length]);
 
-  // ZP-1/ZP-4 시나리오를 벗어나면(다른 시나리오 이동·페이지 이탈) 원장 스트림을 정지한다.
-  // 백그라운드에서 계속 이벤트가 생성되는 것을 막는다. 운영 대시보드(ZP-D)는 상시라 예외.
+  // 통합 운영 모델: zkPoL(ZP-1/ZP-4/ZP-D) 진입 시 거래소가 안 돌고 있으면 자동으로 운영 시작한다.
+  // 세션은 하나로 공유되고, 시작/정지/재시작은 운영 대시보드에서 한다.
+  // 단, 다중 사용자 대비: 브라우저를 떠날 때(탭 닫기·새로고침)는 내 세션 스트림을 정지해
+  // 백그라운드 좀비 스트림이 누적되지 않게 한다. 시나리오 간 이동은 세션을 유지한다.
   useEffect(() => {
-    const isZkpolStepScenario = scenario.id === "ZP-1" || scenario.id === "ZP-4";
-    if (!isZkpolStepScenario) return;
-    const handleUnload = () => { void stopStream(); };
-    window.addEventListener("pagehide", handleUnload);
+    const isZkpol = scenario.id === "ZP-1" || scenario.id === "ZP-4" || scenario.id === "ZP-D";
+    if (!isZkpol) return;
+    void ensureExchangeRunning();
+    const handlePageHide = () => stopStreamOnUnload();
+    window.addEventListener("pagehide", handlePageHide);
     return () => {
-      window.removeEventListener("pagehide", handleUnload);
-      void stopStream();
+      window.removeEventListener("pagehide", handlePageHide);
+      // zkPoL을 완전히 벗어나면(랜딩·다른 제품으로 이동) 스트림을 정지한다.
+      // zkPoL 내부 이동(ZP-1↔ZP-4↔ZP-D)은 경로가 여전히 /zkpol 이므로 유지된다.
+      if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload();
     };
   }, [scenario.id]);
 
@@ -114,20 +120,30 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     demoStore.setFormValue(scenario.id, screenId, label, value);
   };
 
-  // zkPoL 트리거 스텝: 폰 제출이 실제 백엔드를 기동(ZP-1: 새 세션 파이프라인)하거나
-  // 주입(ZP-4: 비정상 버스트)한 뒤 다음 스텝으로 넘어간다.
+  // zkPoL 트리거 스텝: 폰 제출이 '운영 중 거래소에 거래 1건을 얹는다'.
+  // ZP-1은 정상 거래, ZP-4는 비정상 거래. 세션이 없으면 내부에서 자동 시작(ensureExchangeRunning).
   const [zkpolTriggerBusy, setZkpolTriggerBusy] = useState(false);
   const [zkpolTriggerError, setZkpolTriggerError] = useState<string | null>(null);
   const zkpolTrigger =
-    currentStep.id === "ZP1-step-1" ? startDemoPipeline :
-    currentStep.id === "ZP4-step-1" ? () => injectAnomaly() :
+    currentStep.id === "ZP1-step-1" ? submitNormalTransaction :
+    currentStep.id === "ZP4-step-1" ? submitAnomalyTransaction :
     null;
   const runZkpolTriggerAndAdvance = async () => {
     if (!zkpolTrigger || zkpolTriggerBusy) return;
     setZkpolTriggerBusy(true);
     setZkpolTriggerError(null);
     try {
-      await zkpolTrigger();
+      const tokenId = await zkpolTrigger();
+      // ZP-1: 제출 직후 현재 최대 batchSeq를 baseline으로 기록 → 콘솔이 '그 다음 배치'를 내 거래로 강조.
+      if (currentStep.id === "ZP1-step-1") {
+        try {
+          const page = await getOperatorLogs(tokenId);
+          const maxSeq = page.items.reduce((m, l) => (l.batchSeq != null && l.batchSeq > m ? l.batchSeq : m), 0);
+          setMyBatchBaseline(maxSeq, tokenId);
+        } catch {
+          /* baseline 기록 실패해도 진행 (콘솔은 세션 첫 배치로 폴백) */
+        }
+      }
       player.advance();
     } catch (error) {
       setZkpolTriggerError(error instanceof Error ? error.message : String(error));

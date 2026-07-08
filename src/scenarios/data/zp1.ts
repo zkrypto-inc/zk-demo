@@ -41,7 +41,6 @@ export const scenarioZP1: Scenario = {
     // 아래 화면들은 liveView 스텝이라 실제로는 컴팩트 콘솔이 렌더된다 (placeholder).
     { id: "ZP1-2", layout: "dashboard", actor: "리스크 운영자", title: "원장 이벤트 유입", sections: [] },
     { id: "ZP1-3", layout: "dashboard", actor: "리스크 운영자", title: "부채증명 생성·검증", sections: [] },
-    { id: "ZP1-4", layout: "dashboard", actor: "리스크 운영자", title: "운영 현황", sections: [] },
   ],
   steps: [
     {
@@ -83,12 +82,12 @@ export const scenarioZP1: Scenario = {
     },
     {
       id: "ZP1-step-3",
-      kind: "system-processing",
+      kind: "result",
       label: "부채증명 생성·검증",
       trigger: "user",
       screenId: "ZP1-3",
       liveView: "verify",
-      description: "미반영 이벤트가 배치로 묶여 고객 부채 증명이 생성되고, 온체인 게시판에서 검증됩니다. 개별 고객 잔고는 공개되지 않습니다.",
+      description: "미반영 이벤트가 배치로 묶여 고객 부채 증명이 생성되고, 온체인 게시판에서 검증됩니다. 개별 고객 잔고는 공개되지 않습니다. 전체 운영 현황은 '운영 대시보드' 메뉴에서 상시 확인할 수 있습니다.",
       processView: {
         kind: "liability-proof",
         description: "고객별 이전 커밋먼트에 거래 변동값이 반영되어 새 커밋먼트가 생성되고, 이 값들로 부채 증명이 구성됩니다.",
@@ -101,29 +100,8 @@ export const scenarioZP1: Scenario = {
         footnote: "커밋먼트(cm)는 잔고를 숨긴 암호학적 약속값입니다.",
         sequence: {
           actors: [...pipeActors],
-          activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증", tone: "accent" },
+          activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증", tone: "ok" },
           pastEdges: [{ from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" }],
-        },
-      },
-    },
-    {
-      id: "ZP1-step-4",
-      kind: "result",
-      label: "운영 현황",
-      trigger: "user",
-      screenId: "ZP1-4",
-      liveView: "console",
-      description: "운영 관점의 전체 현황입니다. 좌측 콘솔에서 정합성·검증 이력·사고를 한눈에 보고, 상시 확인은 '운영 대시보드' 메뉴에서 언제든 가능합니다.",
-      processView: {
-        kind: "overview",
-        description: "지금까지의 결과는 '운영 대시보드' 항목에서도 그대로 확인됩니다 — 같은 세션을 공유하기 때문입니다. 이어서 이상징후 차단(ZP-4)을 시연하면 이 정상 상태가 어떻게 바뀌는지 볼 수 있습니다.",
-        sequence: {
-          actors: [...pipeActors],
-          activeEdge: { from: "온체인 게시판", to: "zkPoL 서버", label: "검증 완료", tone: "ok" },
-          pastEdges: [
-            { from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" },
-            { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증" },
-          ],
         },
       },
     },
