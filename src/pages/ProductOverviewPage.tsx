@@ -14,6 +14,7 @@ const productMeta: Record<ProductId, { eyebrow: string; title: string; desc: str
   zktransfer: { eyebrow: "zkTransfer", title: "비공개 전송", desc: "발신자·금액 비공개 전송. 시나리오를 선택하세요." },
   zkpasskey: { eyebrow: "zkPasskey", title: "지갑 개설·복구", desc: "Web2 신원 기반 개설·복구. 시나리오를 선택하세요." },
   zkpol: { eyebrow: "zkPoL", title: "지급의무 증명", desc: "개별 잔고 비공개 부채 증명. 역할을 선택하세요." },
+  zkvoting: { eyebrow: "zkVoting", title: "영지식 비밀투표", desc: "비밀투표·공개검증·개표 무결성 증명. 역할을 선택하세요." },
 };
 
 const cardClass =
