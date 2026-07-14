@@ -101,6 +101,12 @@ export function mapAdapterStateToScenarioValues(state: AdapterCaseState): Scenar
       add("거래 요청 ID", result.txIntentId);
       add("서명 요청 상태", result.signId ? "완료" : undefined);
       add("Tx 준비", result.txHash ? "완료" : undefined);
+      // 온체인 KRWC 민팅·이동 (chain live일 때만 채워짐, mock 시 undefined→목업 유지)
+      add("KRWC 컨트랙트", result.krwToken);
+      add("민팅 Tx", result.mintTxHash);
+      add("전송 수량", result.krwAmount ? `${formatKrw(result.krwAmount)} KRWC` : undefined);
+      add("보낸 잔액", result.senderKrwBalance ? `${formatKrw(result.senderKrwBalance)} KRWC` : undefined);
+      add("받은 잔액", result.recipientKrwBalance ? `${formatKrw(result.recipientKrwBalance)} KRWC` : undefined);
       break;
     case "CU-1":
       add("Custody Wallet ID", result.walletId);
@@ -217,6 +223,15 @@ function normalizeAsset(value: string | undefined) {
   if (!value) return undefined;
   if (value.includes("KRW")) return "KRW";
   return value;
+}
+
+// KRWC는 decimals=0이라 스케일링 없이 천 단위 구분만 적용한다.
+function formatKrw(value: unknown): string {
+  const raw = stringifyValue(value);
+  if (!raw) return "";
+  const digits = raw.replace(/[^0-9]/g, "");
+  if (!digits) return raw;
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function shorten(value: unknown, maxLength = 72) {

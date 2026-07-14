@@ -118,6 +118,16 @@ export const scenarioFU2: Scenario = {
             { label: "코인 심볼", value: "KRW" },
           ],
         },
+        {
+          title: "온체인 확인 (KRWC)",
+          fields: [
+            { label: "KRWC 컨트랙트", value: "— (온체인 연동 시)" },
+            { label: "민팅 Tx", value: "— (온체인 연동 시)" },
+            { label: "전송 수량", value: "— (온체인 연동 시)" },
+            { label: "보낸 잔액", value: "— (온체인 연동 시)" },
+            { label: "받은 잔액", value: "— (온체인 연동 시)", tone: "ok" },
+          ],
+        },
       ],
       actions: [{ id: "recap", label: "결과 요약 보기", tone: "accent" }],
     },
