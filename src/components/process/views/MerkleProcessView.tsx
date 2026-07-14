@@ -191,7 +191,7 @@ function AnimatedProofPanel() {
   );
 }
 
-function ProofPanel({ phase }: { phase: Phase }) {
+function ProofPanel({ phase, liveTxHash }: { phase: Phase; liveTxHash?: string }) {
   if (phase === "generating") {
     return <AnimatedProofPanel />;
   }
@@ -219,7 +219,9 @@ function ProofPanel({ phase }: { phase: Phase }) {
       </div>
       <div className="mt-2 flex flex-col gap-1.5">
         {[
-          { label: "txHash",    value: "0x4e9a...d721" },
+          { label: "txHash",    value: liveTxHash
+              ? `${liveTxHash.slice(0, 6)}...${liveTxHash.slice(-4)}`
+              : "0x4e9a...d721" },
           { label: "Proof 크기", value: "2.1 KB" },
           { label: "검증 시간",  value: "< 1ms" },
         ].map((item) => (
@@ -278,7 +280,7 @@ export function MerkleProcessView({ view }: Props) {
 
         {/* Right: ZK proof */}
         <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-          <ProofPanel phase={phase} />
+          <ProofPanel phase={phase} liveTxHash={view.liveTxHash} />
         </div>
       </div>
     </div>

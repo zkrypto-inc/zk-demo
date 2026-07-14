@@ -303,6 +303,8 @@ export type ProcessView =
       kind: "merkle";
       phase: "generating" | "complete";
       sequence?: SequenceContext;
+      // 실연동 시 주입되는 실제 txHash (withLiveProcessView). 없으면 컴포넌트 기본값 사용.
+      liveTxHash?: string;
     }
   | {
       kind: "formula";
