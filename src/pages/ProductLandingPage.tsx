@@ -14,7 +14,7 @@ const financeProducts: ProductMeta[] = [
   { id: "zkwallet", name: "zkWallet", desc: "MPC 키 분산 · 다중 서명 · 수탁 입출금", codes: "FU · CU · IS" },
   { id: "zktransfer", name: "zkTransfer", desc: "발신자 · 금액 비공개 전송, 감사키 복호화", codes: "ZT" },
   { id: "zkpasskey", name: "zkPasskey", desc: "Web2 신원 기반 지갑 개설 · 복구", codes: "ZK" },
-  { id: "zkpol", name: "zkPoL", desc: "개별 잔고 비공개 지급의무 증명", codes: "ZP" },
+  { id: "zkpol", name: "zkPoL", desc: "거래소·스테이블코인 잔액 정합성 증명", codes: "ZP · ZPS" },
 ];
 
 // 투표 카테고리 — 영지식 증명 기반 비밀투표 제품.

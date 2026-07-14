@@ -95,6 +95,15 @@ export const actorGroups: ActorGroup[] = [
     surface: "web",
     scenarioIds: ["ZP-1", "ZP-4", "ZP-D"],
   },
+  {
+    id: "stablecoin-risk",
+    productId: "zkpol",
+    label: "스테이블코인용",
+    shortLabel: "스테이블코인",
+    description: "스테이블코인 발행 잔액과 고객 잔액 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
+    surface: "web",
+    scenarioIds: ["ZPS-1", "ZPS-4"],
+  },
   // zkvoting
   {
     id: "zv-voter",

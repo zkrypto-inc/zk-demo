@@ -33,6 +33,8 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZP-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "ops.zkpol.io" },
   "ZP-D": { menuItem: "대시보드", pageTitle: "PoL 운영", host: "ops.zkpol.io" },
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkpol.io" },
+  "ZPS-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "stable.zkpol.io" },
+  "ZPS-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "stable.zkpol.io" },
   "ZV-1": { menuItem: "투표", pageTitle: "비밀투표", host: "vote.zkvoting.com" },
   "ZO-1": { menuItem: "투표 관리", pageTitle: "투표 개설·개표", host: "operator.zkvoting.com" },
 };
@@ -46,6 +48,8 @@ const menuItemsByScenario: Partial<Record<ScenarioId, string[]>> = {
   "ZK-2": ["지갑 복구", "신원 확인", "증명 생성", "복구 완료"],
   "ZP-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "검증 내역"],
   "ZP-4": ["관제", "이상 이벤트", "증명 실패", "지급 차단", "감사 로그"],
+  "ZPS-1": ["대시보드", "원장 이벤트", "증명 배치", "온체인 검증", "검증 내역"],
+  "ZPS-4": ["관제", "이상 이벤트", "증명 실패", "상환 차단", "감사 로그"],
   "ZO-1": ["대시보드", "투표 설정", "개표·검증"],
 };
 

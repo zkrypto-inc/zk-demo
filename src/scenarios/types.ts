@@ -13,6 +13,7 @@ export type ActorGroupId =
   | "auditor"
   | "passkey-user"
   | "risk"
+  | "stablecoin-risk"
   | "incident"
   | "zv-voter"
   | "zv-operator";
@@ -41,6 +42,8 @@ export type ScenarioId =
   | "ZP-1"
   | "ZP-4"
   | "ZP-D"
+  | "ZPS-1"
+  | "ZPS-4"
   | "ZV-1"
   | "ZO-1";
 
