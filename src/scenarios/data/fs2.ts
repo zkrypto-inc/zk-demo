@@ -1,5 +1,6 @@
 import { mockIds } from "@/mocks/ids";
 import { mockAmounts } from "@/mocks/amounts";
+import { mockHashes } from "@/mocks/hashes";
 import type { Scenario, SequenceContext } from "@/scenarios/types";
 
 const seqActors = ["발행사 관리자", "스테이블코인 플랫폼", "zkWallet(Custody)"] as const;
@@ -139,6 +140,7 @@ export const scenarioFS2: Scenario = {
             { label: "발행 수량", value: mockAmounts.issueAmount, tone: "ok" },
             { label: "코인 심볼", value: "KRW" },
             { label: "상태", value: "발행 완료", tone: "ok" },
+            { label: "Tx Hash", value: mockHashes.txHash, tone: "accent" },
             { label: "준비금 총액", value: mockAmounts.reserveAmount },
             { label: "준비금 구성", value: "현금 40% / MMF 30% / 채권 30%" },
           ],
