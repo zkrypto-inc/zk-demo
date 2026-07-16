@@ -66,8 +66,12 @@ export function ZkpolCompactConsole({ focus, line = "exchange", onAdvance, advan
       const token = currentDemoToken(line);
       if (!token) return [];
       const page = await getOperatorLogs(token);
-      // batchSeq가 아직 없는(생성 중) 배치는 제외하고, 최신 배치가 위로 오도록 내림차순 정렬
-      return page.items.filter((l) => l.batchSeq != null).sort((a, b) => b.batchSeq - a.batchSeq);
+      // 실패 행(status=failed)은 batchSeq가 없어도 로그에 남긴다 — "문제가 생긴 배치" 강조용.
+      // (조립 단계 실패는 배치번호가 부여되기 전이라 batchSeq=null로 온다)
+      // 그 외 batchSeq 없는 행(생성 중)은 제외. 실패 행이 맨 위, 이후 최신 배치 내림차순.
+      return page.items
+        .filter((l) => l.batchSeq != null || l.status === "failed")
+        .sort((a, b) => (b.batchSeq ?? Number.MAX_SAFE_INTEGER) - (a.batchSeq ?? Number.MAX_SAFE_INTEGER));
     },
     3000,
     wantLogs,
@@ -172,27 +176,35 @@ export function ZkpolCompactConsole({ focus, line = "exchange", onAdvance, advan
                 {batchLogs.data!.map((log) => {
                   const isMine = log.batchSeq === myBatchSeq;
                   const done = log.status === "completed";
+                  const failed = log.status === "failed";
                   return (
                     <div
-                      key={log.batchSeq}
+                      key={log.batchSeq ?? `failed-${log.finishedAt ?? "now"}`}
                       className={`flex items-center justify-between gap-2 border-b border-[var(--line-2)] px-3 py-2 text-[12px] last:border-b-0 transition-colors ${
-                        isMine
-                          ? "border-l-2 border-l-[var(--accent)] bg-[var(--accent-soft)]"
-                          : flashBatch === log.batchSeq
-                            ? "bg-[var(--accent-soft)]"
-                            : ""
+                        failed
+                          ? "border-l-2 border-l-[var(--bad)] bg-[var(--bad-soft)]"
+                          : isMine
+                            ? "border-l-2 border-l-[var(--accent)] bg-[var(--accent-soft)]"
+                            : flashBatch === log.batchSeq
+                              ? "bg-[var(--accent-soft)]"
+                              : ""
                       }`}
                     >
                       <span className="flex items-center gap-1.5 font-mono text-[var(--ink)]">
-                        #{log.batchSeq}
+                        {log.batchSeq != null ? `#${log.batchSeq}` : "#—"}
+                        {failed && (
+                          <span className="rounded bg-[var(--bad)] px-1.5 py-0.5 text-[9px] font-semibold not-italic text-white">
+                            사고
+                          </span>
+                        )}
                         {isMine && (
                           <span className="rounded bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-semibold not-italic text-white">
                             내 거래 포함
                           </span>
                         )}
                       </span>
-                      <span className={done ? "text-[var(--ok)]" : "text-[var(--ink-2)]"}>
-                        {done ? "증명 완료" : "처리 중"}
+                      <span className={failed ? "font-medium text-[var(--bad)]" : done ? "text-[var(--ok)]" : "text-[var(--ink-2)]"}>
+                        {failed ? "검증 실패 · 차단" : done ? "증명 완료" : "처리 중"}
                       </span>
                       <span className="font-mono text-[11px] text-[var(--muted)]" title="데모 체인(mockchain) 제출 해시">
                         {shortHash(log.txHash)}

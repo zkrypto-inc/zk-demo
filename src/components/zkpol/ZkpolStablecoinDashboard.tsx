@@ -3,7 +3,6 @@ import { ZkpolCompactConsole } from "./ZkpolCompactConsole";
 import { ZkpolSolvencyPanel } from "./ZkpolSolvencyPanel";
 import {
   currentDemoToken,
-  ensureRunning,
   startDemoPipeline,
   stopStream,
   submitAnomalyTransaction,
@@ -49,7 +48,8 @@ export function ZkpolStablecoinDashboard() {
           <button
             type="button"
             disabled={!!busy}
-            onClick={() => run("start", "운영 시작", () => ensureRunning(LINE))}
+            onClick={() => run("start", "운영 시작", () => startDemoPipeline(LINE))}
+            title="모든 이전 세션을 정지·초기화하고 새 세션으로 운영을 시작합니다"
             className={`${btn} bg-[var(--accent)] text-white hover:opacity-90`}
           >
             운영 시작
@@ -70,19 +70,11 @@ export function ZkpolStablecoinDashboard() {
           >
             이상 주입
           </button>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => run("reset", "초기화(새 세션)", () => startDemoPipeline(LINE))}
-            className={`${btn} border border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]`}
-          >
-            초기화(새 세션)
-          </button>
         </div>
         {notice && <div className="mt-2 text-[12px] text-[var(--ok)]">{notice}</div>}
         {error && <div className="mt-2 text-[12px] text-[var(--bad)]">{error}</div>}
         <p className="mt-3 text-[11px] leading-[1.6] text-[var(--muted)]">
-          운영 정지를 누르면 KRWSC 원장 스트림이 멈춥니다. zkPoL을 벗어나도 자동 정지되지만, 여기서 직접 멈춰 좀비 스트림을 막을 수 있습니다.
+          이상 주입 시 오류와 함께 운영이 정지되며, 정지 상태는 화면을 벗어나도 유지됩니다. 운영 시작을 누르면 모든 세션이 초기화되고 새 세션으로 다시 시작합니다.
         </p>
       </section>
 

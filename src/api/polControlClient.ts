@@ -244,13 +244,28 @@ export async function isLineRunning(line: PolLine = "exchange"): Promise<boolean
 // SideNav 상태 칩용(거래소 운영 중 여부). 하위호환 별칭.
 export const isExchangeRunning = () => isLineRunning("exchange");
 
+// 현재 세션이 사고(invariant 위반)로 차단된 상태인지 조회.
+async function isLineBlocked(line: PolLine): Promise<boolean> {
+  try {
+    const { getPublicCoins } = await import("./polClient");
+    const token = currentDemoToken(line);
+    const coin = (await getPublicCoins()).find((c) => c.tokenId === token);
+    return coin?.healthStatus === "incident";
+  } catch {
+    return false;
+  }
+}
+
 // zkPoL 진입 시 호출: 해당 라인이 이미 운영 중이면 그대로 두고, 아니면 새 세션으로 운영 시작.
+// 단, 사고로 정지된 세션은 자동 재시작하지 않는다 — "이상 유입 → 오류 + 운영 정지" 상태를
+// 재진입/새로고침에도 유지하고, 명시적 '운영 시작'(=전체 초기화)으로만 재개한다.
 // (동시 호출 방지를 위해 진행 중 Promise를 라인별로 공유한다)
 const ensurePromise: Record<PolLine, Promise<void> | null> = { exchange: null, stablecoin: null };
 export function ensureRunning(line: PolLine = "exchange"): Promise<void> {
   if (ensurePromise[line]) return ensurePromise[line]!;
   const p = (async () => {
     if (await isLineRunning(line)) return;
+    if (await isLineBlocked(line)) return;
     await startDemoPipeline(line);
   })().finally(() => {
     ensurePromise[line] = null;
