@@ -35,6 +35,7 @@ const navContext: Record<ScenarioId, { menuItem: string; pageTitle: string; host
   "ZP-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "ops.zkpol.io" },
   "ZPS-1": { menuItem: "대시보드", pageTitle: "PoL 대사", host: "stable.zkpol.io" },
   "ZPS-4": { menuItem: "관제", pageTitle: "이상징후 관제", host: "stable.zkpol.io" },
+  "ZPS-D": { menuItem: "대시보드", pageTitle: "PoL 운영", host: "stable.zkpol.io" },
   "ZV-1": { menuItem: "투표", pageTitle: "비밀투표", host: "vote.zkvoting.com" },
   "ZO-1": { menuItem: "투표 관리", pageTitle: "투표 개설·개표", host: "operator.zkvoting.com" },
 };

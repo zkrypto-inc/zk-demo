@@ -8,7 +8,7 @@ import {
   type PolIncidentListItem,
   type PolVerificationLog,
 } from "@/api/polClient";
-import { currentDemoToken, displayToken, getMyBatchBaseline, getPipelineCounts, isCurrentSession } from "@/api/polControlClient";
+import { currentDemoToken, displayToken, getMyBatchBaseline, getPipelineCounts, isCurrentSession, type PolLine } from "@/api/polControlClient";
 import { usePolling } from "@/hooks/usePolling";
 
 // 시나리오 좌측 슬롯용 컴팩트 라이브 콘솔.
@@ -18,6 +18,8 @@ type Focus = "ingest" | "verify" | "detect" | "blocked" | "console" | "incident"
 
 type Props = {
   focus: Focus;
+  // 제품 라인(거래소=BTC / 스테이블코인=KRWSC). 각 라인의 독립 세션 토큰 데이터만 조회한다.
+  line?: PolLine;
   onAdvance?: () => void;
   advanceLabel?: string;
 };
@@ -42,26 +44,26 @@ const HEALTH_LABEL: Record<string, { text: string; cls: string }> = {
   unknown: { text: "확인 필요", cls: "text-[var(--muted)]" },
 };
 
-export function ZkpolCompactConsole({ focus, onAdvance, advanceLabel = "다음 단계 →" }: Props) {
+export function ZkpolCompactConsole({ focus, line = "exchange", onAdvance, advanceLabel = "다음 단계 →" }: Props) {
   // incident = ZP-4 종합(배치 로그 + 사고 + 차단 카운터). 사고 없을 땐 detect처럼 대기 연출.
   const wantLogs = focus === "verify" || focus === "console" || focus === "incident";
   const wantIncidents = focus === "detect" || focus === "blocked" || focus === "console" || focus === "incident";
   const wantWaitingCue = focus === "detect" || focus === "incident";
 
-  const counts = usePolling(getPipelineCounts, 2000);
+  const counts = usePolling(() => getPipelineCounts(currentDemoToken(line)), 2000);
   const coins = usePolling(
-    async () => (await getPublicCoins()).filter((c: PolCoinHealth) => isCurrentSession(c.tokenId)),
+    async () => (await getPublicCoins()).filter((c: PolCoinHealth) => isCurrentSession(c.tokenId, line)),
     5000,
   );
   // verification-logs는 세션당 최신 1개만 준다 → 세션 누적 거래(카운터) 계산 용도로만 폴링.
   const logs = usePolling(
-    async () => (await getVerificationLogs()).filter((l: PolVerificationLog) => isCurrentSession(l.tokenId)),
+    async () => (await getVerificationLogs()).filter((l: PolVerificationLog) => isCurrentSession(l.tokenId, line)),
     3000,
   );
   // 표시용 검증 로그는 operator/logs로 세션의 '모든 배치'를 가져와 쌓는다(운영 대시보드 로그와 동일 소스).
   const batchLogs = usePolling(
     async () => {
-      const token = currentDemoToken();
+      const token = currentDemoToken(line);
       if (!token) return [];
       const page = await getOperatorLogs(token);
       // batchSeq가 아직 없는(생성 중) 배치는 제외하고, 최신 배치가 위로 오도록 내림차순 정렬
@@ -71,7 +73,7 @@ export function ZkpolCompactConsole({ focus, onAdvance, advanceLabel = "다음 �
     wantLogs,
   );
   const incidents = usePolling(
-    async () => (await getIncidentList()).filter((i: PolIncidentListItem) => isCurrentSession(i.tokenId)),
+    async () => (await getIncidentList()).filter((i: PolIncidentListItem) => isCurrentSession(i.tokenId, line)),
     3000,
     wantIncidents,
   );
@@ -111,7 +113,7 @@ export function ZkpolCompactConsole({ focus, onAdvance, advanceLabel = "다음 �
   const myBatchSeq = (() => {
     const seqs = (batchLogs.data ?? []).map((l) => l.batchSeq);
     if (seqs.length === 0) return null;
-    const baseline = getMyBatchBaseline();
+    const baseline = getMyBatchBaseline(line);
     if (baseline != null) {
       const after = seqs.filter((s) => s > baseline);
       return after.length > 0 ? Math.min(...after) : null;
@@ -125,7 +127,7 @@ export function ZkpolCompactConsole({ focus, onAdvance, advanceLabel = "다음 �
       <div className="flex items-center justify-between border-b border-[var(--line)] px-4 py-2.5">
         <div className="flex items-center gap-3">
           <span className="font-mono text-[11px] font-semibold text-[var(--ink)]">
-            {displayToken(coin?.tokenId ?? "BTC")}
+            {displayToken(coin?.tokenId ?? currentDemoToken(line))}
           </span>
           <span className={`text-[12px] font-medium ${health.cls}`}>{health.text}</span>
         </div>
@@ -226,13 +228,17 @@ export function ZkpolCompactConsole({ focus, onAdvance, advanceLabel = "다음 �
                 {incidents.data!.slice(0, 3).map((it) => (
                   <div key={`${it.tokenId}-${it.batchSeq}-${it.occurredAt}`} className="rounded-md border border-[var(--bad)]/40 bg-[var(--bad-soft)] px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[12px] font-semibold text-[var(--bad)]">
-                        {String(it.severity).toUpperCase()} · 지급 차단
+                      <span className="flex items-center gap-1.5 text-[12px] font-semibold text-[var(--bad)]">
+                        <span className="rounded bg-[var(--bad)] px-1.5 py-0.5 font-mono text-[10px] text-white">
+                          {it.batchSeq != null ? `배치 #${it.batchSeq}` : "이벤트 검증"}
+                        </span>
+                        {String(it.severity).toUpperCase()} · {it.batchSeq != null ? "증명 실패 → 지급 차단" : "위반 감지 → 지급 차단"}
                       </span>
                       <span className="font-mono text-[11px] text-[var(--muted)]">{fmtTime(it.occurredAt)}</span>
                     </div>
                     <div className="mt-1 break-all font-mono text-[11px] leading-[1.5] text-[var(--ink-2)]">
                       {it.errorMessage ?? "invariant violation"}
+                      {it.impactedAccounts != null && ` · 영향 계정 ${nf.format(it.impactedAccounts)}`}
                     </div>
                   </div>
                 ))}

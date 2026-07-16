@@ -1,46 +1,68 @@
 // zkPoL(event-generator) 제어 클라이언트 — 데모 인터랙션용.
-// event-generator가 거래소 원장 이벤트를 생성하고 zkpol 배치 스케줄러를 제어한다.
+// event-generator가 원장 이벤트를 생성하고 zkpol 배치 스케줄러를 제어한다.
 // 프록시에서 base prefix를 strip해 generator 루트(/api/...)로 보낸다.
 
 const GEN_BASE = (import.meta.env.VITE_ZKPOL_GEN_BASE_URL?.trim() || "/pol/gen").replace(/\/+$/, "");
 
-// 표시용 기본 코인명. 실제 토큰 id는 세션마다 "BTC-xxxx"로 회전한다(아래 참고).
+// 표시용 기본 코인명. 실제 토큰 id는 세션마다 "<coin>-xxxx"로 회전한다(아래 참고).
 export const DEMO_TOKEN_ID = (import.meta.env.VITE_ZKPOL_DEMO_TOKEN?.trim() || "BTC");
 const DEMO_USER_COUNT = 1000;
 const DEMO_INITIAL_BALANCE = 100_000;
 
-// --- 데모 세션 토큰 회전 ---
-// 이상징후를 주입하면 그 토큰의 파이프라인이 invariant로 차단된다(=지급 차단, 의도된 동작).
-// 차단된 토큰은 복구 API가 없으므로, "거래소 운영 시작"을 누를 때마다 새 세션 토큰을 발급해
-// 항상 깨끗한 BTC에서 시작한다. 화면에는 항상 기본 코인명("BTC")으로 표시한다. → 무한 반복 가능.
-const SESSION_KEY = "zkpol-demo-token";
+// --- 제품 라인(거래소 vs 스테이블코인) 분리 ---
+// 두 라인은 "같은 백엔드"의 서로 다른 토큰(BTC-xxxx / KRWSC-xxxx)으로 독립 파이프라인을 돌린다.
+// (백엔드 API가 전부 /api/tokens/{token_id}/... 라 토큰 단위 멀티테넌트.) 세션 키·배치 baseline
+// 키도 라인별로 분리해 거래소와 스테이블코인이 서로 섞이지 않는다.
+export type PolLine = "exchange" | "stablecoin";
+const LINE: Record<PolLine, { coin: string; sessionKey: string; batchKey: string }> = {
+  exchange: {
+    coin: DEMO_TOKEN_ID,
+    sessionKey: "zkpol-demo-token",
+    batchKey: "zkpol-my-batch-baseline",
+  },
+  stablecoin: {
+    coin: import.meta.env.VITE_ZKPOL_STABLE_TOKEN?.trim() || "KRWSC",
+    sessionKey: "zkpol-demo-token-stable",
+    batchKey: "zkpol-my-batch-baseline-stable",
+  },
+};
 
-export function currentDemoToken(): string {
+// 시나리오 id로 라인 판별. ZPS-* = 스테이블코인, 그 외(ZP-*) = 거래소.
+export function lineForScenario(scenarioId: string): PolLine {
+  return scenarioId.startsWith("ZPS") ? "stablecoin" : "exchange";
+}
+
+// --- 데모 세션 토큰 회전 (라인별) ---
+// 이상징후를 주입하면 그 토큰의 파이프라인이 invariant로 차단된다(=지급 차단, 의도된 동작).
+// 차단된 토큰은 복구 API가 없으므로, 운영 시작 때마다 새 세션 토큰을 발급해 항상 깨끗하게 시작한다.
+export function currentDemoToken(line: PolLine = "exchange"): string {
+  const cfg = LINE[line];
   try {
-    return localStorage.getItem(SESSION_KEY) || DEMO_TOKEN_ID;
+    return localStorage.getItem(cfg.sessionKey) || cfg.coin;
   } catch {
-    return DEMO_TOKEN_ID;
+    return cfg.coin;
   }
 }
 
-function newDemoSession(): string {
-  const token = `${DEMO_TOKEN_ID}-${Date.now().toString(36)}`;
+function newDemoSession(line: PolLine = "exchange"): string {
+  const cfg = LINE[line];
+  const token = `${cfg.coin}-${Date.now().toString(36)}`;
   try {
-    localStorage.setItem(SESSION_KEY, token);
+    localStorage.setItem(cfg.sessionKey, token);
   } catch {
     /* localStorage 불가 시 기본 토큰 사용 */
   }
   return token;
 }
 
-// 실제 토큰 id("BTC-xxxx")를 표시용 코인명("BTC")으로 환원.
+// 실제 토큰 id("BTC-xxxx"/"KRWSC-xxxx")를 표시용 코인명("BTC"/"KRWSC")으로 환원.
 export function displayToken(tokenId: string): string {
   return tokenId.split("-")[0];
 }
 
-// 현재 세션 토큰에 속하는 항목만(표시 코인명 기준) 필터링하는 헬퍼.
-export function isCurrentSession(tokenId: string): boolean {
-  return tokenId === currentDemoToken();
+// 해당 라인의 현재 세션 토큰에 속하는 항목만 필터링하는 헬퍼.
+export function isCurrentSession(tokenId: string, line: PolLine = "exchange"): boolean {
+  return tokenId === currentDemoToken(line);
 }
 
 export class PolControlError extends Error {
@@ -93,7 +115,7 @@ export const startBatchScheduler = (tokenId = currentDemoToken()) =>
 export const stopBatchScheduler = (tokenId = currentDemoToken()) =>
   post(`/api/zkpol/tokens/${encodeURIComponent(tokenId)}/schedulers/batch/stop`);
 
-// 정상 원장 이벤트 스트림 시작 (상시 운영 시뮬 — ZP-1)
+// 정상 원장 이벤트 스트림 시작 (상시 운영 시뮬 — ZP-1/ZPS-1)
 // eps는 배치(고정 크기 936)가 자주 차서 검증 로그가 눈에 띄게 쌓이도록 높게 잡는다.
 // (배치 크기는 프루버 회로 제약이라 못 줄임 → 유입 속도로 배치 빈도를 확보)
 export const startStream = (tokenId = currentDemoToken(), eventsPerSecond = 300) =>
@@ -111,11 +133,11 @@ export const stopStream = (tokenId = currentDemoToken()) =>
     throw e;
   });
 
-// 이상징후 주입 (비정상 BTC 원장 이벤트 — ZP-4 트리거). 거래 중인 BTC에 그대로 주입해
+// 이상징후 주입 (비정상 원장 이벤트 — ZP-4/ZPS-4 트리거). 거래 중인 토큰에 그대로 주입해
 // "정상 거래 중 이상 거래 유입 → 감지 → 지급 차단" 내러티브를 보인다.
-// 주의: invariant 위반이 BTC 파이프라인을 차단하므로(=지급 차단), 재시연하려면 데모 초기화 필요.
+// 주의: invariant 위반이 그 파이프라인을 차단하므로(=지급 차단), 재시연하려면 데모 초기화 필요.
 export async function injectAnomaly(tokenId = currentDemoToken(), count = 100) {
-  // BTC가 아직 준비 안 됐으면 준비(거래 시작 안 누르고 ZP-4부터 본 경우 대비)
+  // 토큰이 아직 준비 안 됐으면 준비(거래 시작 안 누르고 ZP-4부터 본 경우 대비)
   await deployContract(tokenId).catch(ignoreConflict);
   await bootstrapToken(tokenId).catch(ignoreConflict);
   await startBatchScheduler(tokenId).catch(ignoreConflict);
@@ -151,12 +173,15 @@ export async function getPipelineCounts(tokenId = currentDemoToken()): Promise<P
   return res.json();
 }
 
-// 데모 시작 원클릭: 새 BTC 세션 발급 → 컨트랙트 배포 → bootstrap → 스케줄러 → 정상 스트림.
+// 데모 시작 원클릭: 새 세션 발급 → 컨트랙트 배포 → bootstrap → 스케줄러 → 정상 스트림.
 // 매번 새 세션이라 이전에 차단된 토큰과 무관하게 항상 깨끗하게 시작한다(무한 반복).
-export async function startDemoPipeline() {
-  // 이전 세션 스트림을 정지해 동시 스트림 누적을 막는다(없으면 409 무시).
-  await stopStream(currentDemoToken()).catch(() => undefined);
-  const tokenId = newDemoSession();
+export async function startDemoPipeline(line: PolLine = "exchange") {
+  // 이전 세션의 스트림 + 배치 스케줄러를 정지해 좀비 파이프라인 누적을 막는다.
+  // (스케줄러를 안 멈추면 토큰마다 프루버가 DB를 계속 폴링 → 커넥션 풀 고갈 "pool timed out")
+  const previous = currentDemoToken(line);
+  await stopStream(previous).catch(() => undefined);
+  await stopBatchScheduler(previous).catch(() => undefined);
+  const tokenId = newDemoSession(line);
   await deployContract(tokenId).catch(ignoreConflict);
   await bootstrapToken(tokenId).catch(ignoreConflict);
   await startBatchScheduler(tokenId).catch(ignoreConflict);
@@ -164,12 +189,13 @@ export async function startDemoPipeline() {
 }
 
 // --- 통합 운영 모델 (v2.3) ---
-// 거래소 운영(세션)은 하나로 공유한다. 시작/정지/재시작은 운영 대시보드에서만 하고,
-// zkPoL 진입 시 세션이 없으면 자동 시작, ZP-1/ZP-4는 그 세션에 정상/비정상 거래를 얹는다.
+// 각 라인의 운영(세션)은 하나로 공유한다. 시작/정지/재시작은 운영 대시보드에서만 하고,
+// zkPoL 진입 시 세션이 없으면 자동 시작, ZP-1/ZP-4(및 ZPS-1/ZPS-4)는 그 세션에 정상/비정상 거래를 얹는다.
 
 // 브라우저 언로드(탭 닫기·새로고침) 중 세션 스트림 정지 요청.
 // 일반 fetch는 언로드 중 취소될 수 있어 keepalive로 전송을 보장한다(다중 사용자 좀비 스트림 방지).
-export function stopStreamOnUnload(tokenId = currentDemoToken()): void {
+export function stopStreamOnUnload(line: PolLine = "exchange"): void {
+  const tokenId = currentDemoToken(line);
   try {
     void fetch(`${GEN_BASE}/api/generator/stream/stop`, {
       method: "POST",
@@ -182,8 +208,9 @@ export function stopStreamOnUnload(tokenId = currentDemoToken()): void {
   }
 }
 
-// 현재 세션의 원장 스트림이 도는지(=거래소 운영 중) 조회.
-export async function isExchangeRunning(tokenId = currentDemoToken()): Promise<boolean> {
+// 해당 라인의 원장 스트림이 도는지(=운영 중) 조회.
+export async function isLineRunning(line: PolLine = "exchange"): Promise<boolean> {
+  const tokenId = currentDemoToken(line);
   try {
     const res = await fetch(`${GEN_BASE}/api/generator/stream?token_id=${encodeURIComponent(tokenId)}`, {
       headers: { Accept: "application/json" },
@@ -196,54 +223,57 @@ export async function isExchangeRunning(tokenId = currentDemoToken()): Promise<b
   }
 }
 
-// zkPoL 진입 시 호출: 거래소가 이미 운영 중이면 그대로 두고, 아니면 새 세션으로 운영 시작.
-// (동시 호출 방지를 위해 진행 중 Promise를 공유한다)
-let ensurePromise: Promise<void> | null = null;
-export function ensureExchangeRunning(): Promise<void> {
-  if (ensurePromise) return ensurePromise;
-  ensurePromise = (async () => {
-    if (await isExchangeRunning()) return;
-    await startDemoPipeline();
+// SideNav 상태 칩용(거래소 운영 중 여부). 하위호환 별칭.
+export const isExchangeRunning = () => isLineRunning("exchange");
+
+// zkPoL 진입 시 호출: 해당 라인이 이미 운영 중이면 그대로 두고, 아니면 새 세션으로 운영 시작.
+// (동시 호출 방지를 위해 진행 중 Promise를 라인별로 공유한다)
+const ensurePromise: Record<PolLine, Promise<void> | null> = { exchange: null, stablecoin: null };
+export function ensureRunning(line: PolLine = "exchange"): Promise<void> {
+  if (ensurePromise[line]) return ensurePromise[line]!;
+  const p = (async () => {
+    if (await isLineRunning(line)) return;
+    await startDemoPipeline(line);
   })().finally(() => {
-    ensurePromise = null;
+    ensurePromise[line] = null;
   });
-  return ensurePromise;
+  ensurePromise[line] = p;
+  return p;
 }
 
 // 사용자가 제출한 거래는 '제출 시점 이후 처음 생성되는 배치'에 담긴다.
-// 그 기준(제출 직전 최대 batchSeq)을 세션과 함께 기록해, 콘솔이 내 거래 배치를 특정한다.
-const MY_BATCH_KEY = "zkpol-my-batch-baseline";
-export function setMyBatchBaseline(baselineSeq: number, tokenId = currentDemoToken()) {
+// 그 기준(제출 직전 최대 batchSeq)을 세션과 함께 기록해, 콘솔이 내 거래 배치를 특정한다. (라인별 키)
+export function setMyBatchBaseline(baselineSeq: number, tokenId = currentDemoToken(), line: PolLine = "exchange") {
   try {
-    localStorage.setItem(MY_BATCH_KEY, JSON.stringify({ token: tokenId, baseline: baselineSeq }));
+    localStorage.setItem(LINE[line].batchKey, JSON.stringify({ token: tokenId, baseline: baselineSeq }));
   } catch {
     /* localStorage 불가 시 무시 */
   }
 }
-export function getMyBatchBaseline(): number | null {
+export function getMyBatchBaseline(line: PolLine = "exchange"): number | null {
   try {
-    const raw = localStorage.getItem(MY_BATCH_KEY);
+    const raw = localStorage.getItem(LINE[line].batchKey);
     if (!raw) return null;
     const v = JSON.parse(raw) as { token: string; baseline: number };
-    return v.token === currentDemoToken() ? v.baseline : null;
+    return v.token === currentDemoToken(line) ? v.baseline : null;
   } catch {
     return null;
   }
 }
 
-// ZP-1: 운영 중 거래소에 '정상 거래'가 흐르게 한다(세션 유지). 세션이 없으면 먼저 시작.
+// ZP-1/ZPS-1: 운영 중 거래소/발행사에 '정상 거래'가 흐르게 한다(세션 유지). 세션이 없으면 먼저 시작.
 // ⚠ 정상 거래는 스트림(초당 수백 건)이 이미 계속 생성 중이므로, burst로 1건을 더 넣지 않는다.
 // 스트림이 도는 중 같은 계정에 burst를 주입하면 old_value가 stale해져 invariant 위반(=경합)이 난다.
 // 사용자의 '제출'은 baseline 시점 이후 스트림이 만드는 첫 배치를 '내 거래'로 표시하는 것으로 대신한다.
-export async function submitNormalTransaction(): Promise<string> {
-  await ensureExchangeRunning();
-  return currentDemoToken();
+export async function submitNormalTransaction(line: PolLine = "exchange"): Promise<string> {
+  await ensureRunning(line);
+  return currentDemoToken(line);
 }
 
-// ZP-4: 운영 중 거래소에 '비정상 거래 1건'을 주입한다(세션 유지). 세션이 없으면 먼저 시작.
-export async function submitAnomalyTransaction(): Promise<string> {
-  await ensureExchangeRunning();
-  const tokenId = currentDemoToken();
+// ZP-4/ZPS-4: 운영 중 라인에 '비정상 거래 1건'을 주입한다(세션 유지). 세션이 없으면 먼저 시작.
+export async function submitAnomalyTransaction(line: PolLine = "exchange"): Promise<string> {
+  await ensureRunning(line);
+  const tokenId = currentDemoToken(line);
   await injectAnomaly(tokenId);
   return tokenId;
 }

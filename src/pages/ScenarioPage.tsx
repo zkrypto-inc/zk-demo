@@ -19,8 +19,9 @@ import { demoStore, useDemoStore } from "@/store/demoStore";
 import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
 import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
+import { ZkpolStablecoinDashboard } from "@/components/zkpol/ZkpolStablecoinDashboard";
 import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
-import { ensureExchangeRunning, setMyBatchBaseline, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
+import { ensureRunning, lineForScenario, setMyBatchBaseline, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
 import { getOperatorLogs } from "@/api/polClient";
 
 type Props = {
@@ -32,6 +33,8 @@ type Props = {
 
 export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Props) {
   const scenario = scenarios[scenarioId];
+  // zkPoL 제품 라인: ZPS-* = 스테이블코인(KRWSC 세션), 그 외 = 거래소(BTC 세션). 서로 독립 스트림.
+  const polLine = lineForScenario(scenario.id);
   const storeState = useDemoStore((state) => state);
   const resolvedActorId = actorId ?? scenarioGroupLookup[scenarioId] ?? scenario.mode;
   const group = actorGroupById[resolvedActorId] ?? getScenarioGroup(scenario);
@@ -99,18 +102,19 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   // 단, 다중 사용자 대비: 브라우저를 떠날 때(탭 닫기·새로고침)는 내 세션 스트림을 정지해
   // 백그라운드 좀비 스트림이 누적되지 않게 한다. 시나리오 간 이동은 세션을 유지한다.
   useEffect(() => {
-    const isZkpol = scenario.id === "ZP-1" || scenario.id === "ZP-4" || scenario.id === "ZP-D";
+    const isZkpol = ["ZP-1", "ZP-4", "ZP-D", "ZPS-1", "ZPS-4", "ZPS-D"].includes(scenario.id);
     if (!isZkpol) return;
-    void ensureExchangeRunning();
-    const handlePageHide = () => stopStreamOnUnload();
+    // 해당 라인(거래소/스테이블코인) 세션만 자동 시작·정지한다. 두 라인은 독립 세션이라 서로 안 건드린다.
+    void ensureRunning(polLine);
+    const handlePageHide = () => stopStreamOnUnload(polLine);
     window.addEventListener("pagehide", handlePageHide);
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
-      // zkPoL을 완전히 벗어나면(랜딩·다른 제품으로 이동) 스트림을 정지한다.
-      // zkPoL 내부 이동(ZP-1↔ZP-4↔ZP-D)은 경로가 여전히 /zkpol 이므로 유지된다.
-      if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload();
+      // zkPoL을 완전히 벗어나면(랜딩·다른 제품으로 이동) 이 라인 스트림을 정지한다.
+      // zkPoL 내부 이동(ZP/ZPS 간)은 경로가 여전히 /zkpol 이므로 유지된다.
+      if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload(polLine);
     };
-  }, [scenario.id]);
+  }, [scenario.id, polLine]);
 
   const handleStepSelect = (nextStepIndex: number) => {
     player.goTo(nextStepIndex);
@@ -125,21 +129,21 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   const [zkpolTriggerBusy, setZkpolTriggerBusy] = useState(false);
   const [zkpolTriggerError, setZkpolTriggerError] = useState<string | null>(null);
   const zkpolTrigger =
-    currentStep.id === "ZP1-step-1" ? submitNormalTransaction :
-    currentStep.id === "ZP4-step-1" ? submitAnomalyTransaction :
+    currentStep.id === "ZP1-step-1" || currentStep.id === "ZPS1-step-1" ? submitNormalTransaction :
+    currentStep.id === "ZP4-step-1" || currentStep.id === "ZPS4-step-1" ? submitAnomalyTransaction :
     null;
   const runZkpolTriggerAndAdvance = async () => {
     if (!zkpolTrigger || zkpolTriggerBusy) return;
     setZkpolTriggerBusy(true);
     setZkpolTriggerError(null);
     try {
-      const tokenId = await zkpolTrigger();
-      // ZP-1: 제출 직후 현재 최대 batchSeq를 baseline으로 기록 → 콘솔이 '그 다음 배치'를 내 거래로 강조.
-      if (currentStep.id === "ZP1-step-1") {
+      const tokenId = await zkpolTrigger(polLine);
+      // ZP-1/ZPS-1: 제출 직후 현재 최대 batchSeq를 baseline으로 기록 → 콘솔이 '그 다음 배치'를 내 거래로 강조.
+      if (currentStep.id === "ZP1-step-1" || currentStep.id === "ZPS1-step-1") {
         try {
           const page = await getOperatorLogs(tokenId);
           const maxSeq = page.items.reduce((m, l) => (l.batchSeq != null && l.batchSeq > m ? l.batchSeq : m), 0);
-          setMyBatchBaseline(maxSeq, tokenId);
+          setMyBatchBaseline(maxSeq, tokenId, polLine);
         } catch {
           /* baseline 기록 실패해도 진행 (콘솔은 세션 첫 배치로 폴백) */
         }
@@ -168,8 +172,9 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
   const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
 
-  // zkPoL 라이브 시나리오(ZP-1/ZP-4)는 스크립트 화면 대신 실데이터 대시보드를 렌더한다.
-  if (ZKPOL_LIVE_SCENARIOS.has(scenario.id)) {
+  // zkPoL 운영 대시보드(ZP-D/ZPS-D)는 스크립트 화면 대신 실데이터 대시보드를 렌더한다.
+  // ZP-D=거래소 네이티브 임베드, ZPS-D=스테이블코인 라인 React 제어 패널(KRWSC).
+  if (ZKPOL_LIVE_SCENARIOS.has(scenario.id) || scenario.id === "ZPS-D") {
     return (
       <section className="mx-auto max-w-[1100px] space-y-12 pt-2">
         <header>
@@ -183,7 +188,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">{scenario.name}</h1>
           <p className="mt-2.5 max-w-[600px] text-[13.5px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</p>
         </header>
-        <ZkpolLiveDashboard scenarioId={scenario.id} />
+        {scenario.id === "ZPS-D" ? <ZkpolStablecoinDashboard /> : <ZkpolLiveDashboard scenarioId={scenario.id} />}
       </section>
     );
   }
@@ -315,6 +320,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           {currentStep.liveView ? (
             <ZkpolCompactConsole
               focus={currentStep.liveView}
+              line={polLine}
               onAdvance={player.hasNext ? player.advance : undefined}
               advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
             />
