@@ -50,14 +50,14 @@ export const scenarioZP1: Scenario = {
       trigger: "user",
       ctaLabel: "거래 제출",
       screenId: "ZP1-1",
-      description: "사용자가 거래를 제출합니다. 이 거래가 거래소 원장 이벤트의 근원이 됩니다 — 제출과 동시에 원장 스트림(초당 50건)이 시작됩니다.",
+      description: "사용자가 거래를 제출합니다. 이 거래는 거래소 원장에 기록되어 zkPoL 검증 파이프라인으로 흘러갑니다.",
       processView: {
         kind: "overview",
-        description: "개인 사용자의 거래 1건이 거래소 원장에 기록됩니다. 데모에서는 제출 시 새 세션이 발급되고 수많은 다른 사용자의 거래가 함께 흐르기 시작합니다(1,000계정 시뮬레이션).",
+        description: "개인 사용자의 거래 1건이 거래소 원장에 기록됩니다. 다른 사용자들의 거래도 함께 원장에 흐르며, 모든 변경이 검증 대상이 됩니다.",
         cards: [
           { label: "자산", value: "BTC" },
-          { label: "원장 스트림", value: "50건/초", detail: "제출 시 시작" },
-          { label: "시뮬레이션 계정", value: "1,000명" },
+          { label: "원장 기록", value: "실시간", detail: "제출 즉시 반영" },
+          { label: "검증", value: "상시 대사" },
         ],
         sequence: {
           actors: ["개인 사용자", "거래소 원장"],

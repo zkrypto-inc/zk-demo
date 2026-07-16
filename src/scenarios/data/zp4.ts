@@ -48,7 +48,7 @@ export const scenarioZP4: Scenario = {
       trigger: "user",
       ctaLabel: "출금 요청",
       screenId: "ZP4-1",
-      description: "잔고(0.8 BTC)를 초과하는 1.2 BTC 출금을 제출합니다. 데모에서는 이런 비정상 이벤트가 실제 원장에 주입됩니다.",
+      description: "잔고(0.8 BTC)를 초과하는 1.2 BTC 출금을 제출합니다. 이 비정상 거래가 원장에 유입됩니다.",
       processView: {
         kind: "overview",
         description: "공격자 관점: 원장 조작·오류·내부 부정으로 잔고 이상의 지급이 시도되는 상황입니다. 사용자 화면에서는 정상 접수처럼 보입니다.",
