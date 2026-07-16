@@ -116,9 +116,9 @@ export const stopBatchScheduler = (tokenId = currentDemoToken()) =>
   post(`/api/zkpol/tokens/${encodeURIComponent(tokenId)}/schedulers/batch/stop`);
 
 // 정상 원장 이벤트 스트림 시작 (상시 운영 시뮬 — ZP-1/ZPS-1)
-// eps는 배치(고정 크기 936)가 자주 차서 검증 로그가 눈에 띄게 쌓이도록 높게 잡는다.
-// (배치 크기는 프루버 회로 제약이라 못 줄임 → 유입 속도로 배치 빈도를 확보)
-export const startStream = (tokenId = currentDemoToken(), eventsPerSecond = 300) =>
+// eps는 배치(고정 크기 936)가 ~6초마다 차도록 잡되, DB 부하(원장 이벤트 누적 → mariadb OOM)를
+// 고려해 150으로 제한한다. (배치 크기는 프루버 회로 제약이라 못 줄임)
+export const startStream = (tokenId = currentDemoToken(), eventsPerSecond = 150) =>
   post("/api/generator/stream/start", {
     token_id: tokenId,
     user_count: DEMO_USER_COUNT,
@@ -173,14 +173,32 @@ export async function getPipelineCounts(tokenId = currentDemoToken()): Promise<P
   return res.json();
 }
 
-// 데모 시작 원클릭: 새 세션 발급 → 컨트랙트 배포 → bootstrap → 스케줄러 → 정상 스트림.
+// 해당 라인의 "모든" 옛 세션(스트림 + 배치 스케줄러)을 정지한다 — 운영 시작 = 전체 초기화.
+// 좀비 파이프라인이 쌓이면 프루버가 토큰마다 DB를 폴링해 커넥션 풀(32)이 고갈되고
+// ("pool timed out") 원장 이벤트가 무한 누적돼 mariadb OOM까지 간다.
+async function stopLinePipelines(line: PolLine): Promise<void> {
+  const prefix = `${LINE[line].coin}-`;
+  const tokens = new Set<string>();
+  const previous = currentDemoToken(line);
+  if (previous.startsWith(prefix)) tokens.add(previous);
+  try {
+    // manager coins 목록에서 이 라인의 모든 토큰을 찾는다(다른 탭/이전 방문이 만든 세션 포함).
+    const { getPublicCoins } = await import("./polClient");
+    for (const c of await getPublicCoins()) {
+      if (c.tokenId.startsWith(prefix)) tokens.add(c.tokenId);
+    }
+  } catch {
+    /* 목록 조회 실패 시 직전 세션만 정지 */
+  }
+  await Promise.allSettled(
+    [...tokens].flatMap((t) => [stopStream(t), stopBatchScheduler(t)]),
+  );
+}
+
+// 데모 시작 원클릭: 라인 전체 초기화 → 새 세션 발급 → 컨트랙트 배포 → bootstrap → 스케줄러 → 정상 스트림.
 // 매번 새 세션이라 이전에 차단된 토큰과 무관하게 항상 깨끗하게 시작한다(무한 반복).
 export async function startDemoPipeline(line: PolLine = "exchange") {
-  // 이전 세션의 스트림 + 배치 스케줄러를 정지해 좀비 파이프라인 누적을 막는다.
-  // (스케줄러를 안 멈추면 토큰마다 프루버가 DB를 계속 폴링 → 커넥션 풀 고갈 "pool timed out")
-  const previous = currentDemoToken(line);
-  await stopStream(previous).catch(() => undefined);
-  await stopBatchScheduler(previous).catch(() => undefined);
+  await stopLinePipelines(line);
   const tokenId = newDemoSession(line);
   await deployContract(tokenId).catch(ignoreConflict);
   await bootstrapToken(tokenId).catch(ignoreConflict);
@@ -270,10 +288,14 @@ export async function submitNormalTransaction(line: PolLine = "exchange"): Promi
   return currentDemoToken(line);
 }
 
-// ZP-4/ZPS-4: 운영 중 라인에 '비정상 거래 1건'을 주입한다(세션 유지). 세션이 없으면 먼저 시작.
+// ZP-4/ZPS-4: 운영 중 라인에 '비정상 거래'를 주입한다(세션 유지). 세션이 없으면 먼저 시작.
+// 주입 후 원장 스트림을 정지한다 — 목표 동작 "이상징후 유입 → 오류 + 운영 정지".
+// (차단된 파이프라인에 초당 수백 건이 계속 쌓이면 DB만 부풀고 재시연도 어려워진다.
+//  주입 전에 쌓인 정상 이벤트들은 그대로 배치로 증명 완료되고, 이상 이벤트 차례에서 사고가 난다.)
 export async function submitAnomalyTransaction(line: PolLine = "exchange"): Promise<string> {
   await ensureRunning(line);
   const tokenId = currentDemoToken(line);
   await injectAnomaly(tokenId);
+  await stopStream(tokenId).catch(() => undefined);
   return tokenId;
 }
