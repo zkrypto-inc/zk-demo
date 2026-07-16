@@ -3,12 +3,40 @@ import { getPublicCoins, type PolCoinHealth } from "@/api/polClient";
 import { currentDemoToken, displayToken, type PolLine } from "@/api/polControlClient";
 
 // 지급능력(Solvency) 패널 — PoR(준비금) × PoL(발행잔액) 대조 인터페이스.
-// PoL(발행잔액)은 zkpol 파이프라인의 실제 검증값. PoR(준비금)은 아직 백엔드가 없어
-// 데모 값(백엔드가 발행잔액을 미러링 → 담보율 100%)이다. 수탁기관 증명 연동 전 인터페이스 선행.
+// PoL(발행잔액)은 zkpol 파이프라인의 실제 검증값(라이브로 변함). PoR(준비금)은 수탁기관
+// 연동 전 데모 값인데, 준비금은 수탁계좌 실물 자산이라 시연 중 고정이어야 자연스럽다 —
+// 세션마다 첫 발행잔액을 백만 단위로 올림 + 버퍼 1백만을 "예치액"으로 한 번 고정하고,
+// 담보율은 (고정 준비금 ÷ 라이브 발행잔액)으로 직접 계산한다.
 type Props = { line?: PolLine };
 
 const POLL_MS = 4000;
 const nf = new Intl.NumberFormat("ko-KR");
+const MILLION = 1_000_000;
+const RESERVE_KEY: Record<PolLine, string> = {
+  exchange: "zkpol-por-reserve",
+  stablecoin: "zkpol-por-reserve-stable",
+};
+
+// 세션(token)당 준비금을 한 번만 산정해 고정한다. 새 세션이면 다시 산정.
+function fixedReserveFor(line: PolLine, token: string, liability: number | null): number | null {
+  try {
+    const raw = localStorage.getItem(RESERVE_KEY[line]);
+    if (raw) {
+      const v = JSON.parse(raw) as { token: string; reserve: number };
+      if (v.token === token) return v.reserve;
+    }
+  } catch {
+    /* localStorage 불가 시 아래에서 재계산 */
+  }
+  if (liability == null) return null;
+  const reserve = (Math.ceil(liability / MILLION) + 1) * MILLION;
+  try {
+    localStorage.setItem(RESERVE_KEY[line], JSON.stringify({ token, reserve }));
+  } catch {
+    /* 저장 실패해도 이번 렌더 값은 유효 */
+  }
+  return reserve;
+}
 
 export function ZkpolSolvencyPanel({ line = "stablecoin" }: Props) {
   const [coin, setCoin] = useState<PolCoinHealth | null>(null);
@@ -33,11 +61,13 @@ export function ZkpolSolvencyPanel({ line = "stablecoin" }: Props) {
     };
   }, [line]);
 
-  const symbol = displayToken(coin?.tokenId ?? currentDemoToken(line));
+  const token = coin?.tokenId ?? currentDemoToken(line);
+  const symbol = displayToken(token);
   const incident = coin?.healthStatus === "incident";
-  const reserve = coin?.reserveAmount ?? null;
   const liability = coin?.liabilityAmount ?? null;
-  const coverage = coin?.coverageRatio ?? null;
+  // 준비금은 세션당 고정(수탁계좌 예치액). 담보율만 발행잔액을 따라 미세하게 움직인다.
+  const reserve = fixedReserveFor(line, token, liability);
+  const coverage = reserve != null && liability != null && liability > 0 ? (reserve / liability) * 100 : null;
 
   const badge = incident
     ? { label: "검증 실패 · 상환 차단", cls: "bg-[var(--bad-soft)] text-[var(--bad)]" }
