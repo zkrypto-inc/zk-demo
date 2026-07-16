@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ZkpolCompactConsole } from "./ZkpolCompactConsole";
+import { ZkpolSolvencyPanel } from "./ZkpolSolvencyPanel";
 import {
   currentDemoToken,
   ensureRunning,
@@ -84,6 +85,9 @@ export function ZkpolStablecoinDashboard() {
           운영 정지를 누르면 KRWSC 원장 스트림이 멈춥니다. zkPoL을 벗어나도 자동 정지되지만, 여기서 직접 멈춰 좀비 스트림을 막을 수 있습니다.
         </p>
       </section>
+
+      {/* 지급능력(PoR × PoL) — 준비금은 수탁기관 연동 전 데모 값 */}
+      <ZkpolSolvencyPanel line={LINE} />
 
       {/* KRWSC 라이브 콘솔 (거래소와 독립 세션) */}
       <ZkpolCompactConsole focus="console" line={LINE} />
