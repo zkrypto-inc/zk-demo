@@ -108,3 +108,31 @@ export const scenarioZPS4: Scenario = makeStablecoinScenario(scenarioZP4, {
   summary:
     "같은 사용자의 KRWSC 원장 이벤트가 중복 유입되면 zkPoL이 발행잔액 증명 생성 전에 후보를 감지하고, 증명 실패와 상환 차단 조치까지 이어지는 흐름입니다.",
 });
+
+// ZPS-D — 스테이블코인 운영 대시보드 (거래소 ZP-D 대칭). ScenarioPage가 이 id를 감지해
+// 네이티브 임베드 대신 ZkpolStablecoinDashboard(KRWSC 라인 React 제어 패널)를 렌더한다.
+export const scenarioZPSD: Scenario = {
+  id: "ZPS-D",
+  groupId: "stablecoin-risk",
+  planningId: "ZPS-D",
+  displayId: "대시보드",
+  name: "스테이블코인 운영 대시보드",
+  shortName: "운영 대시보드",
+  actor: "발행사 운영자",
+  actorType: "web",
+  mode: "risk",
+  summary:
+    "스테이블코인 발행잔액 검증 파이프라인의 상시 운영 화면입니다. 상시 대사(ZPS-1)·이상징후 차단(ZPS-4)과 같은 KRWSC 세션이 반영되며, 여기서 직접 운영 시작·정지·이상 주입을 할 수 있습니다.",
+  screens: [{ id: "ZPSD-1", layout: "dashboard", actor: "발행사 운영자", title: "스테이블코인 운영 대시보드", sections: [] }],
+  steps: [
+    {
+      id: "ZPSD-step-1",
+      kind: "result",
+      label: "운영 대시보드",
+      trigger: "user",
+      screenId: "ZPSD-1",
+      description: "운영 대시보드",
+      processView: { kind: "overview", description: "운영 대시보드" },
+    },
+  ],
+};

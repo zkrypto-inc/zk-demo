@@ -44,6 +44,7 @@ export type ScenarioId =
   | "ZP-D"
   | "ZPS-1"
   | "ZPS-4"
+  | "ZPS-D"
   | "ZV-1"
   | "ZO-1";
 
