@@ -141,6 +141,10 @@ export function withLiveProcessView(
         ...view,
         summary: view.summary?.map(resolveField),
       };
+    case "merkle": {
+      const liveTxHash = resolveLiveValue(state, scenarioId, "txHash", "");
+      return liveTxHash ? { ...view, liveTxHash } : view;
+    }
     case "approval":
       return view;
     default:

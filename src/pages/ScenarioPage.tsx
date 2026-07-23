@@ -5,6 +5,7 @@ import { ProcessPanel } from "@/components/process/ProcessPanel";
 import { StepTracker } from "@/components/process/StepTracker";
 import { WebContainer } from "@/components/web/WebContainer";
 import { useAdapterScenarioRun } from "@/hooks/useAdapterScenarioRun";
+import { useTransferScenario } from "@/hooks/useTransferScenario";
 import { useScenarioPlayer } from "@/hooks/useScenarioPlayer";
 import { navigateToRoute } from "@/router";
 import {
@@ -37,6 +38,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   const group = actorGroupById[resolvedActorId] ?? getScenarioGroup(scenario);
   const resolvedProductId = productId ?? group?.productId ?? "zkwallet";
   const adapter = useAdapterScenarioRun(scenario);
+  const transfer = useTransferScenario(scenario);
 
   const player = useScenarioPlayer({
     steps: scenario.steps,
@@ -61,10 +63,8 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   });
 
   const currentStep = player.currentStep ?? scenario.steps[0];
-  const baseScreen = useMemo(
-    () => scenario.screens.find((screen) => screen.id === currentStep.screenId) ?? scenario.screens[0],
-    [currentStep.screenId, scenario.screens],
-  );
+  const baseScreen =
+    scenario.screens.find((screen) => screen.id === currentStep.screenId) ?? scenario.screens[0];
   const screen = withLiveScreenValues(baseScreen, storeState, scenario.id);
   const processView = withLiveProcessView(currentStep.processView, storeState, scenario.id);
   const displayId = getScenarioDisplayId(scenario);
@@ -152,6 +152,24 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     }
   };
 
+  // zkTransfer ZT-1 트리거 스텝: "전송 요청"(ZT1-step-4)에서 실제 비공개 전송을 실행하고 진행한다.
+  const [transferBusy, setTransferBusy] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const isTransferTrigger = transfer.supported && currentStep.id === "ZT1-step-4";
+  const runTransferAndAdvance = async () => {
+    if (transferBusy) return;
+    setTransferBusy(true);
+    setTransferError(null);
+    try {
+      await transfer.runTransferStep();
+      player.advance();
+    } catch (error) {
+      setTransferError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setTransferBusy(false);
+    }
+  };
+
   const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
   const advanceOrRecap = recapAction
     ? () =>
@@ -164,7 +182,9 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
         })
     : zkpolTrigger
       ? runZkpolTriggerAndAdvance
-      : player.advance;
+      : isTransferTrigger
+        ? runTransferAndAdvance
+        : player.advance;
   const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
   const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
 
@@ -273,6 +293,8 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
           {zkpolTriggerBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
           {zkpolTriggerError && <div className="mt-2 text-[12px] text-[var(--bad)]">실행 실패: {zkpolTriggerError}</div>}
+          {transferBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">증명 생성·온체인 제출 중…</div>}
+          {transferError && <div className="mt-2 text-[12px] text-[var(--bad)]">전송 실패: {transferError}</div>}
         </div>
         {player.canStopAuto && (
           <button
@@ -322,7 +344,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
             <PhoneContainer
               activeActionLabel={activeActionLabel}
               actor={screenActor}
-              canAdvance={canAdvanceWithRecap && !zkpolTriggerBusy}
+              canAdvance={canAdvanceWithRecap && !zkpolTriggerBusy && !transferBusy}
               onAdvance={advanceOrRecap}
               onFieldChange={handleFieldChange}
               scenarioId={scenario.id}
