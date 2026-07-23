@@ -23,6 +23,7 @@ const DASH_INDEX = path.join(DASH_DIST, "index.html");
 // 프록시 라우트: prefix로 매칭. strip=true면 prefix를 떼고 대상 루트로 보낸다.
 const PROXIES = [
   { prefix: "/wallet/api", strip: false, host: process.env.ADAPTER_HOST || "127.0.0.1", port: Number(process.env.ADAPTER_PORT || 8080) },
+  { prefix: "/transfer/api", strip: true, host: process.env.ZKTRANSFER_ADAPTER_HOST || "127.0.0.1", port: Number(process.env.ZKTRANSFER_ADAPTER_PORT || 9090) },
   { prefix: "/pol/mgr", strip: true, host: process.env.POL_MGR_HOST || "127.0.0.1", port: Number(process.env.POL_MGR_PORT || 21001) },
   { prefix: "/pol/gen", strip: true, host: process.env.POL_GEN_HOST || "127.0.0.1", port: Number(process.env.POL_GEN_PORT || 21000) },
 ];
