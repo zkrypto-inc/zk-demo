@@ -91,9 +91,12 @@ export function AppFormLayout({ screen, canAdvance, activeActionLabel, onAdvance
                           {field.picker}
                         </button>
                       </div>
-                      <div className="rounded-[10px] border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2.5 font-mono text-[13px] leading-[1.5] text-[var(--ink)]">
-                        {field.value}
-                      </div>
+                      <input
+                        aria-label={field.label}
+                        readOnly
+                        className="w-full rounded-[10px] border border-[var(--line)] bg-[var(--surface-2)] px-3 py-2.5 font-mono text-[13px] leading-[1.5] text-[var(--ink)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                        value={field.value}
+                      />
                     </div>
                   ) : isEditableField(field) ? (
                     <div key={`${section.title}-${field.label}`} className={`px-4 py-3 ${i > 0 ? "border-t border-[var(--line)]" : ""}`}>
