@@ -22,7 +22,7 @@ import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
 import { ZkpolStablecoinDashboard } from "@/components/zkpol/ZkpolStablecoinDashboard";
 import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
-import { ensureRunning, ensureRunningFresh, lineForScenario, setMyBatchBaseline, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
+import { ensureRunning, ensureRunningFresh, lineForScenario, setMyBatchBaseline, stopIncidentScheduler, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
 import { getOperatorLogs } from "@/api/polClient";
 
 type Props = {
@@ -194,6 +194,14 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     } finally {
       setTransferBusy(false);
     }
+  };
+
+  // ZP-4/ZPS-4 모니터링 → 지급 차단 전환: 이미 차단된 세션의 배치 스케줄러를 정지한다.
+  // 정지 확인을 기다리지 않고(화면 전환을 늦추지 않게) 진행한다 — 실패해도 다음 세션
+  // 시작 때 원장 기반 정리가 다시 걷어간다.
+  const advanceFromMonitor = () => {
+    void stopIncidentScheduler(polLine);
+    player.advance();
   };
 
   const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
@@ -391,7 +399,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
             <ZkpolCompactConsole
               focus={currentStep.liveView}
               line={polLine}
-              onAdvance={player.hasNext ? player.advance : undefined}
+              onAdvance={player.hasNext ? (isAnomalyMonitorStep ? advanceFromMonitor : player.advance) : undefined}
               advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
               onInject={isAnomalyMonitorStep ? handleInjectAnomaly : undefined}
               preparing={isAnomalyMonitorStep && sessionPreparing}
