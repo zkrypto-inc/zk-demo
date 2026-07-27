@@ -18,6 +18,8 @@ const stablecoinRules: readonly RewriteRule[] = [
   ["12,499.5 BTC", "12,499,500 KRWSC"],
   ["12,500 BTC", "12,500,000 KRWSC"],
   ["12,499 BTC", "12,499,000 KRWSC"],
+  // ZP-4 상환 요청 수량. 일반 규칙(BTC→KRWSC)만 타면 "1.2 KRWSC"가 돼 스테이블코인 금액으로 부자연스럽다.
+  ["1.2 BTC", "1,200,000 KRWSC"],
   ["1.2 ETH", "1,200 KUSD"],
   ["+0.5 BTC", "+500 KRWSC"],
   ["-1.0 BTC", "-1,000 KRWSC"],
@@ -54,6 +56,8 @@ const stablecoinRules: readonly RewriteRule[] = [
   ["지급 차단", "상환 차단"],
   ["지급", "상환"],
   ["온체인 게시판", "온체인 검증 컨트랙트"],
+  // 재시연 안내: 거래소는 ZP-D의 '초기화(새 세션)', 스테이블코인은 ZPS-D의 '운영 시작' 버튼이다.
+  ["'초기화(새 세션)'로", "'운영 시작'으로"],
   ["ops.zkpol.io", "stable.zkpol.io"],
 ];
 
@@ -106,7 +110,7 @@ export const scenarioZPS4: Scenario = makeStablecoinScenario(scenarioZP4, {
   planningId: "ZPS-4",
   name: "스테이블코인 이상징후 차단",
   summary:
-    "같은 사용자의 KRWSC 원장 이벤트가 중복 유입되면 zkPoL이 발행잔액 증명 생성 전에 후보를 감지하고, 증명 실패와 상환 차단 조치까지 이어지는 흐름입니다.",
+    "잔고를 초과하는 비정상 상환이 KRWSC 원장에 유입되면, zkPoL이 증명 과정에서 invariant 위반을 감지해 사고를 기록하고 상환을 차단합니다.",
 });
 
 // ZPS-D — 스테이블코인 운영 대시보드 (거래소 ZP-D 대칭). ScenarioPage가 이 id를 감지해

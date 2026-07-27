@@ -245,7 +245,7 @@ export async function isLineRunning(line: PolLine = "exchange"): Promise<boolean
 export const isExchangeRunning = () => isLineRunning("exchange");
 
 // 현재 세션이 사고(invariant 위반)로 차단된 상태인지 조회.
-async function isLineBlocked(line: PolLine): Promise<boolean> {
+export async function isLineBlocked(line: PolLine): Promise<boolean> {
   try {
     const { getPublicCoins } = await import("./polClient");
     const token = currentDemoToken(line);
@@ -266,6 +266,27 @@ export function ensureRunning(line: PolLine = "exchange"): Promise<void> {
   const p = (async () => {
     if (await isLineRunning(line)) return;
     if (await isLineBlocked(line)) return;
+    await startDemoPipeline(line);
+  })().finally(() => {
+    ensurePromise[line] = null;
+  });
+  ensurePromise[line] = p;
+  return p;
+}
+
+// ZP-4/ZPS-4 진입 전용: '정상 운영 중인 파이프라인'을 반드시 보장한다.
+// 이 시나리오의 스텝 1은 정상 로그가 쌓이는 화면에서 출발해야 하므로, 차단된 세션이면
+// ensureRunning과 달리 새 세션으로 갈아끼운다(= 무한 재시연 가능).
+// ensureRunning의 동작은 그대로 두고(다른 시나리오의 '정지 상태 유지' 의도 보존),
+// 진행 중 Promise만 공유해 동시 호출로 세션이 두 번 발급되는 것을 막는다.
+export function ensureRunningFresh(line: PolLine = "exchange"): Promise<void> {
+  if (ensurePromise[line]) return ensurePromise[line]!;
+  const p = (async () => {
+    if (await isLineBlocked(line)) {
+      await startDemoPipeline(line);
+      return;
+    }
+    if (await isLineRunning(line)) return;
     await startDemoPipeline(line);
   })().finally(() => {
     ensurePromise[line] = null;
