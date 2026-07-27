@@ -264,6 +264,32 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
               리셋
             </button>
           )}
+          {transfer.supported && (
+            <button
+              type="button"
+              onClick={transfer.rerun}
+              disabled={transfer.status === "loading"}
+              title={transfer.error ?? transfer.runId ?? "Transfer adapter"}
+              className={`inline-flex h-7 max-w-[170px] items-center gap-2 rounded border px-3 text-[11px] font-medium transition ${adapterStatusClass(transfer.status)}`}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-current" />
+              <span className="truncate">{adapterStatusLabel(transfer.status)}</span>
+            </button>
+          )}
+          {transfer.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                player.restart();
+                void transfer.reset();
+              }}
+              disabled={transfer.status === "loading"}
+              title="재생을 처음으로 되돌리고 세션을 새로 준비 (계정은 유지)"
+              className="inline-flex h-7 items-center rounded border border-[var(--line)] bg-[var(--surface)] px-3 text-[11px] font-medium text-[var(--ink-2)] transition hover:border-[var(--ink-2)] hover:text-[var(--ink)] disabled:opacity-50"
+            >
+              리셋
+            </button>
+          )}
           <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
             step {player.currentStepIndex + 1} / {scenario.steps.length}
           </div>
