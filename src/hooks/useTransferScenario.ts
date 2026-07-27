@@ -17,31 +17,30 @@ export function useTransferScenario(scenario: Scenario) {
   const supported = TRANSFER_SCENARIOS.has(scenario.id);
   const run = useDemoStore((state) => state.adapterRuns[scenario.id]);
 
-  // 진입 시 setup (계정 준비). 최초 1회만 계정을 만들고 이후 세션만 새로 발급된다(어댑터가 재사용).
-  useEffect(() => {
+  // 계정 준비(setup). 진입 effect와 상태뱃지 클릭(rerun)이 공유한다.
+  // 주의: 여기서 온체인 전송(runTransferStep)은 절대 호출하지 않는다 — approve+deposit+send는 비가역 tx이므로,
+  // "다시 실행"은 계정 준비만 되풀이한다(어댑터가 계정을 재사용해 저렴).
+  const runSetup = useCallback(async () => {
     if (!supported) return;
-    let cancelled = false;
+    if (demoStore.getState().adapterRuns[scenario.id]?.status === "loading") return;
 
     demoStore.setAdapterRun(scenario.id, { status: "loading", error: undefined });
-    (async () => {
-      try {
-        const res = await setupTransfer();
-        if (cancelled) return;
-        demoStore.setScenarioValues(scenario.id, {
-          "수신 주소": res.receiverEna,
-          수신자: res.receiverEna,
-        });
-        demoStore.setAdapterRun(scenario.id, { status: "success", runId: res.sessionId, error: undefined });
-      } catch (error) {
-        if (cancelled) return;
-        demoStore.setAdapterRun(scenario.id, { status: "error", error: getMessage(error) });
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const res = await setupTransfer();
+      demoStore.setScenarioValues(scenario.id, {
+        "수신 주소": res.receiverEna,
+        수신자: res.receiverEna,
+      });
+      demoStore.setAdapterRun(scenario.id, { status: "success", runId: res.sessionId, error: undefined });
+    } catch (error) {
+      demoStore.setAdapterRun(scenario.id, { status: "error", error: getMessage(error) });
+    }
   }, [supported, scenario.id]);
+
+  // 진입 시 setup (계정 준비). 최초 1회만 계정을 만들고 이후 세션만 새로 발급된다(어댑터가 재사용).
+  useEffect(() => {
+    void runSetup();
+  }, [runSetup]);
 
   // "전송 요청" 시 호출: 비공개 전송 실행 → 실제 txHash를 화면에 반영.
   const runTransferStep = useCallback(async () => {
@@ -57,10 +56,22 @@ export function useTransferScenario(scenario: Scenario) {
     return res;
   }, [supported, scenario.id]);
 
+  // "리셋": 재생을 처음으로 되돌릴 때 세션만 새로 준비한다(setup 재실행).
+  // 백엔드 /demo/reset(계정 초기화)은 부르지 않는다 — 시드된 기존 계정을 그대로 재사용해야 하므로.
+  // 결과: 계정(sender/receiver)은 유지되고 세션만 갱신된다. (상태뱃지 rerun과 같은 setup 경로)
+  const reset = useCallback(async () => {
+    if (!supported) return;
+    demoStore.setScenarioValues(scenario.id, {});
+    await runSetup();
+  }, [supported, scenario.id, runSetup]);
+
   return {
     supported,
     status: run?.status ?? "idle",
+    runId: run?.runId,
     error: run?.error,
+    rerun: runSetup,
+    reset,
     runTransferStep,
   };
 }
