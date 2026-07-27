@@ -140,9 +140,9 @@ export function WebProcessingLayout({ screen, canAdvance, activeActionLabel, onA
               <div className="w-full space-y-1.5 rounded-lg border border-[var(--line)] p-3">
                 {restFields.map((field) => (
                   <div key={field.label} className="flex items-start justify-between gap-3">
-                    <span className="text-[11px] text-[var(--ink-2)]">{field.label}</span>
+                    <span className="shrink-0 text-[11px] text-[var(--ink-2)]">{field.label}</span>
                     <span
-                      className="font-mono text-[11px]"
+                      className="min-w-0 break-all text-right font-mono text-[11px]"
                       style={{
                         color: field.tone === "ok" ? "var(--ok)"
                           : field.tone === "warn" ? "var(--warn)"
