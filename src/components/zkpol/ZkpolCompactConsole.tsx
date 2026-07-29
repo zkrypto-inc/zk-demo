@@ -224,8 +224,8 @@ export function ZkpolCompactConsole({
           </div>
         )}
 
-        {/* 카운터 — ingest/blocked/incident/monitor/console에서 표시 */}
-        {(focus === "ingest" || focus === "blocked" || focus === "console" || focus === "incident" || focus === "monitor") && (
+        {/* 카운터 — ingest/blocked/incident/monitor/normal/console에서 표시 */}
+        {(focus === "ingest" || focus === "blocked" || focus === "console" || focus === "incident" || focus === "monitor" || focus === "normal") && (
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-md bg-[var(--surface-2)] p-3">
               <div className="text-[11px] text-[var(--ink-2)]">누적 거래 (이번 세션)</div>
