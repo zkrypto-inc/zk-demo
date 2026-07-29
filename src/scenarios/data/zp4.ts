@@ -31,6 +31,7 @@ export const scenarioZP4: Scenario = {
       title: "출금이 보류되었습니다",
       status: "지급 보류",
       statusTone: "bad",
+      popup: true,
       sections: [
         {
           title: "출금 요청",

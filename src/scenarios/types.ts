@@ -176,6 +176,9 @@ export type UserScreen = {
   // result 레이아웃의 상태 표현 톤. 기본(미지정)은 성공(초록 체크).
   // "bad"/"warn"이면 차단·보류 아이콘과 색으로 렌더한다 (ZP-4 지급 보류 화면).
   statusTone?: Tone;
+  // result 레이아웃을 폰 화면 전체가 아니라 중앙 모달 팝업(딤 배경 + 카드)으로 렌더한다.
+  // (ZP-4 지급 보류: 앱을 쓰던 중 알림처럼 뜨는 연출)
+  popup?: boolean;
   progressBoxes?: {
     total: number;
     completed: number;
