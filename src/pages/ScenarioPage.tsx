@@ -102,7 +102,12 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   // 단, 다중 사용자 대비: 브라우저를 떠날 때(탭 닫기·새로고침)는 내 세션 스트림을 정지해
   // 백그라운드 좀비 스트림이 누적되지 않게 한다. 시나리오 간 이동은 세션을 유지한다.
   // ZP-4/ZPS-4 모니터링 스텝: 정상 운영 중인 파이프라인을 전제로 하므로 별도 경로로 보장한다(아래 effect).
-  const isAnomalyMonitorStep = currentStep.id === "ZP4-step-1" || currentStep.id === "ZPS4-step-1";
+  // - 세션 스텝(normal=정상 운영, monitor=이상 주입): 진입 시 정상 세션을 보장(ensureRunningFresh).
+  // - 주입 스텝(monitor만): 콘솔 주입 버튼 + 전환 시 스케줄러 정지(advanceFromMonitor).
+  // 두 스텝의 liveView가 모두 세션 스텝이라, normal→monitor 전환 시 effect가 재실행되지 않아
+  // 첫 스텝에서 만든 세션이 유지되고 그 세션에 주입이 얹힌다.
+  const isMonitorSessionStep = currentStep.liveView === "normal" || currentStep.liveView === "monitor";
+  const isInjectStep = currentStep.liveView === "monitor";
   const isAnomalyScenario = scenario.id === "ZP-4" || scenario.id === "ZPS-4";
   const [sessionPreparing, setSessionPreparing] = useState(false);
 
@@ -122,10 +127,10 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     };
   }, [scenario.id, polLine, isAnomalyScenario]);
 
-  // ZP-4/ZPS-4 스텝 1 진입: 사고로 차단된 세션은 자동으로 새 세션으로 교체한다.
+  // ZP-4/ZPS-4 모니터링 스텝(정상/이상) 진입: 사고로 차단된 세션은 자동으로 새 세션으로 교체한다.
   // (ensureRunning은 차단 세션을 일부러 살리지 않으므로 그대로 두면 죽은 파이프라인을 보게 된다)
   useEffect(() => {
-    if (!isAnomalyMonitorStep) return;
+    if (!isMonitorSessionStep) return;
     let cancelled = false;
     setSessionPreparing(true);
     void ensureRunningFresh(polLine).finally(() => {
@@ -134,7 +139,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     return () => {
       cancelled = true;
     };
-  }, [isAnomalyMonitorStep, polLine]);
+  }, [isMonitorSessionStep, polLine]);
 
   const handleStepSelect = (nextStepIndex: number) => {
     player.goTo(nextStepIndex);
@@ -399,10 +404,10 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
             <ZkpolCompactConsole
               focus={currentStep.liveView}
               line={polLine}
-              onAdvance={player.hasNext ? (isAnomalyMonitorStep ? advanceFromMonitor : player.advance) : undefined}
+              onAdvance={player.hasNext ? (isInjectStep ? advanceFromMonitor : player.advance) : undefined}
               advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
-              onInject={isAnomalyMonitorStep ? handleInjectAnomaly : undefined}
-              preparing={isAnomalyMonitorStep && sessionPreparing}
+              onInject={isInjectStep ? handleInjectAnomaly : undefined}
+              preparing={isMonitorSessionStep && sessionPreparing}
             />
           ) : (screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer

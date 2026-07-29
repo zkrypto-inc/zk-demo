@@ -1,7 +1,8 @@
 import type { Scenario } from "@/scenarios/types";
 
-// ZP-4 v2.4 — 이상징후 차단, 2스텝. 모니터링 시스템이 주체가 되는 순서로 재구성.
-// 1) 정상 운영 중인 모니터링 콘솔에서 직접 이상 거래를 주입해 '정상 → 실패 → 차단' 전환을 본다.
+// ZP-4 v2.5 — 이상징후 차단, 3스텝. 모니터링 시스템이 주체가 되는 순서로 재구성.
+// 0) 정상 운영 중인 모니터링 콘솔을 먼저 보여준다(정상 배치 증명이 연속 생성).
+// 1) 같은 콘솔에서 이상 거래를 주입해 '정상 → 실패 → 차단' 전환을 본다.
 // 2) 그 결과가 개인 사용자에게 어떻게 도달하는지(지급 보류)를 폰 화면으로 확인한다.
 // 세션은 통합 운영 모델로 공유되며, 주입이 현재 세션에 비정상 이벤트를 얹는다.
 const pipeActors = ["거래소 원장", "zkPoL 서버", "온체인 게시판"] as const;
@@ -19,6 +20,7 @@ export const scenarioZP4: Scenario = {
     "잔고를 초과하는 비정상 출금이 원장에 유입되면, zkPoL이 증명 과정에서 invariant 위반을 감지해 사고를 기록하고 지급을 차단합니다.",
   screens: [
     // liveView 스텝이라 실제로는 컴팩트 콘솔이 렌더된다 (placeholder).
+    { id: "ZP4-0", layout: "dashboard", actor: "리스크 운영자", title: "거래 모니터링 시스템", sections: [] },
     { id: "ZP4-1", layout: "dashboard", actor: "리스크 운영자", title: "거래 모니터링 시스템", sections: [] },
     {
       id: "ZP4-2",
@@ -53,9 +55,34 @@ export const scenarioZP4: Scenario = {
   ],
   steps: [
     {
+      id: "ZP4-step-0",
+      kind: "system-processing",
+      label: "정상 운영",
+      trigger: "user",
+      screenId: "ZP4-0",
+      liveView: "normal",
+      description:
+        "거래소 원장의 변경이 실시간으로 배치 증명·검증되는 정상 운영 상태입니다. 아래 콘솔에 검증을 통과한 배치가 실시간으로 쌓입니다. 다음 단계에서 이 세션에 이상 거래를 주입해 검증이 어떻게 반응하는지 확인합니다.",
+      processView: {
+        kind: "overview",
+        description:
+          "정상 운영 중에는 배치마다 sum(old) + delta = sum(new) 등식이 성립해 증명이 끊김 없이 생성됩니다. 이 등식이 유지되는 한 지급은 정상 처리됩니다 — 다음 단계에서 이 등식을 깨는 이상 거래를 주입합니다.",
+        cards: [
+          { label: "운영 상태", value: "정상 운영 중", tone: "ok" },
+          { label: "invariant", value: "sum(old) + Δ = sum(new)" },
+          { label: "배치 증명", value: "연속 통과", tone: "ok" },
+        ],
+        sequence: {
+          actors: [...pipeActors],
+          activeEdge: { from: "zkPoL 서버", to: "온체인 게시판", label: "배치 증명 제출·검증", tone: "ok" },
+          pastEdges: [{ from: "거래소 원장", to: "zkPoL 서버", label: "원장 변경 이벤트 전달" }],
+        },
+      },
+    },
+    {
       id: "ZP4-step-1",
       kind: "system-processing",
-      label: "거래 모니터링",
+      label: "이상징후 감지",
       trigger: "user",
       screenId: "ZP4-1",
       liveView: "monitor",

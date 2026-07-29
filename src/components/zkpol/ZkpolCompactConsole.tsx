@@ -14,7 +14,7 @@ import { usePolling } from "@/hooks/usePolling";
 // 시나리오 좌측 슬롯용 컴팩트 라이브 콘솔.
 // ZP-1/ZP-4의 liveView 스텝에서 목업 화면 대신 렌더되며, focus에 따라 강조 패널이 바뀐다.
 // 전체 화면은 '운영 대시보드'(ZP-D, 네이티브 임베드) 몫 — 여기는 스텝 서사에 맞춘 최소 구성.
-type Focus = "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor";
+type Focus = "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor" | "normal";
 
 type Props = {
   focus: Focus;
@@ -62,9 +62,9 @@ export function ZkpolCompactConsole({
 }: Props) {
   // incident = ZP-4 종합(배치 로그 + 사고 + 차단 카운터). 사고 없을 땐 detect처럼 대기 연출.
   // monitor  = incident와 같은 구성이되 '정상 운영'에서 출발한다 — 사고 전에는 중립 톤·중립 문구.
-  const wantLogs = focus === "verify" || focus === "console" || focus === "incident" || focus === "monitor";
+  const wantLogs = focus === "verify" || focus === "console" || focus === "incident" || focus === "monitor" || focus === "normal";
   const wantIncidents =
-    focus === "detect" || focus === "blocked" || focus === "console" || focus === "incident" || focus === "monitor";
+    focus === "detect" || focus === "blocked" || focus === "console" || focus === "incident" || focus === "monitor" || focus === "normal";
   const wantWaitingCue = focus === "detect" || focus === "incident";
 
   // monitor 모드의 주입 상태 (idle → busy → done). done이면 감지될 때까지 대기 배지를 띄운다.
@@ -106,7 +106,8 @@ export function ZkpolCompactConsole({
 
   const hasIncident = (incidents.data?.length ?? 0) > 0;
 
-  // 게이팅: verify는 첫 배치, detect/monitor는 첫 사고가 등장해야 다음으로
+  // 게이팅: verify는 첫 배치, detect/monitor는 첫 사고가 등장해야 다음으로.
+  // normal(정상 운영)은 게이팅 없이 바로 다음으로 넘어간다.
   const gateMet =
     focus === "verify" ? (batchLogs.data?.length ?? 0) > 0 :
     focus === "detect" || focus === "monitor" ? hasIncident :
@@ -170,9 +171,9 @@ export function ZkpolCompactConsole({
   // 내 거래 배치: 제출 시점 baseline(그 시점 최대 batchSeq)이 있으면 '그 다음 배치'(baseline 초과 최소),
   // 없으면(폴백) 세션 첫 배치. baseline 이후 배치가 아직 안 생겼으면 강조 없음.
   const myBatchSeq = (() => {
-    // monitor(ZP-4)는 사용자가 제출한 거래가 없다 — 주입만 한다. 폴백(세션 첫 배치)이 걸리면
-    // 아무 배치에나 '내 거래 포함'이 붙어 서사를 흐린다.
-    if (focus === "monitor") return null;
+    // monitor/normal(ZP-4)은 사용자가 제출한 거래가 없다 — 주입만 하거나 관찰만 한다. 폴백(세션
+    // 첫 배치)이 걸리면 아무 배치에나 '내 거래 포함'이 붙어 서사를 흐린다.
+    if (focus === "monitor" || focus === "normal") return null;
     const seqs = (batchLogs.data ?? []).map((l) => l.batchSeq);
     if (seqs.length === 0) return null;
     const baseline = getMyBatchBaseline(line);

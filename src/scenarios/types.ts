@@ -398,9 +398,11 @@ export type ScenarioStep = {
   lane?: string;
   // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
   // incident = 위반 감지 + 지급 차단 종합(배치 로그 + 사고 + 차단 카운터).
-  // monitor  = 거래 모니터링(ZP-4 스텝1). incident와 구성은 같지만 정상 운영에서 출발해
+  // monitor  = 거래 모니터링(ZP-4 이상주입 스텝). incident와 구성은 같지만 정상 운영에서 출발해
   //            콘솔 안의 주입 버튼으로 '정상 → 사고' 전환을 한 화면에서 보여준다(톤이 동적).
-  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor";
+  // normal   = 정상 운영(ZP-4 첫 스텝). monitor와 같은 구성이되 주입 버튼·사고 게이팅 없이
+  //            정상 배치 증명이 쌓이는 상태만 보여주고 바로 다음으로 넘어간다(항상 중립 톤).
+  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor" | "normal";
 };
 
 // --- Scenario ---
