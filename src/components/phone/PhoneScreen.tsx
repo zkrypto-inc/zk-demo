@@ -6,6 +6,7 @@ import { AppFormLayout } from "./layouts/AppFormLayout";
 import { AppProcessingLayout } from "./layouts/AppProcessingLayout";
 import { AppQrScannerLayout } from "./layouts/AppQrScannerLayout";
 import { AppResultLayout } from "./layouts/AppResultLayout";
+import { PopupBackground } from "./layouts/AppResultPopup";
 import { AppVoteLayout } from "./layouts/AppVoteLayout";
 
 type Props = {
@@ -59,6 +60,9 @@ function ProgressBoxes({ progress }: { progress: NonNullable<UserScreen["progres
 
 export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onAdvance, onFieldChange }: Props) {
   const layoutProps = { screen, canAdvance, activeActionLabel, onAdvance, onFieldChange };
+  // result + popup: 폰 화면 전체가 아니라 딤 배경 위 중앙 모달로 렌더한다(ZP-4 지급 보류).
+  // 이때는 상단 헤더/진행 박스를 숨기고 팝업 카드 안에서 제목·내용을 보여준다.
+  const isResultPopup = screen.layout === "result" && screen.popup === true;
 
   return (
     <AnimatePresence mode="wait">
@@ -68,10 +72,10 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
         exit={{ opacity: 0, y: -8 }}
         initial={{ opacity: 0, y: 8 }}
         transition={{ duration: 0.16, ease: [0.2, 0, 0, 1] }}
-        className="flex flex-1 flex-col overflow-hidden"
+        className="relative flex flex-1 flex-col overflow-hidden"
       >
-        {/* Header — hidden for CTA layout (it handles its own title) */}
-        {screen.layout !== "cta" && (
+        {/* Header — hidden for CTA layout (it handles its own title) and popup result */}
+        {screen.layout !== "cta" && !isResultPopup && (
           <div className="shrink-0 border-b border-[var(--line)] px-5 pt-4 pb-4">
             <div className="text-[20px] font-semibold leading-6 text-[var(--ink)]">{screen.title}</div>
             {screen.subtitle && (
@@ -80,14 +84,14 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
           </div>
         )}
 
-        {screen.progressBoxes && <ProgressBoxes progress={screen.progressBoxes} />}
+        {screen.progressBoxes && !isResultPopup && <ProgressBoxes progress={screen.progressBoxes} />}
 
         {/* Layout-specific content */}
         {screen.layout === "cta" && <AppCtaLayout {...layoutProps} />}
         {screen.layout === "form" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "processing" && <AppProcessingLayout {...layoutProps} />}
         {screen.layout === "scanner" && <AppQrScannerLayout {...layoutProps} />}
-        {screen.layout === "result" && <AppResultLayout {...layoutProps} />}
+        {screen.layout === "result" && (isResultPopup ? <PopupBackground screen={screen} /> : <AppResultLayout {...layoutProps} />)}
         {screen.layout === "vote" && <AppVoteLayout {...layoutProps} />}
         {screen.layout === "approval" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <AppFormLayout {...layoutProps} />}

@@ -22,7 +22,7 @@ import { getFieldHint } from "@/utils/fieldGlossary";
 import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
 import { ZkpolStablecoinDashboard } from "@/components/zkpol/ZkpolStablecoinDashboard";
 import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
-import { ensureRunning, lineForScenario, setMyBatchBaseline, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
+import { ensureRunning, ensureRunningFresh, lineForScenario, setMyBatchBaseline, stopIncidentScheduler, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
 import { getOperatorLogs } from "@/api/polClient";
 
 type Props = {
@@ -101,11 +101,22 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   // 세션은 하나로 공유되고, 시작/정지/재시작은 운영 대시보드에서 한다.
   // 단, 다중 사용자 대비: 브라우저를 떠날 때(탭 닫기·새로고침)는 내 세션 스트림을 정지해
   // 백그라운드 좀비 스트림이 누적되지 않게 한다. 시나리오 간 이동은 세션을 유지한다.
+  // ZP-4/ZPS-4 모니터링 스텝: 정상 운영 중인 파이프라인을 전제로 하므로 별도 경로로 보장한다(아래 effect).
+  // - 세션 스텝(normal=정상 운영, monitor=이상 주입): 진입 시 정상 세션을 보장(ensureRunningFresh).
+  // - 주입 스텝(monitor만): 콘솔 주입 버튼 + 전환 시 스케줄러 정지(advanceFromMonitor).
+  // 두 스텝의 liveView가 모두 세션 스텝이라, normal→monitor 전환 시 effect가 재실행되지 않아
+  // 첫 스텝에서 만든 세션이 유지되고 그 세션에 주입이 얹힌다.
+  const isMonitorSessionStep = currentStep.liveView === "normal" || currentStep.liveView === "monitor";
+  const isInjectStep = currentStep.liveView === "monitor";
+  const isAnomalyScenario = scenario.id === "ZP-4" || scenario.id === "ZPS-4";
+  const [sessionPreparing, setSessionPreparing] = useState(false);
+
   useEffect(() => {
     const isZkpol = ["ZP-1", "ZP-4", "ZP-D", "ZPS-1", "ZPS-4", "ZPS-D"].includes(scenario.id);
     if (!isZkpol) return;
     // 해당 라인(거래소/스테이블코인) 세션만 자동 시작·정지한다. 두 라인은 독립 세션이라 서로 안 건드린다.
-    void ensureRunning(polLine);
+    // ZP-4/ZPS-4는 ensureRunning과 ensureRunningFresh가 경합하지 않도록 아래 effect에만 맡긴다.
+    if (!isAnomalyScenario) void ensureRunning(polLine);
     const handlePageHide = () => stopStreamOnUnload(polLine);
     window.addEventListener("pagehide", handlePageHide);
     return () => {
@@ -114,7 +125,21 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       // zkPoL 내부 이동(ZP/ZPS 간)은 경로가 여전히 /zkpol 이므로 유지된다.
       if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload(polLine);
     };
-  }, [scenario.id, polLine]);
+  }, [scenario.id, polLine, isAnomalyScenario]);
+
+  // ZP-4/ZPS-4 모니터링 스텝(정상/이상) 진입: 사고로 차단된 세션은 자동으로 새 세션으로 교체한다.
+  // (ensureRunning은 차단 세션을 일부러 살리지 않으므로 그대로 두면 죽은 파이프라인을 보게 된다)
+  useEffect(() => {
+    if (!isMonitorSessionStep) return;
+    let cancelled = false;
+    setSessionPreparing(true);
+    void ensureRunningFresh(polLine).finally(() => {
+      if (!cancelled) setSessionPreparing(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isMonitorSessionStep, polLine]);
 
   const handleStepSelect = (nextStepIndex: number) => {
     player.goTo(nextStepIndex);
@@ -124,14 +149,16 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     demoStore.setFormValue(scenario.id, screenId, label, value);
   };
 
-  // zkPoL 트리거 스텝: 폰 제출이 '운영 중 거래소에 거래 1건을 얹는다'.
-  // ZP-1은 정상 거래, ZP-4는 비정상 거래. 세션이 없으면 내부에서 자동 시작(ensureExchangeRunning).
+  // zkPoL 트리거 스텝: 폰 제출이 '운영 중 거래소에 정상 거래 1건을 얹는다'(ZP-1/ZPS-1).
+  // ZP-4/ZPS-4의 이상 주입은 폰이 아니라 모니터링 콘솔 안의 버튼이 담당한다(주입 ≠ 스텝 진행).
   const [zkpolTriggerBusy, setZkpolTriggerBusy] = useState(false);
   const [zkpolTriggerError, setZkpolTriggerError] = useState<string | null>(null);
   const zkpolTrigger =
     currentStep.id === "ZP1-step-1" || currentStep.id === "ZPS1-step-1" ? submitNormalTransaction :
-    currentStep.id === "ZP4-step-1" || currentStep.id === "ZPS4-step-1" ? submitAnomalyTransaction :
     null;
+
+  // 모니터링 콘솔의 '이상 거래 주입' — 라인을 반드시 넘긴다(안 넘기면 ZPS-4가 거래소 세션을 오염시킨다).
+  const handleInjectAnomaly = () => submitAnomalyTransaction(polLine).then(() => undefined);
   const runZkpolTriggerAndAdvance = async () => {
     if (!zkpolTrigger || zkpolTriggerBusy) return;
     setZkpolTriggerBusy(true);
@@ -172,6 +199,14 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     } finally {
       setTransferBusy(false);
     }
+  };
+
+  // ZP-4/ZPS-4 모니터링 → 지급 차단 전환: 이미 차단된 세션의 배치 스케줄러를 정지한다.
+  // 정지 확인을 기다리지 않고(화면 전환을 늦추지 않게) 진행한다 — 실패해도 다음 세션
+  // 시작 때 원장 기반 정리가 다시 걷어간다.
+  const advanceFromMonitor = () => {
+    void stopIncidentScheduler(polLine);
+    player.advance();
   };
 
   const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
@@ -322,7 +357,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">현재 단계</div>
           <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
-          {zkpolTriggerBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
+          {(zkpolTriggerBusy || (isMonitorSessionStep && sessionPreparing)) && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
           {zkpolTriggerError && <div className="mt-2 text-[12px] text-[var(--bad)]">실행 실패: {zkpolTriggerError}</div>}
           {transferBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">증명 생성·온체인 제출 중…</div>}
           {transferError && <div className="mt-2 text-[12px] text-[var(--bad)]">전송 실패: {transferError}</div>}
@@ -369,8 +404,10 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
             <ZkpolCompactConsole
               focus={currentStep.liveView}
               line={polLine}
-              onAdvance={player.hasNext ? player.advance : undefined}
+              onAdvance={player.hasNext ? (isInjectStep ? advanceFromMonitor : player.advance) : undefined}
               advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
+              onInject={isInjectStep ? handleInjectAnomaly : undefined}
+              preparing={isMonitorSessionStep && sessionPreparing}
             />
           ) : (screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer

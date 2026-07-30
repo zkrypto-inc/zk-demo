@@ -173,6 +173,12 @@ export type UserScreen = {
   animateProcessing?: boolean;
   subtitle?: string;
   status?: string;
+  // result 레이아웃의 상태 표현 톤. 기본(미지정)은 성공(초록 체크).
+  // "bad"/"warn"이면 차단·보류 아이콘과 색으로 렌더한다 (ZP-4 지급 보류 화면).
+  statusTone?: Tone;
+  // result 레이아웃을 폰 화면 전체가 아니라 중앙 모달 팝업(딤 배경 + 카드)으로 렌더한다.
+  // (ZP-4 지급 보류: 앱을 쓰던 중 알림처럼 뜨는 연출)
+  popup?: boolean;
   progressBoxes?: {
     total: number;
     completed: number;
@@ -395,7 +401,11 @@ export type ScenarioStep = {
   lane?: string;
   // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
   // incident = 위반 감지 + 지급 차단 종합(배치 로그 + 사고 + 차단 카운터).
-  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident";
+  // monitor  = 거래 모니터링(ZP-4 이상주입 스텝). incident와 구성은 같지만 정상 운영에서 출발해
+  //            콘솔 안의 주입 버튼으로 '정상 → 사고' 전환을 한 화면에서 보여준다(톤이 동적).
+  // normal   = 정상 운영(ZP-4 첫 스텝). monitor와 같은 구성이되 주입 버튼·사고 게이팅 없이
+  //            정상 배치 증명이 쌓이는 상태만 보여주고 바로 다음으로 넘어간다(항상 중립 톤).
+  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor" | "normal";
 };
 
 // --- Scenario ---
