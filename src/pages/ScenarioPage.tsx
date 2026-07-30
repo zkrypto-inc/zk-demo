@@ -357,7 +357,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">현재 단계</div>
           <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
-          {zkpolTriggerBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
+          {(zkpolTriggerBusy || (isMonitorSessionStep && sessionPreparing)) && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
           {zkpolTriggerError && <div className="mt-2 text-[12px] text-[var(--bad)]">실행 실패: {zkpolTriggerError}</div>}
           {transferBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">증명 생성·온체인 제출 중…</div>}
           {transferError && <div className="mt-2 text-[12px] text-[var(--bad)]">전송 실패: {transferError}</div>}
