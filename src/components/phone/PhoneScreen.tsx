@@ -6,7 +6,7 @@ import { AppFormLayout } from "./layouts/AppFormLayout";
 import { AppProcessingLayout } from "./layouts/AppProcessingLayout";
 import { AppQrScannerLayout } from "./layouts/AppQrScannerLayout";
 import { AppResultLayout } from "./layouts/AppResultLayout";
-import { AppResultPopup } from "./layouts/AppResultPopup";
+import { PopupBackground } from "./layouts/AppResultPopup";
 import { AppVoteLayout } from "./layouts/AppVoteLayout";
 
 type Props = {
@@ -91,7 +91,7 @@ export function PhoneScreen({ screen, activeActionLabel, canAdvance = false, onA
         {screen.layout === "form" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "processing" && <AppProcessingLayout {...layoutProps} />}
         {screen.layout === "scanner" && <AppQrScannerLayout {...layoutProps} />}
-        {screen.layout === "result" && (isResultPopup ? <AppResultPopup {...layoutProps} /> : <AppResultLayout {...layoutProps} />)}
+        {screen.layout === "result" && (isResultPopup ? <PopupBackground screen={screen} /> : <AppResultLayout {...layoutProps} />)}
         {screen.layout === "vote" && <AppVoteLayout {...layoutProps} />}
         {screen.layout === "approval" && <AppFormLayout {...layoutProps} />}
         {screen.layout === "dashboard" && <AppFormLayout {...layoutProps} />}
