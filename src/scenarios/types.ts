@@ -1,6 +1,6 @@
 export type Tone = "neutral" | "accent" | "ok" | "bad" | "warn";
-export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkpol";
-export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident";
+export type ProductId = "zkwallet" | "zktransfer" | "zkpasskey" | "zkpol" | "zkvoting";
+export type ScenarioMode = "platform" | "custody" | "issuer" | "personal" | "policy-payment" | "zt-user" | "auditor" | "risk" | "incident" | "voter" | "operator";
 export type ActorGroupId =
   | "personal"
   | "custody"
@@ -14,7 +14,9 @@ export type ActorGroupId =
   | "passkey-user"
   | "risk"
   | "stablecoin-risk"
-  | "incident";
+  | "incident"
+  | "zv-voter"
+  | "zv-operator";
 export type Surface = "web" | "app" | "mixed";
 export type ActorType = "mobile" | "web";
 export type StepKind = "user-action" | "system-processing" | "result";
@@ -39,8 +41,12 @@ export type ScenarioId =
   | "ZT-A"
   | "ZP-1"
   | "ZP-4"
+  | "ZP-D"
   | "ZPS-1"
-  | "ZPS-4";
+  | "ZPS-4"
+  | "ZPS-D"
+  | "ZV-1"
+  | "ZO-1";
 
 // --- User screen types ---
 
@@ -88,7 +94,9 @@ export type ScreenLayout =
   | "ledger"      // 원장식 표 — 내부 트랜잭션 + 행별 액션
   | "audit-table" // 감사 표 — 거래 행 + 체크박스/복호화 결과
   | "recap"       // 정리 페이지 — 좌우 결과 패널 2장
-  | "cta";        // 단일 CTA — 앱 진입 화면 (모바일)
+  | "cta"         // 단일 CTA — 앱 진입 화면 (모바일)
+  | "vote"        // 투표 선택 — 후보 라디오 카드 목록 (zkVoting)
+  | "tally";      // 개표 — 후보별 득표 막대 + 검증 카드 (zkVoting)
 
 export type WebContext = {
   menuItem: string;
@@ -165,6 +173,12 @@ export type UserScreen = {
   animateProcessing?: boolean;
   subtitle?: string;
   status?: string;
+  // result 레이아웃의 상태 표현 톤. 기본(미지정)은 성공(초록 체크).
+  // "bad"/"warn"이면 차단·보류 아이콘과 색으로 렌더한다 (ZP-4 지급 보류 화면).
+  statusTone?: Tone;
+  // result 레이아웃을 폰 화면 전체가 아니라 중앙 모달 팝업(딤 배경 + 카드)으로 렌더한다.
+  // (ZP-4 지급 보류: 앱을 쓰던 중 알림처럼 뜨는 연출)
+  popup?: boolean;
   progressBoxes?: {
     total: number;
     completed: number;
@@ -177,6 +191,39 @@ export type UserScreen = {
   ledger?: LedgerScreenData;
   auditTable?: AuditTableData;
   recap?: RecapData;
+  vote?: VoteData;
+  tally?: TallyData;
+};
+
+// --- zkVoting screen data ---
+
+export type VoteOption = {
+  mark: string;        // 기호 번호 표기 (예: "기호 1")
+  name: string;        // 후보명
+  note?: string;       // 부가 설명 (예: "현 사무국장")
+  selected?: boolean;  // 선택된 후보 강조
+};
+
+export type VoteData = {
+  question: string;    // 안건 (예: "이사장 선출")
+  hint?: string;       // 보조 안내 (예: "후보 1인을 선택하세요 · 비밀투표")
+  options: VoteOption[];
+};
+
+export type TallyRow = {
+  mark: string;        // 기호 번호 표기
+  votes: string;       // 득표 표기 (예: "612표")
+  pct: number;         // 막대 채움 비율 (0~100)
+};
+
+export type TallyData = {
+  caption?: string;             // 집계 요약 (예: "총 투표 1,105 (예시)")
+  rows: TallyRow[];
+  verification?: {              // 개표 무결성 검증 카드 (선택)
+    title: string;
+    lines: string[];
+  };
+  badges?: { label: string; tone?: Tone }[];
 };
 
 // --- Process panel types ---
@@ -185,6 +232,7 @@ export type CompareTable = {
   title?: string;
   columns: string[];
   rows: string[][];
+  pillColumn?: number; // 해당 컬럼(index)의 셀을 알약(pill) 배지로 렌더 (zkVoting 구분)
 };
 
 export type StatusCard = {
@@ -230,6 +278,7 @@ export type ProcessView =
       cards?: StatusCard[];
       compareTable?: CompareTable;
       sequence?: SequenceContext;
+      diagram?: "merkle-roll"; // 선거인 명부 머클트리 (zkVoting)
     }
   | {
       kind: "approval";
@@ -264,6 +313,8 @@ export type ProcessView =
       kind: "merkle";
       phase: "generating" | "complete";
       sequence?: SequenceContext;
+      // 실연동 시 주입되는 실제 txHash (withLiveProcessView). 없으면 컴포넌트 기본값 사용.
+      liveTxHash?: string;
     }
   | {
       kind: "formula";
@@ -346,6 +397,15 @@ export type ScenarioStep = {
   screenId: string;
   processView: ProcessView;
   description: string;
+  // 진행 단계에 표시할 처리 주체 (예: "스마트폰 web", "서버", "운영자 web · 서버").
+  lane?: string;
+  // zkPoL 라이브 스텝: 화면 슬롯에 목업 대신 실데이터 컴팩트 콘솔을 렌더한다.
+  // incident = 위반 감지 + 지급 차단 종합(배치 로그 + 사고 + 차단 카운터).
+  // monitor  = 거래 모니터링(ZP-4 이상주입 스텝). incident와 구성은 같지만 정상 운영에서 출발해
+  //            콘솔 안의 주입 버튼으로 '정상 → 사고' 전환을 한 화면에서 보여준다(톤이 동적).
+  // normal   = 정상 운영(ZP-4 첫 스텝). monitor와 같은 구성이되 주입 버튼·사고 게이팅 없이
+  //            정상 배치 증명이 쌓이는 상태만 보여주고 바로 다음으로 넘어간다(항상 중립 톤).
+  liveView?: "ingest" | "verify" | "detect" | "blocked" | "console" | "incident" | "monitor" | "normal";
 };
 
 // --- Scenario ---
@@ -364,4 +424,6 @@ export type Scenario = {
   summary: string;
   screens: UserScreen[];
   steps: ScenarioStep[];
+  // 시나리오 하단 안내 노트 (zkVoting: 데모 데이터 안내·처리 분담·비밀투표·출처 등).
+  note?: { label: string; text: string }[];
 };

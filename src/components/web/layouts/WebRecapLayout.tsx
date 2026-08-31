@@ -1,9 +1,11 @@
-import type { RecapPanel, RecapRow, UserScreen } from "@/scenarios/types";
+import type { RecapPanel, RecapRow, ScenarioId, UserScreen } from "@/scenarios/types";
 import { navigateToRoute } from "@/router";
 import { actorGroups, scenarioGroupLookup, scenarios } from "@/scenarios";
 import { PhoneStatusBar } from "@/components/phone/PhoneStatusBar";
 import { PhoneScreen } from "@/components/phone/PhoneScreen";
 import { getProductLabelByScenarioId } from "@/scenarios/groups";
+import { useDemoStore } from "@/store/demoStore";
+import { withLiveScreenValues } from "@/utils/liveValues";
 
 type Props = {
   screen: UserScreen;
@@ -41,11 +43,26 @@ function handleCtaClick(target: NonNullable<RecapPanel["cta"]>["target"]) {
   navigateToRoute({ name: "actor", productId, actorId: target.actorId });
 }
 
-function PhoneFramePreview({ scenarioId, screenId }: { scenarioId: string; screenId: string }) {
+function PhoneFramePreview({
+  scenarioId,
+  screenId,
+  hostScenarioId,
+}: {
+  scenarioId: string;
+  screenId: string;
+  hostScenarioId?: ScenarioId;
+}) {
+  const storeState = useDemoStore((s) => s);
   const scenario = scenarios[scenarioId as keyof typeof scenarios];
   if (!scenario) return null;
-  const previewScreen = scenario.screens.find((s) => s.id === screenId);
-  if (!previewScreen) return null;
+  const rawScreen = scenario.screens.find((s) => s.id === screenId);
+  if (!rawScreen) return null;
+  // 임베드된 폰 화면도 실제 실행 값(어댑터 결과)으로 오버라이드한다.
+  // (안 하면 recap 패널 rows는 실값인데 폰 목업만 픽스처로 남아 값이 어긋난다)
+  // 순서: 호스트 시나리오 값으로 먼저 채우고(직접 진입 시 원본 시나리오 미실행 대비),
+  // 원본 시나리오 값이 있으면 그걸 우선한다("FU-1 결과"는 FU-1 실행값이 정답).
+  const hostResolved = hostScenarioId ? withLiveScreenValues(rawScreen, storeState, hostScenarioId) : rawScreen;
+  const previewScreen = withLiveScreenValues(hostResolved, storeState, scenario.id as ScenarioId);
   const productLabel = getProductLabelByScenarioId(scenario.id);
   const noop = () => {};
 
@@ -74,7 +91,7 @@ function PhoneFramePreview({ scenarioId, screenId }: { scenarioId: string; scree
   );
 }
 
-function Panel({ panel }: { panel: RecapPanel }) {
+function Panel({ panel, hostScenarioId }: { panel: RecapPanel; hostScenarioId?: ScenarioId }) {
   return (
     <section className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-5 shadow-sm">
       <div className="mb-4">
@@ -88,6 +105,7 @@ function Panel({ panel }: { panel: RecapPanel }) {
         <PhoneFramePreview
           scenarioId={panel.previewScreen.scenarioId}
           screenId={panel.previewScreen.screenId}
+          hostScenarioId={hostScenarioId}
         />
       )}
 
@@ -128,6 +146,10 @@ export function WebRecapLayout({ screen }: Props) {
   const recap = screen.recap;
   if (!recap) return null;
 
+  // 이 recap 화면이 속한 호스트 시나리오(id) 역조회 — 프리뷰 폰 화면의 라이브 값 폴백에 쓴다.
+  const hostScenarioId = (Object.values(scenarios).find((sc) => sc.screens.some((s) => s.id === screen.id))?.id ??
+    undefined) as ScenarioId | undefined;
+
   return (
     <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-5">
       <div className="space-y-2">
@@ -157,7 +179,7 @@ export function WebRecapLayout({ screen }: Props) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {recap.panels.map((panel, i) => (
-          <Panel key={i} panel={panel} />
+          <Panel key={i} panel={panel} hostScenarioId={hostScenarioId} />
         ))}
       </div>
     </div>

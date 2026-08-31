@@ -11,6 +11,18 @@ import { MerkleProcessView } from "./views/MerkleProcessView";
 import { OverviewProcessView } from "./views/OverviewProcessView";
 import { SequenceProcessView } from "./views/SequenceProcessView";
 import { StepListProcessView } from "./views/StepListProcessView";
+import { LaneFlowView } from "./views/LaneFlowView";
+
+// zkVoting 처리 개요 — overview 표(구분 pillColumn)에서 레인 배너 + 단계 박스 흐름을 도출.
+function deriveLaneFlow(view: ProcessView) {
+  if (view.kind === "overview" && view.compareTable && view.compareTable.pillColumn !== undefined) {
+    const laneCol = view.compareTable.pillColumn;
+    const steps = view.compareTable.rows.map((r) => ({ label: r[1], lane: r[laneCol] }));
+    const lanes = [...new Set(steps.map((s) => s.lane))];
+    return { lanes, steps };
+  }
+  return null;
+}
 
 function dedupeAndFilter(edges: SequenceEdge[], activeEdge: SequenceEdge): SequenceEdge[] {
   const unique = edges.filter((e, i, arr) =>
@@ -89,9 +101,11 @@ type Props = {
   currentStepIndex?: number;
   processView: ProcessView;
   steps?: ScenarioStep[];
+  // 현재 화면에 노출되는 기술 값(Tx Hash·Raw Signature 등)의 [라벨, 해설] 목록
+  screenFieldHints?: [string, string][];
 };
 
-export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [] }: Props) {
+export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, steps = [], screenFieldHints = [] }: Props) {
   const topSequence = resolveTopSequence(processView, steps, currentStepIndex);
   const topSequencePast = topSequence
     ? dedupeAndFilter(
@@ -101,6 +115,7 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
     : undefined;
 
   const detailContent = renderView(processView);
+  const laneFlow = deriveLaneFlow(processView);
 
   return (
     <section className="flex min-h-[650px] flex-col rounded-lg border border-[var(--line)] bg-[var(--surface)]">
@@ -126,7 +141,9 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
               <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
                 처리 개요
               </div>
-              {topSequence ? (
+              {laneFlow ? (
+                <LaneFlowView lanes={laneFlow.lanes} steps={laneFlow.steps} />
+              ) : topSequence ? (
                 <div className="h-[150px] overflow-hidden rounded-xl bg-[var(--surface-2)]">
                   <SequenceProcessView
                     actors={topSequence.actors}
@@ -144,9 +161,22 @@ export function ProcessPanel({ currentStep, currentStepIndex = 0, processView, s
             {detailContent && (
               <div className="border-t border-[var(--line)] px-5 py-5">
                 <div className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">
-                  화면 상세 설정
+                  화면 상세 설명
                 </div>
                 {detailContent}
+                {screenFieldHints.length > 0 && (
+                  <div className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] p-4">
+                    <div className="mb-2.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--muted)]">값 설명</div>
+                    <dl className="space-y-2">
+                      {screenFieldHints.map(([label, hint]) => (
+                        <div key={label} className="text-[12px] leading-[1.55]">
+                          <dt className="font-mono text-[11px] font-medium text-[var(--ink)]">{label}</dt>
+                          <dd className="mt-0.5 text-[var(--ink-2)]">{hint}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

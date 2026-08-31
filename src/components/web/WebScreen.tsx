@@ -8,6 +8,7 @@ import { WebDashboardLayout } from "./layouts/WebDashboardLayout";
 import { WebLedgerLayout } from "./layouts/WebLedgerLayout";
 import { WebAuditTableLayout } from "./layouts/WebAuditTableLayout";
 import { WebRecapLayout } from "./layouts/WebRecapLayout";
+import { WebTallyLayout } from "./layouts/WebTallyLayout";
 
 type Props = {
   screen: UserScreen;
@@ -56,6 +57,7 @@ export function WebScreen({ screen, actor, activeActionLabel, canAdvance = false
         {screen.layout === "dashboard" && <WebDashboardLayout {...layoutProps} />}
         {screen.layout === "ledger" && <WebLedgerLayout {...layoutProps} />}
         {screen.layout === "audit-table" && <WebAuditTableLayout {...layoutProps} />}
+        {screen.layout === "tally" && <WebTallyLayout {...layoutProps} />}
         {screen.layout === "recap" && <WebRecapLayout screen={screen} />}
         {screen.layout === "cta" && <WebDashboardLayout {...layoutProps} />}
 

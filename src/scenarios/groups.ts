@@ -5,6 +5,7 @@ export const productLabels: Record<ProductId, string> = {
   zktransfer: "zkTransfer",
   zkpasskey: "zkPasskey",
   zkpol: "zkPoL",
+  zkvoting: "zkVoting",
 };
 
 export type ActorGroup = {
@@ -92,7 +93,35 @@ export const actorGroups: ActorGroup[] = [
     shortLabel: "거래소",
     description: "거래소 고객 부채 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
     surface: "web",
-    scenarioIds: ["ZP-1", "ZP-4"],
+    scenarioIds: ["ZP-1", "ZP-4", "ZP-D"],
+  },
+  {
+    id: "stablecoin-risk",
+    productId: "zkpol",
+    label: "스테이블코인용",
+    shortLabel: "스테이블코인",
+    description: "스테이블코인 발행 잔액과 고객 잔액 정합성을 상시 증명하고, 이상징후를 탐지·차단하는 흐름을 포함합니다.",
+    surface: "web",
+    scenarioIds: ["ZPS-1", "ZPS-4", "ZPS-D"],
+  },
+  // zkvoting
+  {
+    id: "zv-voter",
+    productId: "zkvoting",
+    label: "유권자 (온라인)",
+    shortLabel: "유권자",
+    description: "유권자가 스마트폰 웹에서 본인확인 후 비밀투표하고, 투표값 암호화·영지식증명 생성까지 단말에서 수행하는 흐름입니다.",
+    surface: "app",
+    scenarioIds: ["ZV-1"],
+  },
+  {
+    id: "zv-operator",
+    productId: "zkvoting",
+    label: "운영자 (주최측)",
+    shortLabel: "운영자",
+    description: "운영자가 웹 콘솔에서 투표를 개설하고 명부를 머클트리로 고정한 뒤, 종료 후 개표·개표 무결성 검증을 수행하는 흐름입니다.",
+    surface: "web",
+    scenarioIds: ["ZO-1"],
   },
   {
     id: "stablecoin-risk",

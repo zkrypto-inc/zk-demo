@@ -239,9 +239,9 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], extraActiveE
           return (
             <g key={actor} opacity={activeActors.size === 0 || isCurrent ? 1 : isPast ? 0.62 : 0.35}>
               <rect
-                fill={isCurrent ? toneSoftColor(highlightTone) : "var(--surface)"}
+                fill="var(--surface)"
                 height={nodeHeight}
-                rx="8"
+                rx="4"
                 stroke={isCurrent ? toneColor(highlightTone) : "var(--line)"}
                 strokeWidth={isCurrent ? 1.6 : 1}
                 width={nodeWidth}
@@ -250,8 +250,8 @@ export function SequenceProcessView({ actors, edge, pastEdges = [], extraActiveE
               />
               <text
                 fill={isCurrent ? "var(--ink)" : "var(--ink-2)"}
-                fontSize="12"
-                fontWeight={isCurrent ? 700 : 600}
+                fontSize="12.5"
+                fontWeight={isCurrent ? 600 : 500}
                 textAnchor="middle"
                 x={center.x}
                 y={center.y + 4}

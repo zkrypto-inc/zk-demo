@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PhoneContainer } from "@/components/phone/PhoneContainer";
 import { WebScreen } from "@/components/web/WebScreen";
 import { ProcessPanel } from "@/components/process/ProcessPanel";
 import { StepTracker } from "@/components/process/StepTracker";
 import { WebContainer } from "@/components/web/WebContainer";
+import { useAdapterScenarioRun } from "@/hooks/useAdapterScenarioRun";
+import { useTransferScenario } from "@/hooks/useTransferScenario";
 import { useScenarioPlayer } from "@/hooks/useScenarioPlayer";
 import { navigateToRoute } from "@/router";
 import {
@@ -16,6 +18,12 @@ import {
 import type { ActorGroupId, ProductId, ScenarioId } from "@/scenarios/types";
 import { demoStore, useDemoStore } from "@/store/demoStore";
 import { withLiveProcessView, withLiveScreenValues } from "@/utils/liveValues";
+import { getFieldHint } from "@/utils/fieldGlossary";
+import { ZkpolLiveDashboard, ZKPOL_LIVE_SCENARIOS } from "@/components/zkpol/ZkpolLiveDashboard";
+import { ZkpolStablecoinDashboard } from "@/components/zkpol/ZkpolStablecoinDashboard";
+import { ZkpolCompactConsole } from "@/components/zkpol/ZkpolCompactConsole";
+import { ensureRunning, ensureRunningFresh, lineForScenario, setMyBatchBaseline, stopIncidentScheduler, stopStreamOnUnload, submitAnomalyTransaction, submitNormalTransaction } from "@/api/polControlClient";
+import { getOperatorLogs } from "@/api/polClient";
 
 type Props = {
   actorId?: ActorGroupId;
@@ -26,10 +34,14 @@ type Props = {
 
 export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Props) {
   const scenario = scenarios[scenarioId];
+  // zkPoL 제품 라인: ZPS-* = 스테이블코인(KRWSC 세션), 그 외 = 거래소(BTC 세션). 서로 독립 스트림.
+  const polLine = lineForScenario(scenario.id);
   const storeState = useDemoStore((state) => state);
   const resolvedActorId = actorId ?? scenarioGroupLookup[scenarioId] ?? scenario.mode;
   const group = actorGroupById[resolvedActorId] ?? getScenarioGroup(scenario);
   const resolvedProductId = productId ?? group?.productId ?? "zkwallet";
+  const adapter = useAdapterScenarioRun(scenario);
+  const transfer = useTransferScenario(scenario);
 
   const player = useScenarioPlayer({
     steps: scenario.steps,
@@ -54,14 +66,29 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
   });
 
   const currentStep = player.currentStep ?? scenario.steps[0];
-  const baseScreen = useMemo(
-    () => scenario.screens.find((screen) => screen.id === currentStep.screenId) ?? scenario.screens[0],
-    [currentStep.screenId, scenario.screens],
-  );
+  const baseScreen =
+    scenario.screens.find((screen) => screen.id === currentStep.screenId) ?? scenario.screens[0];
   const screen = withLiveScreenValues(baseScreen, storeState, scenario.id);
   const processView = withLiveProcessView(currentStep.processView, storeState, scenario.id);
   const displayId = getScenarioDisplayId(scenario);
   const screenActor = screen.actor ?? scenario.actor;
+
+  // 현재 화면에 노출되는 기술 값(Tx Hash·Raw Signature·Wallet ID 등)의 해설 —
+  // "현재 단계" 카드에 붙여 파트너가 값의 의미를 화면에서 바로 읽게 한다.
+  const screenFieldHints = useMemo(() => {
+    const seen = new Set<string>();
+    const hints: [string, string][] = [];
+    for (const section of screen.sections ?? []) {
+      for (const field of section.fields ?? []) {
+        const hint = getFieldHint(field.label);
+        if (hint && !seen.has(field.label)) {
+          seen.add(field.label);
+          hints.push([field.label, hint]);
+        }
+      }
+    }
+    return hints;
+  }, [screen]);
 
   useEffect(() => {
     demoStore.setStep(scenario.id, player.currentStepIndex);
@@ -70,12 +97,116 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
     }
   }, [player.currentStepIndex, scenario.id, scenario.steps.length]);
 
+  // 통합 운영 모델: zkPoL(ZP-1/ZP-4/ZP-D) 진입 시 거래소가 안 돌고 있으면 자동으로 운영 시작한다.
+  // 세션은 하나로 공유되고, 시작/정지/재시작은 운영 대시보드에서 한다.
+  // 단, 다중 사용자 대비: 브라우저를 떠날 때(탭 닫기·새로고침)는 내 세션 스트림을 정지해
+  // 백그라운드 좀비 스트림이 누적되지 않게 한다. 시나리오 간 이동은 세션을 유지한다.
+  // ZP-4/ZPS-4 모니터링 스텝: 정상 운영 중인 파이프라인을 전제로 하므로 별도 경로로 보장한다(아래 effect).
+  // - 세션 스텝(normal=정상 운영, monitor=이상 주입): 진입 시 정상 세션을 보장(ensureRunningFresh).
+  // - 주입 스텝(monitor만): 콘솔 주입 버튼 + 전환 시 스케줄러 정지(advanceFromMonitor).
+  // 두 스텝의 liveView가 모두 세션 스텝이라, normal→monitor 전환 시 effect가 재실행되지 않아
+  // 첫 스텝에서 만든 세션이 유지되고 그 세션에 주입이 얹힌다.
+  const isMonitorSessionStep = currentStep.liveView === "normal" || currentStep.liveView === "monitor";
+  const isInjectStep = currentStep.liveView === "monitor";
+  const isAnomalyScenario = scenario.id === "ZP-4" || scenario.id === "ZPS-4";
+  const [sessionPreparing, setSessionPreparing] = useState(false);
+
+  useEffect(() => {
+    const isZkpol = ["ZP-1", "ZP-4", "ZP-D", "ZPS-1", "ZPS-4", "ZPS-D"].includes(scenario.id);
+    if (!isZkpol) return;
+    // 해당 라인(거래소/스테이블코인) 세션만 자동 시작·정지한다. 두 라인은 독립 세션이라 서로 안 건드린다.
+    // ZP-4/ZPS-4는 ensureRunning과 ensureRunningFresh가 경합하지 않도록 아래 effect에만 맡긴다.
+    if (!isAnomalyScenario) void ensureRunning(polLine);
+    const handlePageHide = () => stopStreamOnUnload(polLine);
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      // zkPoL을 완전히 벗어나면(랜딩·다른 제품으로 이동) 이 라인 스트림을 정지한다.
+      // zkPoL 내부 이동(ZP/ZPS 간)은 경로가 여전히 /zkpol 이므로 유지된다.
+      if (!window.location.pathname.includes("/zkpol")) stopStreamOnUnload(polLine);
+    };
+  }, [scenario.id, polLine, isAnomalyScenario]);
+
+  // ZP-4/ZPS-4 모니터링 스텝(정상/이상) 진입: 사고로 차단된 세션은 자동으로 새 세션으로 교체한다.
+  // (ensureRunning은 차단 세션을 일부러 살리지 않으므로 그대로 두면 죽은 파이프라인을 보게 된다)
+  useEffect(() => {
+    if (!isMonitorSessionStep) return;
+    let cancelled = false;
+    setSessionPreparing(true);
+    void ensureRunningFresh(polLine).finally(() => {
+      if (!cancelled) setSessionPreparing(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isMonitorSessionStep, polLine]);
+
   const handleStepSelect = (nextStepIndex: number) => {
     player.goTo(nextStepIndex);
   };
 
   const handleFieldChange = (screenId: string, label: string, value: string) => {
     demoStore.setFormValue(scenario.id, screenId, label, value);
+  };
+
+  // zkPoL 트리거 스텝: 폰 제출이 '운영 중 거래소에 정상 거래 1건을 얹는다'(ZP-1/ZPS-1).
+  // ZP-4/ZPS-4의 이상 주입은 폰이 아니라 모니터링 콘솔 안의 버튼이 담당한다(주입 ≠ 스텝 진행).
+  const [zkpolTriggerBusy, setZkpolTriggerBusy] = useState(false);
+  const [zkpolTriggerError, setZkpolTriggerError] = useState<string | null>(null);
+  const zkpolTrigger =
+    currentStep.id === "ZP1-step-1" || currentStep.id === "ZPS1-step-1" ? submitNormalTransaction :
+    null;
+
+  // 모니터링 콘솔의 '이상 거래 주입' — 라인을 반드시 넘긴다(안 넘기면 ZPS-4가 거래소 세션을 오염시킨다).
+  const handleInjectAnomaly = () => submitAnomalyTransaction(polLine).then(() => undefined);
+  const runZkpolTriggerAndAdvance = async () => {
+    if (!zkpolTrigger || zkpolTriggerBusy) return;
+    setZkpolTriggerBusy(true);
+    setZkpolTriggerError(null);
+    try {
+      const tokenId = await zkpolTrigger(polLine);
+      // ZP-1/ZPS-1: 제출 직후 현재 최대 batchSeq를 baseline으로 기록 → 콘솔이 '그 다음 배치'를 내 거래로 강조.
+      if (currentStep.id === "ZP1-step-1" || currentStep.id === "ZPS1-step-1") {
+        try {
+          const page = await getOperatorLogs(tokenId);
+          const maxSeq = page.items.reduce((m, l) => (l.batchSeq != null && l.batchSeq > m ? l.batchSeq : m), 0);
+          setMyBatchBaseline(maxSeq, tokenId, polLine);
+        } catch {
+          /* baseline 기록 실패해도 진행 (콘솔은 세션 첫 배치로 폴백) */
+        }
+      }
+      player.advance();
+    } catch (error) {
+      setZkpolTriggerError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setZkpolTriggerBusy(false);
+    }
+  };
+
+  // zkTransfer ZT-1 트리거 스텝: "전송 요청"(ZT1-step-4)에서 실제 비공개 전송을 실행하고 진행한다.
+  const [transferBusy, setTransferBusy] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+  const isTransferTrigger = transfer.supported && currentStep.id === "ZT1-step-4";
+  const runTransferAndAdvance = async () => {
+    if (transferBusy) return;
+    setTransferBusy(true);
+    setTransferError(null);
+    try {
+      await transfer.runTransferStep();
+      player.advance();
+    } catch (error) {
+      setTransferError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setTransferBusy(false);
+    }
+  };
+
+  // ZP-4/ZPS-4 모니터링 → 지급 차단 전환: 이미 차단된 세션의 배치 스케줄러를 정지한다.
+  // 정지 확인을 기다리지 않고(화면 전환을 늦추지 않게) 진행한다 — 실패해도 다음 세션
+  // 시작 때 원장 기반 정리가 다시 걷어간다.
+  const advanceFromMonitor = () => {
+    void stopIncidentScheduler(polLine);
+    player.advance();
   };
 
   const recapAction = !player.hasNext && screen.actions?.find((a) => a.id === "recap");
@@ -88,35 +219,112 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           scenarioId: "FU-3",
           stepIndex: 0,
         })
-    : player.advance;
+    : zkpolTrigger
+      ? runZkpolTriggerAndAdvance
+      : isTransferTrigger
+        ? runTransferAndAdvance
+        : player.advance;
   const canAdvanceWithRecap = Boolean(recapAction) || player.canAdvanceByUser;
   const activeActionLabel = recapAction ? recapAction.label : player.nextLabel;
 
+  // zkPoL 운영 대시보드(ZP-D/ZPS-D)는 스크립트 화면 대신 실데이터 대시보드를 렌더한다.
+  // ZP-D=거래소 네이티브 임베드, ZPS-D=스테이블코인 라인 React 제어 패널(KRWSC).
+  if (ZKPOL_LIVE_SCENARIOS.has(scenario.id) || scenario.id === "ZPS-D") {
+    return (
+      <section className="mx-auto max-w-[1100px] space-y-12 pt-2">
+        <header>
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--muted)]">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">Demo</button>
+            <span>/</span>
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">{resolvedProductId}</button>
+            <span>/</span>
+            <span className="text-[var(--ink-2)]">{displayId}</span>
+          </div>
+          <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">{scenario.name}</h1>
+          <p className="mt-2.5 max-w-[600px] text-[13.5px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</p>
+        </header>
+        {scenario.id === "ZPS-D" ? <ZkpolStablecoinDashboard /> : <ZkpolLiveDashboard scenarioId={scenario.id} />}
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-5">
-      <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] pb-4 xl:flex-row xl:items-end">
+      <div className="flex flex-col justify-between gap-4 border-b border-[var(--ink)]/15 pb-5 xl:flex-row xl:items-end">
         <div>
-          <div className="flex flex-wrap items-center gap-2 text-[12px] text-[var(--ink-2)]">
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">
-              Demo Home
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-[var(--muted)]">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "landing" })} type="button">
+              Demo
             </button>
             <span>/</span>
-            <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">
+            <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "product", productId: resolvedProductId })} type="button">
               {resolvedProductId}
             </button>
             <span>/</span>
             {group && (
-              <button className="hover:text-[var(--accent)]" onClick={() => navigateToRoute({ name: "actor", productId: resolvedProductId, actorId: group.id })} type="button">
+              <button className="hover:text-[var(--ink)]" onClick={() => navigateToRoute({ name: "actor", productId: resolvedProductId, actorId: group.id })} type="button">
                 {group.label}
               </button>
             )}
             <span>/</span>
-            <span className="font-semibold text-[var(--ink)]">{displayId} · {scenario.shortName}</span>
+            <span className="text-[var(--ink-2)]">{displayId}</span>
           </div>
-          <h1 className="mt-2 text-[26px] font-semibold leading-tight text-[var(--ink)]">{scenario.name}</h1>
-          <p className="mt-2 max-w-[820px] text-[14px] leading-[1.65] text-[var(--ink-2)]">{scenario.summary}</p>
+          <h1 className="mt-2.5 text-[26px] font-semibold tracking-[-0.01em] text-[var(--ink)]">{scenario.name}</h1>
+          <p className="mt-2.5 max-w-[640px] text-[13.5px] leading-[1.6] text-[var(--ink-2)]">{scenario.summary}</p>
         </div>
         <div className="flex items-center gap-2">
+          {adapter.supported && (
+            <button
+              type="button"
+              onClick={adapter.rerun}
+              disabled={adapter.status === "loading"}
+              title={adapter.error ?? adapter.runId ?? "Adapter"}
+              className={`inline-flex h-7 max-w-[170px] items-center gap-2 rounded border px-3 text-[11px] font-medium transition ${adapterStatusClass(adapter.status)}`}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-current" />
+              <span className="truncate">{adapterStatusLabel(adapter.status)}</span>
+            </button>
+          )}
+          {adapter.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                player.restart();
+                void adapter.reset();
+              }}
+              disabled={adapter.status === "loading"}
+              title="이 시나리오의 실행 상태를 비우고 처음부터 (새 지갑·새 서명)"
+              className="inline-flex h-7 items-center rounded border border-[var(--line)] bg-[var(--surface)] px-3 text-[11px] font-medium text-[var(--ink-2)] transition hover:border-[var(--ink-2)] hover:text-[var(--ink)] disabled:opacity-50"
+            >
+              리셋
+            </button>
+          )}
+          {transfer.supported && (
+            <button
+              type="button"
+              onClick={transfer.rerun}
+              disabled={transfer.status === "loading"}
+              title={transfer.error ?? transfer.runId ?? "Transfer adapter"}
+              className={`inline-flex h-7 max-w-[170px] items-center gap-2 rounded border px-3 text-[11px] font-medium transition ${adapterStatusClass(transfer.status)}`}
+            >
+              <span className="h-2 w-2 shrink-0 rounded-full bg-current" />
+              <span className="truncate">{adapterStatusLabel(transfer.status)}</span>
+            </button>
+          )}
+          {transfer.supported && (
+            <button
+              type="button"
+              onClick={() => {
+                player.restart();
+                void transfer.reset();
+              }}
+              disabled={transfer.status === "loading"}
+              title="재생을 처음으로 되돌리고 세션을 새로 준비 (계정은 유지)"
+              className="inline-flex h-7 items-center rounded border border-[var(--line)] bg-[var(--surface)] px-3 text-[11px] font-medium text-[var(--ink-2)] transition hover:border-[var(--ink-2)] hover:text-[var(--ink)] disabled:opacity-50"
+            >
+              리셋
+            </button>
+          )}
           <div className="inline-flex h-7 items-center rounded bg-[var(--surface-2)] px-3 font-mono text-[11px] text-[var(--ink-2)]">
             step {player.currentStepIndex + 1} / {scenario.steps.length}
           </div>
@@ -145,10 +353,14 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       </div>
 
       {screen.layout !== "recap" && (
-      <div className="flex items-start justify-between gap-4 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-5 py-4">
+      <div className="flex items-start justify-between gap-4 border-l-2 border-[var(--ink)] bg-[var(--surface-2)] px-5 py-4">
         <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-medium uppercase tracking-[0.04em] text-[var(--ink-2)]">화면 설명</div>
-          <div className="mt-2 text-[22px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+          <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">현재 단계</div>
+          <div className="mt-2 text-[19px] font-semibold leading-[1.45] text-[var(--ink)]">{currentStep.description}</div>
+          {(zkpolTriggerBusy || (isMonitorSessionStep && sessionPreparing)) && <div className="mt-2 text-[12px] text-[var(--ink-2)]">백엔드 기동 중… (세션 준비에 수 초 걸립니다)</div>}
+          {zkpolTriggerError && <div className="mt-2 text-[12px] text-[var(--bad)]">실행 실패: {zkpolTriggerError}</div>}
+          {transferBusy && <div className="mt-2 text-[12px] text-[var(--ink-2)]">증명 생성·온체인 제출 중…</div>}
+          {transferError && <div className="mt-2 text-[12px] text-[var(--bad)]">전송 실패: {transferError}</div>}
         </div>
         {player.canStopAuto && (
           <button
@@ -188,11 +400,20 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
       ) : (
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(330px,0.95fr)_minmax(520px,1.25fr)_300px]">
         <div className="min-w-0">
-          {(screen.actorType ?? scenario.actorType) === "mobile" ? (
+          {currentStep.liveView ? (
+            <ZkpolCompactConsole
+              focus={currentStep.liveView}
+              line={polLine}
+              onAdvance={player.hasNext ? (isInjectStep ? advanceFromMonitor : player.advance) : undefined}
+              advanceLabel={player.hasNext ? "다음 단계 →" : undefined}
+              onInject={isInjectStep ? handleInjectAnomaly : undefined}
+              preparing={isMonitorSessionStep && sessionPreparing}
+            />
+          ) : (screen.actorType ?? scenario.actorType) === "mobile" ? (
             <PhoneContainer
               activeActionLabel={activeActionLabel}
               actor={screenActor}
-              canAdvance={canAdvanceWithRecap}
+              canAdvance={canAdvanceWithRecap && !zkpolTriggerBusy && !transferBusy}
               onAdvance={advanceOrRecap}
               onFieldChange={handleFieldChange}
               scenarioId={scenario.id}
@@ -218,6 +439,7 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
           currentStepIndex={player.currentStepIndex}
           processView={processView}
           steps={scenario.steps}
+          screenFieldHints={screenFieldHints}
         />
 
         <aside className="space-y-4">
@@ -246,9 +468,46 @@ export function ScenarioPage({ actorId, productId, scenarioId, stepIndex }: Prop
               </div>
             </div>
           )}
+          {scenario.note && scenario.note.length > 0 && (
+            <div className="rounded-lg border border-[var(--line)] bg-[var(--surface)] p-4">
+              <div className="space-y-3">
+                {scenario.note.map((item) => (
+                  <div key={item.label} className="text-[12px] leading-[1.7] text-[var(--ink-2)]">
+                    <span className="font-semibold text-[var(--ink)]">{item.label}</span> — {item.text}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
       )}
     </section>
   );
+}
+
+function adapterStatusLabel(status: ReturnType<typeof useAdapterScenarioRun>["status"]) {
+  switch (status) {
+    case "loading":
+      return "adapter 연결 중";
+    case "success":
+      return "adapter OK";
+    case "error":
+      return "adapter 오류";
+    default:
+      return "adapter 대기";
+  }
+}
+
+function adapterStatusClass(status: ReturnType<typeof useAdapterScenarioRun>["status"]) {
+  switch (status) {
+    case "loading":
+      return "border-[var(--warn-soft)] bg-[var(--warn-soft)] text-[var(--warn)]";
+    case "success":
+      return "border-[var(--ok-soft)] bg-[var(--ok-soft)] text-[var(--ok)]";
+    case "error":
+      return "border-[var(--bad-soft)] bg-[var(--bad-soft)] text-[var(--bad)] hover:opacity-80";
+    default:
+      return "border-[var(--line)] bg-[var(--surface-2)] text-[var(--ink-2)] hover:text-[var(--ink)]";
+  }
 }

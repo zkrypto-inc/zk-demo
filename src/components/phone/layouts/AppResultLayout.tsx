@@ -10,6 +10,11 @@ type Props = {
 };
 
 export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvance }: Props) {
+  // 기본은 성공(초록 체크). statusTone이 bad/warn이면 차단·보류 상태로 렌더한다
+  // — "지급 보류" 옆에 초록 체크가 뜨는 것을 막기 위함 (ZP-4 스텝2).
+  const blocked = screen.statusTone === "bad" || screen.statusTone === "warn";
+  const statusColor = screen.statusTone === "bad" ? "bad" : screen.statusTone === "warn" ? "warn" : "ok";
+
   const allFields = screen.sections.flatMap((s) => s.fields);
   const highlightFields = allFields.filter((f) => f.tone === "accent" || f.tone === "ok");
   const otherFields = allFields.filter((f) => f.tone !== "accent" && f.tone !== "ok");
@@ -50,19 +55,20 @@ export function AppResultLayout({ screen, canAdvance, activeActionLabel, onAdvan
         <div className="flex flex-col items-center gap-3 py-2">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ backgroundColor: "var(--ok-soft)" }}
+            style={{ backgroundColor: `var(--${statusColor}-soft)` }}
           >
-            <svg viewBox="0 0 32 32" fill="none" className="h-8 w-8" style={{ color: "var(--ok)" }}>
+            <svg viewBox="0 0 32 32" fill="none" className="h-8 w-8" style={{ color: `var(--${statusColor})` }}>
               <path
-                d="M7 16l6 6 12-12"
+                d={blocked ? "M16 8v10M16 23.5v.5" : "M7 16l6 6 12-12"}
                 stroke="currentColor"
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
+              {blocked && <circle cx="16" cy="16" r="12" stroke="currentColor" strokeWidth="2.5" />}
             </svg>
           </div>
-          <div className="text-[17px] font-bold" style={{ color: "var(--ok)" }}>
+          <div className="text-[17px] font-bold" style={{ color: `var(--${statusColor})` }}>
             {screen.status}
           </div>
         </div>
